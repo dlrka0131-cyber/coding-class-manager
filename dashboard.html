@@ -1304,9 +1304,16 @@
                     });
                 };
 
-                // 파이어베이스 저장 함수
+                // 파이어베이스 저장 함수 (로딩 팝업 추가)
                 const saveData = async () => {
                     try {
+                        Swal.fire({
+                            title: '저장 중...',
+                            text: '데이터를 안전하게 업로드하고 있습니다.',
+                            allowOutsideClick: false,
+                            didOpen: () => { Swal.showLoading(); }
+                        });
+
                         const docRef = window.firebaseDoc(window.db, "dashboardData", "mainData");
                         await window.firebaseSetDoc(docRef, {
                             students: students.value,
@@ -1314,7 +1321,15 @@
                             quarter: quarter.value,
                             savedOrders: savedOrders.value
                         });
-                        Swal.fire({ title: '성공!', text: '전체 데이터가 파이어베이스에 안전하게 저장되었습니다.', icon: 'success', confirmButtonColor: '#10B981' });
+
+                        Swal.fire({ 
+                            title: '저장 완료!', 
+                            text: '전체 데이터가 파이어베이스에 안전하게 저장되었습니다.', 
+                            icon: 'success', 
+                            confirmButtonColor: '#10B981',
+                            timer: 1500,
+                            showConfirmButton: false
+                        });
                     } catch (e) {
                         console.error(e);
                         Swal.fire({ title: '오류', text: '파이어베이스 저장 중 오류가 발생했습니다.', icon: 'error', confirmButtonColor: '#EF4444' });
