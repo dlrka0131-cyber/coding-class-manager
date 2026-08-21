@@ -88,8 +88,6 @@
         .btn-input-modal { background: linear-gradient(135deg, #fbc5eb 0%, #e8a5df 100%); color: #4a235a; }
         .btn-load-prev { background: linear-gradient(135deg, #e7a9d7 0%, #d896d8 100%); color: #fff; } 
         .btn-save-pos { background: linear-gradient(135deg, #df98d7 0%, #cc88d0 100%); color: #fff; }
-        .btn-export { background: linear-gradient(135deg, #bd81c9 0%, #aa7bc4 100%); color: #fff; }
-        .btn-import { background: linear-gradient(135deg, #986ebb 0%, #8363b4 100%); color: #fff; }
         .btn-print { background: linear-gradient(135deg, #7457ad 0%, #b19cd9 100%); color: #fff; }
         
         .btn-reset-current { background: #e67e22; color: white; font-size: 0.85rem; padding: 9px; margin-top: 5px; }
@@ -310,9 +308,6 @@
         <button class="btn-input-modal" onclick="openModal()"><i class="fa-solid fa-clipboard-list"></i> 명단 추가</button>
         <button class="btn-load-prev" onclick="loadPreviousQuarterStudents()"><i class="fa-solid fa-clock-rotate-left"></i> 이전 분기 불러오기</button>
         <button class="btn-save-pos" onclick="manualSaveData()"><i class="fa-solid fa-floppy-disk"></i> 수동 저장</button>
-        <button class="btn-export" onclick="exportDataToFile()"><i class="fa-solid fa-cloud-arrow-up"></i> 4개 학교 전체 백업</button>
-        <button class="btn-import" onclick="document.getElementById('import-file').click()"><i class="fa-solid fa-cloud-arrow-down"></i> USB에서 불러오기</button>
-        <input type="file" id="import-file" style="display: none;" accept=".json" onchange="importDataFromFile(event)">
         <button class="btn-print" onclick="window.print()"><i class="fa-solid fa-print"></i> 인쇄하기</button>
 
         <div class="progress-container">
@@ -632,73 +627,6 @@
                 localStorage.removeItem('seatingApp_global_settings');
                 location.reload();
             });
-        }
-
-        // 🔥 USB 백업 시스템 (클라우드에서 다운로드)
-        async function exportDataToFile() {
-            await manualSaveData(true); 
-            showCustomAlert("백업 중...", "클라우드에서 데이터를 모으고 있습니다. 잠시만 기다려주세요.", '<i class="fa-solid fa-spinner fa-spin" style="color: #986ebb;"></i>');
-            
-            try {
-                const exportObj = { settings: JSON.parse(localStorage.getItem('seatingApp_global_settings')) || {} };
-                
-                for(let s in SCHOOLS) {
-                    exportObj[s] = {};
-                    for(let q in qTextMap) {
-                        const docSnap = await db.collection('seatingData').doc(`${s}_${q}`).get();
-                        if(docSnap.exists) {
-                            exportObj[s][q] = docSnap.data();
-                        }
-                    }
-                }
-
-                const dataStr = JSON.stringify(exportObj, null, 2);
-                const blob = new Blob([dataStr], { type: "application/json" });
-                const url = URL.createObjectURL(blob);
-                
-                const downloadAnchor = document.createElement('a');
-                downloadAnchor.href = url;
-                downloadAnchor.download = `Total_seating_data_all.json`;
-                document.body.appendChild(downloadAnchor);
-                downloadAnchor.click();
-                document.body.removeChild(downloadAnchor);
-                URL.revokeObjectURL(url);
-                
-                showCustomAlert("전체 백업 완료", "모든 학교 데이터가 백업되었습니다.", '<i class="fa-solid fa-cloud-arrow-up" style="color: #986ebb;"></i>');
-            } catch (e) {
-                showCustomAlert("오류", "백업 중 문제가 발생했습니다.", '<i class="fa-solid fa-triangle-exclamation" style="color: #e74c3c;"></i>');
-            }
-        }
-
-        // 🔥 USB 복구 시스템 (클라우드에 덮어쓰기)
-        async function importDataFromFile(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            showCustomAlert("복구 중...", "USB 데이터를 클라우드에 덮어쓰고 있습니다. 창을 닫지 마세요.", '<i class="fa-solid fa-spinner fa-spin" style="color: #986ebb;"></i>');
-
-            const reader = new FileReader();
-            reader.onload = async function(e) {
-                try {
-                    const importedData = JSON.parse(e.target.result);
-                    if(importedData.settings) localStorage.setItem('seatingApp_global_settings', JSON.stringify(importedData.settings));
-                    
-                    for(let s in SCHOOLS) {
-                        if(importedData[s]) {
-                            for(let q in qTextMap) {
-                                if(importedData[s][q]) {
-                                    await db.collection('seatingData').doc(`${s}_${q}`).set(importedData[s][q]);
-                                }
-                            }
-                        }
-                    }
-                    await initApp(); 
-                    showCustomAlert("복구 성공", "USB 백업 데이터가 클라우드에 성공적으로 반영되었습니다!", '<i class="fa-solid fa-cloud-arrow-down" style="color: #986ebb;"></i>');
-                } catch (error) {
-                    showCustomAlert("오류", "올바른 백업 파일이 아닙니다.", '<i class="fa-solid fa-triangle-exclamation" style="color: #e74c3c;"></i>');
-                }
-            };
-            reader.readAsText(file);
         }
 
         function updateTitleAndRender() {
