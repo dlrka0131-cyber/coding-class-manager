@@ -14,6 +14,29 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <!-- Pretendard Font -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+    
+    <!-- Firebase SDK (Modular CDN) -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyCDLTlbv0NPooUV_ErqpwJLX9ayQWqE8Y8",
+            authDomain: "dashboard-18022.firebaseapp.com",
+            projectId: "dashboard-18022",
+            storageBucket: "dashboard-18022.firebasestorage.app",
+            messagingSenderId: "342705436396",
+            appId: "1:342705436396:web:82fb1c31af93dc539857c9"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        window.db = db;
+        window.firebaseDoc = doc;
+        window.firebaseSetDoc = setDoc;
+        window.firebaseGetDoc = getDoc;
+    </script>
+
     <style>
         :root {
             --primary: #78649c;
@@ -396,12 +419,7 @@
                 </div>
                 <div style="display: flex; gap: 12px; align-items: center;">
                     <button v-if="isLoggedIn" class="btn btn-warning" @click="goHome" style="font-weight: 900;">🏠 학교 다시 선택</button>
-                    <button class="btn btn-outline" @click="loadData" style="border: none; background: rgba(255,255,255,0.1); color: white;">브라우저 불러오기</button>
                     <button class="btn" @click="saveData" style="background: white; color: #1E293B;">💾 전체 저장하기</button>
-                    <button class="btn" @click="exportDataToFile" style="background: #E0E7FF; color: #3730A3;" title="USB에 담기 위한 백업 파일 다운로드">📤 USB 백업</button>
-                    <button class="btn" @click="triggerFileInput" style="background: #FEF3C7; color: #92400E;" title="USB에 있던 백업 파일 선택">📥 파일 불러오기</button>
-                    <!-- 파일 input 태그 -->
-                    <input type="file" ref="fileInputRef" style="display: none;" accept=".json" @change="importDataFromFile">
                 </div>
             </div>
             
@@ -976,9 +994,7 @@
                 const selectedStudentIds = ref([]);
                 const batchItemValue = ref('DEFAULT');
                 const batchStatusValue = ref('DEFAULT');
-                const fileInputRef = ref(null);
 
-                // 정산 관련 상태 변수 추가
                 const sortKey = ref(null);
                 const sortOrder = ref('asc');
 
@@ -1006,12 +1022,10 @@
                     isLoggedIn.value = false;
                 };
 
-                // 홈 버튼 클릭 시 index.html 페이지로 이동 (존재하지 않을 경우 랜딩뷰로 안전하게 리셋)
                 const goToIndex = () => {
                     window.location.href = 'index.html';
                 };
 
-                // 🌟 랜딩 뷰에서 선택한 분기에 따라 배경 테마 컬러가 실시간으로 변경되도록 watch 설정
                 watch(landingQuarter, (newQ) => {
                     document.body.className = '';
                     if (newQ === '1분기') document.body.classList.add('theme-spring');
@@ -1290,82 +1304,53 @@
                     });
                 };
 
-                const saveData = () => {
+                // 파이어베이스 저장 함수
+                const saveData = async () => {
                     try {
-                        localStorage.setItem('codingClassData', JSON.stringify(students.value));
-                        localStorage.setItem('codingClassOrderFormsByQuarter', JSON.stringify(orderFormsByQuarter.value));
-                        localStorage.setItem('codingClassQuarter', quarter.value);
-                        localStorage.setItem('codingClassSavedOrders', JSON.stringify(savedOrders.value));
-                        Swal.fire({ title: '성공!', text: '전체 데이터가 브라우저에 저장되었습니다.', icon: 'success', confirmButtonColor: '#10B981' });
-                    } catch (e) { Swal.fire({ title: '오류', text: '저장 공간 부족 혹은 오류 발생', icon: 'error', confirmButtonColor: '#EF4444' }); }
-                };
-
-                const loadData = () => {
-                    const data = localStorage.getItem('codingClassData'); if (data) students.value = JSON.parse(data);
-                    
-                    const forms = localStorage.getItem('codingClassOrderFormsByQuarter');
-                    if (forms) {
-                        const parsedForms = JSON.parse(forms);
-                        Object.keys(parsedForms).forEach(q => {
-                            Object.keys(parsedForms[q]).forEach(s => {
-                                if (!parsedForms[q][s].addQty) {
-                                    parsedForms[q][s].addQty = { '말랑1': 0, '말랑2': 0, '말랑3': 0, '말랑4': 0 };
-                                }
-                                if (!parsedForms[q][s].orderDateAdd) parsedForms[q][s].orderDateAdd = '';
-                                if (!parsedForms[q][s].deliveryDateAdd) parsedForms[q][s].deliveryDateAdd = '';
-                                if (!parsedForms[q][s].deliveryPlaceAdd) parsedForms[q][s].deliveryPlaceAdd = parsedForms[q][s].deliveryPlace;
-                                if (!parsedForms[q][s].noteAdd) parsedForms[q][s].noteAdd = '';
-                            });
+                        const docRef = window.firebaseDoc(window.db, "dashboardData", "mainData");
+                        await window.firebaseSetDoc(docRef, {
+                            students: students.value,
+                            orderFormsByQuarter: orderFormsByQuarter.value,
+                            quarter: quarter.value,
+                            savedOrders: savedOrders.value
                         });
-                        orderFormsByQuarter.value = parsedForms;
-                    }
-                    
-                    const q = localStorage.getItem('codingClassQuarter'); if (q) quarter.value = q;
-                    const orders = localStorage.getItem('codingClassSavedOrders'); if (orders) savedOrders.value = JSON.parse(orders);
-                };
-
-                const exportDataToFile = () => {
-                    const allData = {
-                        students: students.value,
-                        orderFormsByQuarter: orderFormsByQuarter.value,
-                        savedOrders: savedOrders.value,
-                        quarter: quarter.value
-                    };
-                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allData, null, 2));
-                    const downloadAnchor = document.createElement('a');
-                    downloadAnchor.setAttribute("href", dataStr);
-                    downloadAnchor.setAttribute("download", `coding_dashboard_backup_${new Date().toISOString().slice(0,10)}.json`);
-                    document.body.appendChild(downloadAnchor);
-                    downloadAnchor.click();
-                    downloadAnchor.remove();
-                    Swal.fire({ title: '백업 완료!', text: 'USB 폴더에 백업 파일이 저장되었습니다.', icon: 'success', confirmButtonColor: '#10B981' });
-                };
-
-                const triggerFileInput = () => {
-                    if (fileInputRef.value) {
-                        fileInputRef.value.click();
+                        Swal.fire({ title: '성공!', text: '전체 데이터가 파이어베이스에 안전하게 저장되었습니다.', icon: 'success', confirmButtonColor: '#10B981' });
+                    } catch (e) {
+                        console.error(e);
+                        Swal.fire({ title: '오류', text: '파이어베이스 저장 중 오류가 발생했습니다.', icon: 'error', confirmButtonColor: '#EF4444' });
                     }
                 };
 
-                const importDataFromFile = (event) => {
-                    const file = event.target.files[0];
-                    if (!file) return;
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        try {
-                            const imported = JSON.parse(e.target.result);
-                            if (imported.students) students.value = imported.students;
-                            if (imported.orderFormsByQuarter) orderFormsByQuarter.value = imported.orderFormsByQuarter;
-                            if (imported.savedOrders) savedOrders.value = imported.savedOrders;
-                            if (imported.quarter) quarter.value = imported.quarter;
-                            saveData();
-                            Swal.fire({ title: '불러오기 성공!', text: 'USB 백업 데이터가 성공적으로 적용되었습니다.', icon: 'success', confirmButtonColor: '#10B981' });
-                        } catch (err) {
-                            Swal.fire({ title: '오류', text: '올바른 백업 파일이 아닙니다.', icon: 'error', confirmButtonColor: '#EF4444' });
+                // 파이어베이스 불러오기 함수 (자동 실행)
+                const loadData = async () => {
+                    try {
+                        const docRef = window.firebaseDoc(window.db, "dashboardData", "mainData");
+                        const docSnap = await window.firebaseGetDoc(docRef);
+                        
+                        if (docSnap.exists()) {
+                            const data = docSnap.data();
+                            if (data.students) students.value = data.students;
+                            if (data.orderFormsByQuarter) {
+                                const parsedForms = data.orderFormsByQuarter;
+                                Object.keys(parsedForms).forEach(q => {
+                                    Object.keys(parsedForms[q]).forEach(s => {
+                                        if (!parsedForms[q][s].addQty) {
+                                            parsedForms[q][s].addQty = { '말랑1': 0, '말랑2': 0, '말랑3': 0, '말랑4': 0 };
+                                        }
+                                        if (!parsedForms[q][s].orderDateAdd) parsedForms[q][s].orderDateAdd = '';
+                                        if (!parsedForms[q][s].deliveryDateAdd) parsedForms[q][s].deliveryDateAdd = '';
+                                        if (!parsedForms[q][s].deliveryPlaceAdd) parsedForms[q][s].deliveryPlaceAdd = parsedForms[q][s].deliveryPlace;
+                                        if (!parsedForms[q][s].noteAdd) parsedForms[q][s].noteAdd = '';
+                                    });
+                                });
+                                orderFormsByQuarter.value = parsedForms;
+                            }
+                            if (data.quarter) quarter.value = data.quarter;
+                            if (data.savedOrders) savedOrders.value = data.savedOrders;
                         }
-                    };
-                    reader.readAsText(file);
-                    event.target.value = '';
+                    } catch (e) {
+                        console.error(e);
+                    }
                 };
 
                 const copyScreenshot = async (type) => {
@@ -1412,7 +1397,7 @@
                 };
 
                 onMounted(() => {
-                    loadData();
+                    loadData(); // 페이지 접속 시 파이어베이스에서 최신 데이터 자동 로드
                     window.addEventListener('keydown', (e) => {
                         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
                             const searchInput = document.querySelector('.search-input');
@@ -1430,8 +1415,7 @@
                     resetCurrentStudents, getRowClass, formatMoney, getPrevItem, importFromPrevQuarter, getCount, getTotalCount, 
                     getSchoolTotal, getGrandTotal, getSchoolTotalByStatus, getSchoolOrderQty, getAdditionalOrderQty, getClassHeadCount, 
                     getCanceledItemCount, getAddedItemCount, getTransferCount, getReturnCount, getNetAddCount, totalCanceledCount, 
-                    totalAddedCount, saveOrderToList, removeSavedOrder, copySavedImage, saveData, loadData, exportDataToFile, 
-                    triggerFileInput, fileInputRef, importDataFromFile, copyScreenshot, exportToExcel,
+                    totalAddedCount, saveOrderToList, removeSavedOrder, copySavedImage, saveData, copyScreenshot, exportToExcel,
                     sortBy, getSortIcon
                 };
             }
