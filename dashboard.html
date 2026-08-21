@@ -1304,7 +1304,7 @@
                     });
                 };
 
-                // 파이어베이스 저장 함수 (로딩 팝업 추가)
+                // 파이어베이스 저장 함수 (타임아웃 안전장치 추가)
                 const saveData = async () => {
                     try {
                         Swal.fire({
@@ -1315,12 +1315,20 @@
                         });
 
                         const docRef = window.firebaseDoc(window.db, "dashboardData", "mainData");
-                        await window.firebaseSetDoc(docRef, {
+                        
+                        // 10초 타임아웃 처리 (네트워크가 안될 때 무한 로딩 방지)
+                        const timeoutPromise = new Promise((_, reject) => 
+                            setTimeout(() => reject(new Error('서버 응답 시간이 초과되었습니다.')), 10000)
+                        );
+
+                        const savePromise = window.firebaseSetDoc(docRef, {
                             students: students.value,
                             orderFormsByQuarter: orderFormsByQuarter.value,
                             quarter: quarter.value,
                             savedOrders: savedOrders.value
                         });
+
+                        await Promise.race([savePromise, timeoutPromise]);
 
                         Swal.fire({ 
                             title: '저장 완료!', 
@@ -1332,7 +1340,12 @@
                         });
                     } catch (e) {
                         console.error(e);
-                        Swal.fire({ title: '오류', text: '파이어베이스 저장 중 오류가 발생했습니다.', icon: 'error', confirmButtonColor: '#EF4444' });
+                        Swal.fire({ 
+                            title: '저장 실패', 
+                            text: e.message || '파이어베이스 저장 중 오류가 발생했습니다.', 
+                            icon: 'error', 
+                            confirmButtonColor: '#EF4444' 
+                        });
                     }
                 };
 
