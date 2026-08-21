@@ -563,9 +563,9 @@
                                 <tr>
                                     <th width="40"><input type="checkbox" @change="toggleAll" :checked="isAllSelected" title="전체 선택"></th>
                                     <th width="45">No</th>
-                                    <th width="75">학년</th>
-                                    <th width="75">반</th>
-                                    <th width="75">번호</th>
+                                    <th width="75" @click="sortBy('grade')" style="cursor: pointer;">학년 {{ getSortIcon('grade') }}</th>
+                                    <th width="75" @click="sortBy('classNum')" style="cursor: pointer;">반 {{ getSortIcon('classNum') }}</th>
+                                    <th width="75" @click="sortBy('num')" style="cursor: pointer;">번호 {{ getSortIcon('num') }}</th>
                                     <th width="130">성명</th>
                                     <th width="160">연락처</th>
                                     <th width="110">상태</th>
@@ -978,6 +978,24 @@
                 const batchStatusValue = ref('DEFAULT');
                 const fileInputRef = ref(null);
 
+                // 정산 관련 상태 변수 추가
+                const sortKey = ref(null);
+                const sortOrder = ref('asc');
+
+                const sortBy = (key) => {
+                    if (sortKey.value === key) {
+                        sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        sortKey.value = key;
+                        sortOrder.value = 'asc';
+                    }
+                };
+
+                const getSortIcon = (key) => {
+                    if (sortKey.value !== key) return '↕';
+                    return sortOrder.value === 'asc' ? '▲' : '▼';
+                };
+
                 const selectSchoolAndEnter = (schoolKey) => {
                     quarter.value = landingQuarter.value;
                     currentTab.value = schoolKey;
@@ -1052,6 +1070,18 @@
                         const q = searchQuery.value.trim().toLowerCase();
                         list = list.filter(s => s.name.includes(q) || s.phone.includes(q));
                     }
+
+                    if (sortKey.value) {
+                        list.sort((a, b) => {
+                            let valA = parseInt((a[sortKey.value] || '').toString().replace(/[^0-9]/g, ''), 10) || 0;
+                            let valB = parseInt((b[sortKey.value] || '').toString().replace(/[^0-9]/g, ''), 10) || 0;
+                            
+                            if (valA < valB) return sortOrder.value === 'asc' ? -1 : 1;
+                            if (valA > valB) return sortOrder.value === 'asc' ? 1 : -1;
+                            return 0;
+                        });
+                    }
+
                     return list;
                 });
 
@@ -1401,7 +1431,8 @@
                     getSchoolTotal, getGrandTotal, getSchoolTotalByStatus, getSchoolOrderQty, getAdditionalOrderQty, getClassHeadCount, 
                     getCanceledItemCount, getAddedItemCount, getTransferCount, getReturnCount, getNetAddCount, totalCanceledCount, 
                     totalAddedCount, saveOrderToList, removeSavedOrder, copySavedImage, saveData, loadData, exportDataToFile, 
-                    triggerFileInput, fileInputRef, importDataFromFile, copyScreenshot, exportToExcel
+                    triggerFileInput, fileInputRef, importDataFromFile, copyScreenshot, exportToExcel,
+                    sortBy, getSortIcon
                 };
             }
         }).mount('#app');
