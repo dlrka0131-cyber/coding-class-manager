@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>코딩 교구재 통합 관리 대시보드</title>
+    <!-- Vue 3 -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <!-- html2canvas for screenshots -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- SheetJS (엑셀 내보내기용) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Pretendard Font -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+    <style>
+        :root {
+            --primary: #78649c;
+            --primary-hover: #655288;
+            --surface: #FFFFFF;
+            --border: #CBD5E1;
+            --text-main: #0F172A;
+            --text-muted: #475569;
+        }
+        
+        body { 
+            font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            color: var(--text-main);
+            background: linear-gradient(135deg, #e4c588 0%, #d89679 100%) !important;
+            min-height: 100vh;
+            transition: background 0.5s ease;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        #app { min-height: 100vh; padding: 40px 20px; box-sizing: border-box; }
+        
+        body.theme-spring { background: linear-gradient(135deg, #e0a3a6 0%, #d2a6c2 100%) !important; --theme-color: #b56c82; }
+        body.theme-summer { background: linear-gradient(135deg, #85b89a 0%, #a2d2bc 100%) !important; --theme-color: #4a825c; }
+        body.theme-autumn { background: linear-gradient(135deg, #e4c588 0%, #d89679 100%) !important; --theme-color: #b87345; }
+        body.theme-winter { background: linear-gradient(135deg, #7b8ea8 0%, #a2b0c4 100%) !important; --theme-color: #566c8a; }
+
+        .container { 
+            max-width: 1550px; 
+            margin: 0 auto; 
+            background: var(--surface); 
+            border-radius: 20px; 
+            box-shadow: 0 20px 40px -15px rgba(0,0,0,0.15); 
+            overflow: hidden; 
+        }
+        
+        .header { 
+            background: rgba(44, 62, 80, 0.95); 
+            color: white; 
+            padding: 30px 40px; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .header-left { display: flex; flex-direction: column; gap: 18px; }
+        .header h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+        
+        .btn-home-circle {
+            width: 46px;
+            height: 46px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+            border-radius: 50%;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+            transition: all 0.25s ease;
+            flex-shrink: 0;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-home-circle:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 16px rgba(255, 107, 107, 0.6);
+        }
+        .btn-home-circle svg {
+            width: 24px;
+            height: 24px;
+            fill: white;
+        }
+
+        .q-tabs { display: flex; gap: 14px; }
+        .q-tab { 
+            padding: 12px 26px; 
+            background: rgba(255,255,255,0.1); 
+            color: #E2E8F0; 
+            border-radius: 30px; 
+            cursor: pointer; 
+            font-size: 17px; 
+            font-weight: 700; 
+            transition: all 0.25s ease; 
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .q-tab:hover { background: rgba(255,255,255,0.25); color: white; transform: translateY(-2px); }
+        .q-tab.active.spring { background: linear-gradient(135deg, #e0a3a6 0%, #d2a6c2 100%); color: #4a1525; box-shadow: 0 6px 16px rgba(181,108,130,0.3); }
+        .q-tab.active.summer { background: linear-gradient(135deg, #85b89a 0%, #a2d2bc 100%); color: #153b22; box-shadow: 0 6px 16px rgba(133,184,154,0.3); }
+        .q-tab.active.autumn { background: linear-gradient(135deg, #e4c588 0%, #d89679 100%); color: #4d2611; box-shadow: 0 6px 16px rgba(184,115,69,0.3); }
+        .q-tab.active.winter { background: linear-gradient(135deg, #7b8ea8 0%, #a2b0c4 100%); color: #1a2636; box-shadow: 0 6px 16px rgba(86,108,138,0.3); }
+        
+        .tabs { 
+            display: flex; flex-wrap: wrap; gap: 12px; 
+            padding: 22px 40px; 
+            background: #F8FAFC; 
+            border-bottom: 1px solid #CBD5E1; 
+        }
+        .tab { 
+            padding: 14px 26px; cursor: pointer; font-weight: 700; color: var(--text-muted); 
+            border-radius: 12px; background: white; transition: all 0.2s ease; 
+            font-size: 16px; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.03); 
+        }
+        .tab:hover { border-color: #94A3B8; color: var(--text-main); transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.04); }
+        .tab.active { 
+            background: var(--theme-color, var(--primary)); 
+            color: white; border-color: transparent; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateY(-2px); 
+        }
+
+        /* 랜딩 뷰 스타일 */
+        .landing-container {
+            padding: 60px 40px;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .landing-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 45px;
+            background: rgba(255, 255, 255, 0.9);
+            padding: 30px 40px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.03);
+            backdrop-filter: blur(5px);
+        }
+        .landing-title-area h2 {
+            margin: 0 0 6px 0;
+            font-size: 26px;
+            font-weight: 900;
+            color: #0F172A;
+        }
+        .landing-title-area p {
+            margin: 0;
+            font-size: 15.5px;
+            color: #64748B;
+            font-weight: 600;
+        }
+        .landing-quarter-row {
+            display: flex;
+            gap: 14px;
+        }
+        .landing-quarter-btn {
+            padding: 14px 28px;
+            border-radius: 30px;
+            background: white;
+            border: 2px solid var(--border);
+            font-size: 17px;
+            font-weight: 800;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.03);
+        }
+        .landing-quarter-btn:hover {
+            border-color: #64748B;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+        }
+        .landing-quarter-btn.active.spring { background: linear-gradient(135deg, #e0a3a6 0%, #d2a6c2 100%); color: #4a1525; border-color: transparent; box-shadow: 0 8px 20px rgba(181,108,130,0.35); }
+        .landing-quarter-btn.active.summer { background: linear-gradient(135deg, #85b89a 0%, #a2d2bc 100%); color: #153b22; border-color: transparent; box-shadow: 0 8px 20px rgba(133,184,154,0.35); }
+        .landing-quarter-btn.active.autumn { background: linear-gradient(135deg, #e4c588 0%, #d89679 100%); color: #4d2611; border-color: transparent; box-shadow: 0 8px 20px rgba(184,115,69,0.35); }
+        .landing-quarter-btn.active.winter { background: linear-gradient(135deg, #7b8ea8 0%, #a2b0c4 100%); color: #1a2636; border-color: transparent; box-shadow: 0 8px 20px rgba(86,108,138,0.35); }
+
+        /* 학교 카드 그리드 */
+        .landing-school-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 28px;
+        }
+        .school-card {
+            background: linear-gradient(145deg, #FFFFFF 0%, #F8FAFC 100%);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            padding: 40px 25px;
+            cursor: pointer;
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.04), 0 3px 8px rgba(0,0,0,0.02);
+        }
+        .school-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 6px;
+            background: var(--theme-color, var(--primary));
+            opacity: 0.9;
+            transition: height 0.25s ease;
+        }
+        .school-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            border-color: var(--theme-color, var(--primary));
+            box-shadow: 0 25px 40px rgba(120,100,156,0.18), 0 8px 16px rgba(0,0,0,0.06);
+            background: #FFFFFF;
+        }
+        .school-card:hover::before {
+            height: 10px;
+        }
+        .school-badge {
+            background: #F1F5F9;
+            padding: 7px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 800;
+            color: #475569;
+            margin-bottom: 20px;
+            border: 1px solid #E2E8F0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+        .school-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 24px;
+            font-weight: 900;
+            color: #0F172A;
+            letter-spacing: -0.5px;
+        }
+        .school-card p {
+            margin: 0;
+            font-size: 14.5px;
+            color: #64748B;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        .content-area { padding: 40px; min-height: 500px; }
+        
+        .main-table { width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 25px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); font-size: 15.5px; }
+        .main-table th { background-color: #F1F5F9; font-weight: 800; color: #334155; padding: 10px 8px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); text-align: center; font-size: 16px; }
+        .main-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); text-align: center; vertical-align: middle; background: #fff; transition: background 0.2s; }
+        .main-table th:last-child, .main-table td:last-child { border-right: none; }
+        .main-table tbody tr:last-child td { border-bottom: none; }
+        .main-table tbody tr:hover td { background-color: #F8FAFC !important; }
+        
+        .main-table input[type="text"], .main-table select { 
+            border: 1px solid transparent; background: transparent; padding: 8px 10px; border-radius: 6px; 
+            width: 100%; box-sizing: border-box; transition: all 0.2s; font-size: 15.5px; color: var(--text-main); text-align: center; font-family: inherit; font-weight: 600;
+        }
+        .main-table input[type="text"]:hover, .main-table select:hover { background: #E2E8F0; cursor: pointer; }
+        .main-table input[type="text"]:focus, .main-table select:focus { background: #FFF; border-color: var(--theme-color, var(--primary)); outline: none; box-shadow: 0 0 0 3px rgba(120, 100, 156, 0.15); cursor: text; }
+        
+        .main-table tr.row-level-1 td { background-color: #FEFCE8; }
+        .main-table tr.row-level-2 td { background-color: #F0FDF4; }
+        .main-table tr.row-level-3 td { background-color: #F0F9FF; }
+        .main-table tr.row-level-4 td { background-color: #FAF5FF; }
+        .main-table tr.row-level-cert td { background-color: #FEF2F2; }
+
+        input[type="checkbox"] { width: 20px; height: 20px; cursor: pointer; accent-color: var(--theme-color, var(--primary)); }
+
+        .search-input { border: 1px solid var(--border); padding: 12px 20px; border-radius: 24px; font-size: 15.5px; width: 320px; transition: all 0.3s; background: #F8FAFC; color: var(--text-main); font-family: inherit; font-weight: 500; }
+        .search-input:focus { border-color: var(--theme-color, var(--primary)); background: white; outline: none; box-shadow: 0 0 0 3px rgba(120, 100, 156, 0.15); }
+
+        .btn { 
+            font-family: inherit; background: var(--theme-color, var(--primary)); color: white; border: none; 
+            padding: 12px 22px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 15px; 
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); display: inline-flex; align-items: center; justify-content: center; gap: 6px; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        }
+        .btn:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.12); }
+        .btn:active { transform: translateY(0); box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
+        
+        .btn-outline { background: white; color: var(--text-main); border: 1px solid #94A3B8; box-shadow: 0 1px 2px rgba(0,0,0,0.02); font-weight: 700; }
+        .btn-outline:hover { background: #F8FAFC; border-color: #64748B; filter: none; }
+        
+        .btn-success { background: #10B981 !important; color: white !important; }
+        .btn-danger { background: #EF4444 !important; color: white !important; }
+        .btn-warning { background: #F59E0B !important; color: white !important; }
+        .btn-bulk { background: #8B5CF6 !important; color: white !important; }
+        
+        .level-summary { display: flex; gap: 14px; margin-bottom: 15px; }
+        .level-box { flex: 1; padding: 14px 18px; border-radius: 12px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border); font-size: 16.5px; font-weight: 800; cursor: pointer; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); background: white; }
+        .level-box:hover { transform: translateY(-3px); box-shadow: 0 6px 15px rgba(0,0,0,0.05); }
+        .level-box.level-1 { border-left: 5px solid #EAB308; color: #854D0E; }
+        .level-box.level-2 { border-left: 5px solid #22C55E; color: #166534; }
+        .level-box.level-3 { border-left: 5px solid #0EA5E9; color: #0369A1; }
+        .level-box.level-4 { border-left: 5px solid #A855F7; color: #6B21A8; }
+        .level-box.level-cert { border-left: 5px solid #EF4444; color: #991B1B; }
+        .level-count { font-size: 24px; font-weight: 900; color: var(--text-main); }
+        .level-box.selected-card { box-shadow: 0 0 0 3px var(--theme-color, var(--primary)); transform: translateY(-3px); opacity: 1 !important; }
+        .level-summary.has-selection .level-box:not(.selected-card) { opacity: 0.4; filter: grayscale(50%); transform: scale(0.98); }
+
+        .orders-grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 35px;
+            align-items: start;
+        }
+
+        .order-form-container { 
+            background: #FFFFFF; 
+            padding: 40px; 
+            box-sizing: border-box;
+            border-radius: 14px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.06), 0 4px 6px rgba(0,0,0,0.02);
+            border: 1px solid var(--border);
+        }
+        .order-title { text-align: center; font-size: 24px; font-weight: 900; margin-bottom: 25px; color: #0F172A; letter-spacing: -0.5px; }
+        
+        .order-table { width: 100%; border-collapse: collapse; border: 2px solid #0F172A !important; margin-bottom: -1px; font-size: 15px; }
+        .order-table th, .order-table td { border: 1px solid #0F172A !important; padding: 12px 6px; white-space: nowrap; }
+        .order-table th { background-color: #F1F5F9; color: #1E293B; font-weight: 800; }
+        .order-table .total-row { background-color: #FDF2F8; font-weight: 900; color: #BE185D; font-size: 16px; }
+        .order-table .total-row-add { background-color: #FFFBEB; font-weight: 900; color: #D97706; font-size: 16px; }
+        
+        .print-text { font-size: 15px; color: #0F172A; padding: 0 6px; min-height: 26px; line-height: 26px; word-break: break-all; font-weight: 700; }
+        .print-text.text-center { text-align: center; }
+        .print-input { 
+            border: 1px solid transparent; width: 100%; box-sizing: border-box; background: transparent; 
+            font-family: inherit; font-size: 15px; font-weight: 700; color: #0F172A; 
+            padding: 0 6px; height: 32px; line-height: 32px; vertical-align: middle; 
+        }
+        .print-input:hover { background: #F1F5F9; border-radius: 4px; }
+        .print-input:focus { border: 1px solid var(--primary); outline: none; background: #FFF; border-radius: 4px; box-shadow: 0 0 0 2px rgba(120,100,156,0.1); }
+        .print-input.text-center { text-align: center; }
+        
+        .print-input[type="number"] { -moz-appearance: textfield; }
+        .print-input[type="number"]::-webkit-outer-spin-button,
+        .print-input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(4px); }
+        .modal-content { background: white; padding: 35px; border-radius: 16px; max-width: 90%; max-height: 95vh; overflow: auto; display: flex; flex-direction: column; align-items: center; gap: 20px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+        .modal-image { max-width: 100%; height: auto; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .modal-actions { display: flex; gap: 12px; justify-content: center; width: 100%; }
+
+        .bulk-input-area { background: #F8FAFC; border: 1px solid var(--border); border-radius: 12px; padding: 22px; margin-bottom: 25px; display: flex; flex-direction: column; gap: 12px; }
+        .bulk-input-area textarea { width: 100%; padding: 15px; border: 1px solid #94A3B8; border-radius: 8px; resize: vertical; font-family: inherit; font-size: 15px; line-height: 1.6; font-weight: 500; }
+        .bulk-input-area textarea:focus { border-color: var(--primary); outline: none; box-shadow: 0 0 0 3px rgba(120, 100, 156, 0.1); }
+        
+        .summary-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; margin-bottom: 30px; }
+        .card { background: white; border: 1px solid var(--border); border-radius: 12px; padding: 25px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .card h3 { margin: 0 0 15px 0; color: var(--text-muted); font-size: 16px; font-weight: 700; }
+        .card .value { font-size: 34px; font-weight: 900; color: var(--primary); }
+        
+        .saved-orders-area { margin-top: 50px; background: white; padding: 30px; border-radius: 14px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
+        .swal2-popup { font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif !important; border-radius: 16px !important; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        
+        <!-- 캡처본 보기용 모달 -->
+        <div v-if="selectedImage" class="modal-overlay" @click.self="selectedImage = null">
+            <div class="modal-content">
+                <img :src="selectedImage" class="modal-image" alt="주문서 캡처본">
+                <div class="modal-actions">
+                    <button class="btn" @click="copySavedImage(selectedImage)">📸 스크린샷 복사</button>
+                    <button class="btn btn-outline" @click="selectedImage = null">닫기</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="container">
+            <!-- 상단 헤더 -->
+            <div class="header">
+                <div class="header-left">
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <!-- 홈 버튼: 클릭 시 index 페이지로 이동 -->
+                        <button class="btn-home-circle" @click="goToIndex" title="처음 화면(index)으로 이동">
+                            <svg viewBox="0 0 24 24">
+                                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/>
+                            </svg>
+                        </button>
+                        <h1>코딩 교구재 통합 관리 대시보드 (강사: 김정이)</h1>
+                    </div>
+                    <!-- 분기 선택 탭 (대시보드 내부에서도 변경 가능) -->
+                    <div class="q-tabs" v-if="isLoggedIn">
+                        <div class="q-tab" :class="{ 'active spring': quarter === '1분기' }" @click="quarter = '1분기'">🌸 1분기</div>
+                        <div class="q-tab" :class="{ 'active summer': quarter === '2분기' }" @click="quarter = '2분기'">🌳 2분기</div>
+                        <div class="q-tab" :class="{ 'active autumn': quarter === '3분기' }" @click="quarter = '3분기'">🍁 3분기</div>
+                        <div class="q-tab" :class="{ 'active winter': quarter === '4분기' }" @click="quarter = '4분기'">⛄ 4분기</div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 12px; align-items: center;">
+                    <button v-if="isLoggedIn" class="btn btn-warning" @click="goHome" style="font-weight: 900;">🏠 학교 다시 선택</button>
+                    <button class="btn btn-outline" @click="loadData" style="border: none; background: rgba(255,255,255,0.1); color: white;">브라우저 불러오기</button>
+                    <button class="btn" @click="saveData" style="background: white; color: #1E293B;">💾 전체 저장하기</button>
+                    <button class="btn" @click="exportDataToFile" style="background: #E0E7FF; color: #3730A3;" title="USB에 담기 위한 백업 파일 다운로드">📤 USB 백업</button>
+                    <button class="btn" @click="triggerFileInput" style="background: #FEF3C7; color: #92400E;" title="USB에 있던 백업 파일 선택">📥 파일 불러오기</button>
+                    <!-- 파일 input 태그 -->
+                    <input type="file" ref="fileInputRef" style="display: none;" accept=".json" @change="importDataFromFile">
+                </div>
+            </div>
+            
+            <!-- 🌟 [랜딩 뷰] 분기에 맞게 배경 컬러가 변경되고 대형 버튼과 예쁜 카드가 적용된 화면 -->
+            <div v-if="!isLoggedIn" class="landing-container">
+                <div class="landing-header-row">
+                    <div class="landing-title-area">
+                        <h2>🏫 관리할 학교와 분기를 선택해주세요</h2>
+                        <p>작업할 분기를 먼저 고른 뒤, 출강 학교 카드를 클릭하여 대시보드에 진입하세요.</p>
+                    </div>
+                    <!-- 한 줄로 정돈된 대형 분기 선택 버튼 그룹 -->
+                    <div class="landing-quarter-row">
+                        <button class="landing-quarter-btn" :class="{ 'active spring': landingQuarter === '1분기' }" @click="landingQuarter = '1분기'">🌸 1분기</button>
+                        <button class="landing-quarter-btn" :class="{ 'active summer': landingQuarter === '2분기' }" @click="landingQuarter = '2분기'">🌳 2분기</button>
+                        <button class="landing-quarter-btn" :class="{ 'active autumn': landingQuarter === '3분기' }" @click="landingQuarter = '3분기'">🍁 3분기</button>
+                        <button class="landing-quarter-btn" :class="{ 'active winter': landingQuarter === '4분기' }" @click="landingQuarter = '4분기'">⛄ 4분기</button>
+                    </div>
+                </div>
+
+                <!-- 4개의 학교 카드 그리드 -->
+                <div class="landing-school-grid">
+                    <div class="school-card" style="--theme-color: #EF4444;" @click="selectSchoolAndEnter('hakdong')">
+                        <div class="school-badge">화요일 출강</div>
+                        <h3>학동초등학교</h3>
+                        <p>코딩로봇부<br>학생 명단 및 주문 관리</p>
+                    </div>
+                    <div class="school-card" style="--theme-color: #F59E0B;" @click="selectSchoolAndEnter('bareun')">
+                        <div class="school-badge">수요일 출강</div>
+                        <h3>바른초등학교</h3>
+                        <p>코딩부<br>학생 명단 및 주문 관리</p>
+                    </div>
+                    <div class="school-card" style="--theme-color: #10B981;" @click="selectSchoolAndEnter('banwol')">
+                        <div class="school-badge">목요일 출강</div>
+                        <h3>반월초등학교</h3>
+                        <p>코딩부<br>학생 명단 및 주문 관리</p>
+                    </div>
+                    <div class="school-card" style="--theme-color: #3B82F6;" @click="selectSchoolAndEnter('sejeong')">
+                        <div class="school-badge">금요일 출강</div>
+                        <h3>세정초등학교</h3>
+                        <p>코딩&마인크래프트부<br>학생 명단 및 주문 관리</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🌟 [메인 대시보드 영역] 학교가 선택된 이후에만 표시됨 -->
+            <div v-else>
+                <div class="tabs">
+                    <div class="tab" :class="{ active: currentTab === 'hakdong' }" @click="currentTab = 'hakdong'"> 학동초(화)</div>
+                    <div class="tab" :class="{ active: currentTab === 'bareun' }" @click="currentTab = 'bareun'"> 바른초(수)</div>
+                    <div class="tab" :class="{ active: currentTab === 'banwol' }" @click="currentTab = 'banwol'"> 반월초(목)</div>
+                    <div class="tab" :class="{ active: currentTab === 'sejeong' }" @click="currentTab = 'sejeong'"> 세정초(금)</div>
+                    <div class="tab" :class="{ active: currentTab === 'matrix' }" @click="currentTab = 'matrix'" style="margin-left: auto; background: #334155; color: white;">📊 종합 현황</div>
+                    <div class="tab" :class="{ active: currentTab === 'inventory' }" @click="currentTab = 'inventory'" style="background: #334155; color: white;">🔄 재고 정산</div>
+                </div>
+
+                <div class="content-area">
+                    
+                    <!-- 학교별 명단 및 주문서 탭 -->
+                    <div v-if="['hakdong', 'bareun', 'banwol', 'sejeong'].includes(currentTab)">
+                        
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 22px;">
+                            <div>
+                                <h2 style="margin: 0 0 14px 0; font-size: 22px; font-weight: 900; color: #0F172A; display: flex; align-items: center;">
+                                    {{ getSchoolFullName(currentTab) }} {{ quarter }} 학생 명단
+                                    <span style="margin-left: 15px; padding: 6px 18px; background: var(--theme-color, var(--primary)); color: white; border-radius: 24px; font-size: 16px; font-weight: 800; box-shadow: 0 4px 10px rgba(0,0,0,0.15); display: inline-flex; align-items: center; gap: 8px;">
+                                        <span>총 {{ filteredStudents.filter(s => s.status !== '삭제').length }}명</span>
+                                        <span style="font-size: 14px; font-weight: 700; opacity: 0.95; background: rgba(0,0,0,0.15); padding: 2px 10px; border-radius: 12px;">
+                                            (1반: {{ getClassHeadCount(1) }}명 / 2반: {{ getClassHeadCount(2) }}명)
+                                        </span>
+                                    </span>
+                                    <span v-if="selectedLevelFilter" style="color: #EF4444; font-size: 15px; margin-left: 10px; font-weight: 700;">(🔍 '{{ selectedLevelFilter }}' 필터링)</span>
+                                </h2>
+                                <input type="text" v-model="searchQuery" class="search-input" placeholder="🔍 이름/전화번호 검색 (Ctrl+F)">
+                            </div>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn btn-outline" @click="resetCurrentStudents" style="color: #EF4444; border-color: #FCA5A5;">🗑️ 명단 리셋</button>
+                                <button class="btn btn-outline" @click="importFromPrevQuarter">🔄 이전 분기 가져오기</button>
+                                <!-- 엑셀 내보내기 버튼 추가 -->
+                                <button class="btn btn-outline" @click="exportToExcel" style="color: #059669; border-color: #6EE7B7;">📊 엑셀 내보내기</button>
+                                <button class="btn btn-bulk" @click="showBulkInput = !showBulkInput">📋 명단일괄추가</button>
+                                <button class="btn" @click="addStudent(currentTab)">+ 인원 추가</button>
+                            </div>
+                        </div>
+
+                        <div class="level-summary" :class="{ 'has-selection': selectedLevelFilter }">
+                            <div class="level-box level-1" :class="{ 'selected-card': selectedLevelFilter === '말랑1' }" @click="toggleLevelFilter('말랑1')">
+                                <span>1단계</span>
+                                <span class="level-count">{{ getCount(currentTab, '말랑1') }}</span>
+                            </div>
+                            <div class="level-box level-2" :class="{ 'selected-card': selectedLevelFilter === '말랑2' }" @click="toggleLevelFilter('말랑2')">
+                                <span>2단계</span>
+                                <span class="level-count">{{ getCount(currentTab, '말랑2') }}</span>
+                            </div>
+                            <div class="level-box level-3" :class="{ 'selected-card': selectedLevelFilter === '말랑3' }" @click="toggleLevelFilter('말랑3')">
+                                <span>3단계</span>
+                                <span class="level-count">{{ getCount(currentTab, '말랑3') }}</span>
+                            </div>
+                            <div class="level-box level-4" :class="{ 'selected-card': selectedLevelFilter === '말랑4' }" @click="toggleLevelFilter('말랑4')">
+                                <span>4단계</span>
+                                <span class="level-count">{{ getCount(currentTab, '말랑4') }}</span>
+                            </div>
+                            <div class="level-box level-cert" :class="{ 'selected-card': selectedLevelFilter === '자격증' }" @click="toggleLevelFilter('자격증')">
+                                <span>자격증</span>
+                                <span class="level-count">{{ getCount(currentTab, '자격증') }}</span>
+                            </div>
+                        </div>
+                        
+                        <div v-if="selectedLevelFilter" style="text-align: right; margin-top: -15px; margin-bottom: 15px;">
+                            <button class="btn btn-outline" style="padding: 6px 14px; font-size: 14px; border-radius: 20px;" @click="selectedLevelFilter = null">❌ 필터 초기화</button>
+                        </div>
+
+                        <div v-if="showBulkInput" class="bulk-input-area">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span class="help-text" style="font-weight: 600; color: #334155;">💡 엑셀의 [학년, 반, 번호, 성명, 연락처] 열을 한 번에 드래그하여 복사한 후 아래에 붙여넣으세요.</span>
+                                <button class="btn btn-success" @click="processBulkInput">적용하기</button>
+                            </div>
+                            <textarea v-model="bulkText" rows="6" placeholder="예시:&#10;1  2  15  홍길동  010-1234-5678&#10;3  1  4   김철수"></textarea>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center; background: #F8FAFC; padding: 16px 22px; border: 1px solid var(--border); border-bottom: none; border-radius: 12px 12px 0 0; flex-wrap: wrap; gap: 15px;">
+                            
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <span style="font-size: 15px; font-weight: 800; color: #334155; margin-right: 4px;">반 전체선택:</span>
+                                <button @click="selectAfterSchoolClass(1)" class="btn btn-outline" style="padding: 6px 14px; font-size: 14px; border-radius: 20px; color: #0284C7; border-color: #BAE6FD;">1반(1~2학년)</button>
+                                <button @click="selectAfterSchoolClass(2)" class="btn btn-outline" style="padding: 6px 14px; font-size: 14px; border-radius: 20px; color: #15803D; border-color: #BBF7D0;">2반(3~6학년)</button>
+                                <button v-if="selectedStudentIds.length > 0" @click="selectedStudentIds = []" class="btn btn-outline" style="padding: 6px 14px; font-size: 14px; border-radius: 20px; color: #EF4444; border-color: #FCA5A5;">선택 해제</button>
+                            </div>
+
+                            <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
+                                <!-- 상태 일괄변경 영역 -->
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="font-size: 14.5px; font-weight: 800; color: #334155;">상태일괄:</span>
+                                    <select v-model="batchStatusValue" style="width: 110px; padding: 7px; font-size: 14px; border-radius: 6px; font-weight: 600;">
+                                        <option value="DEFAULT">상태선택</option>
+                                        <option value="기존">기존</option>
+                                        <option value="신규">신규</option>
+                                        <option value="삭제">삭제</option>
+                                    </select>
+                                    <button class="btn" style="padding: 8px 14px; font-size: 14px;" @click="applyBatchStatus" :disabled="selectedStudentIds.length === 0">상태적용</button>
+                                </div>
+
+                                <!-- 교구 단계 일괄변경 영역 -->
+                                <div style="display: flex; align-items: center; gap: 6px;">
+                                    <span style="font-size: 14.5px; font-weight: 800; color: #334155;">교구일괄:</span>
+                                    <select v-model="batchItemValue" style="width: 150px; padding: 7px; font-size: 14px; border-radius: 6px; font-weight: 600;">
+                                        <option value="DEFAULT">단계(교구) 변경</option>
+                                        <option value="NONE">교구X (주문안함)</option>
+                                        <option v-for="item in items" :value="item">{{ item }}</option>
+                                    </select>
+                                    <button class="btn" style="padding: 8px 14px; font-size: 14px;" @click="applyBatchItem" :disabled="selectedStudentIds.length === 0">교구적용</button>
+                                </div>
+
+                                <span v-if="selectedStudentIds.length > 0" style="font-size: 14px; color: var(--theme-color, var(--primary)); font-weight: 900;">({{ selectedStudentIds.length }}명 선택됨)</span>
+                            </div>
+                        </div>
+
+                        <table class="main-table">
+                            <thead>
+                                <tr>
+                                    <th width="40"><input type="checkbox" @change="toggleAll" :checked="isAllSelected" title="전체 선택"></th>
+                                    <th width="45">No</th>
+                                    <th width="75">학년</th>
+                                    <th width="75">반</th>
+                                    <th width="75">번호</th>
+                                    <th width="130">성명</th>
+                                    <th width="160">연락처</th>
+                                    <th width="110">상태</th>
+                                    <th width="130">이전 단계</th>
+                                    <th width="160">교구 주문</th>
+                                    <th width="150">비고</th>
+                                    <th width="50">삭제</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(student, index) in filteredStudents" :key="student.id" :class="getRowClass(student.item)">
+                                    <td><input type="checkbox" v-model="selectedStudentIds" :value="student.id"></td>
+                                    <td style="font-weight: 800; color: #64748B;">{{ index + 1 }}</td>
+                                    <td><input type="text" v-model="student.grade"></td>
+                                    <td><input type="text" v-model="student.classNum"></td>
+                                    <td><input type="text" v-model="student.num"></td>
+                                    <td><input type="text" v-model="student.name" style="font-weight: 700;"></td>
+                                    <td><input type="text" v-model="student.phone"></td>
+                                    <td>
+                                        <select v-model="student.status" style="font-weight: 700;">
+                                            <option value="기존">기존</option>
+                                            <option value="신규">신규</option>
+                                            <option value="삭제">삭제</option>
+                                        </select>
+                                    </td>
+                                    <td style="font-weight:800; color: #475569;">
+                                        {{ getPrevItem(student) }}
+                                    </td>
+                                    <td>
+                                        <select v-model="student.item" style="font-weight: 700;">
+                                            <option value="">선택(주문안함)</option>
+                                            <option v-for="item in items" :value="item">{{ item }}</option>
+                                        </select>
+                                    </td>
+                                    <td><input type="text" v-model="student.note"></td>
+                                    <td><button class="btn btn-danger" style="padding: 4px 6px; border-radius: 6px; display:flex; margin: 0 auto; font-size: 13px;" @click="removeStudent(student.id)">✖</button></td>
+                                </tr>
+                                <tr v-if="filteredStudents.length === 0">
+                                    <td colspan="12" style="text-align: center; padding: 30px; color: #64748B; font-size: 16px; font-weight: 600;">조건에 맞는 학생이 없습니다.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div style="height: 1px; background: #CBD5E1; margin: 50px 0;"></div>
+
+                        <div style="display: flex; justify-content: flex-start; align-items: center; margin-bottom: 20px;">
+                            <h2 style="margin: 0; font-size: 24px; font-weight: 900; color: #0F172A;">
+                                📄 {{ getSchoolFullName(currentTab) }} 주문서 접수 ({{ quarter }})
+                            </h2>
+                        </div>
+
+                        <div class="orders-grid-container">
+                            
+                            <!-- 1️⃣ [왼쪽] 주문서 -->
+                            <div>
+                                <div id="order-capture-area-1" class="order-form-container">
+                                    <div class="order-title">{{ getSchoolFullName(currentTab) }} 교구재 주문서</div>
+                                    
+                                    <table class="order-table" border="1">
+                                        <tbody>
+                                            <tr>
+                                                <th width="18%">학교명</th>
+                                                <td width="32%" style="text-align: center; font-weight: 700; font-size: 15px;">{{ getSchoolFullName(currentTab) }}</td>
+                                                <th width="18%">부서명</th>
+                                                <td width="32%" style="text-align: center; font-weight: 700; font-size: 15px;">{{ getDeptName(currentTab) }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>이메일</th>
+                                                <td style="text-align: center; font-weight: 700;">dlrka131@naver.com</td>
+                                                <th>강사명</th>
+                                                <td style="text-align: center; font-weight: 700;">김정이</td>
+                                            </tr>
+                                            <tr>
+                                                <th>주문일자</th>
+                                                <td style="padding: 0;">
+                                                    <div v-if="isCapturing" class="print-text text-center">{{ orderFormsByQuarter[quarter][currentTab].orderDate || '\u00A0' }}</div>
+                                                    <input v-else type="text" v-model="orderFormsByQuarter[quarter][currentTab].orderDate" class="print-input text-center" placeholder="예: 2026.5.26">
+                                                </td>
+                                                <th>연락처</th>
+                                                <td style="text-align: center; font-weight: 700;">010-2416-5282</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    
+                                    <div style="background:#E2E8F0; text-align:center; padding:9px; font-weight:800; border:2px solid #0F172A; border-top:none; border-bottom:none; color: #0F172A; font-size: 15px;">주문 내역 ({{ quarter }})</div>
+                                    
+                                    <table class="order-table" border="1" style="text-align: center;">
+                                        <thead>
+                                            <tr>
+                                                <th width="8%">No</th>
+                                                <th width="32%">품목</th>
+                                                <th width="12%">수량</th>
+                                                <th width="20%">공급단가</th>
+                                                <th width="28%">금액</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="(item, index) in orderItems" :key="item">
+                                                <td style="font-weight: 700;">{{ index + 1 }}</td>
+                                                <td style="font-weight: 700; font-size: 14.5px; text-align: center;">{{ itemMapping[item] || item }}</td>
+                                                <td style="font-weight: 800; font-size: 15px;">{{ getSchoolTotalByStatus(currentTab, item) }}</td>
+                                                <td style="font-weight: 700;">{{ formatMoney(price) }}</td>
+                                                <td style="font-weight: 800; white-space: nowrap;">{{ formatMoney(getSchoolTotalByStatus(currentTab, item) * price) }}</td>
+                                            </tr>
+                                            <tr class="total-row">
+                                                <td colspan="2">합계</td>
+                                                <td style="font-size: 17px;">{{ getSchoolOrderQty(currentTab) }}</td>
+                                                <td>합계</td>
+                                                <td style="font-size: 16px; white-space: nowrap;">₩ {{ formatMoney(getSchoolOrderQty(currentTab) * price) }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    
+                                    <table class="order-table" border="1" style="margin-top: -2px;">
+                                        <tbody>
+                                            <tr>
+                                                <th width="22%">배송요청일</th>
+                                                <td style="padding: 0;">
+                                                    <div v-if="isCapturing" class="print-text" style="padding-left: 10px;">{{ orderFormsByQuarter[quarter][currentTab].deliveryDate || '\u00A0' }}</div>
+                                                    <input v-else type="text" v-model="orderFormsByQuarter[quarter][currentTab].deliveryDate" class="print-input" style="padding-left: 10px; text-align: left;" placeholder="예: 2026.6.1">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th>배송요청지</th>
+                                                <td style="padding: 0;">
+                                                    <div v-if="isCapturing" class="print-text" style="padding-left: 10px;">{{ orderFormsByQuarter[quarter][currentTab].deliveryPlace || '\u00A0' }}</div>
+                                                    <input v-else type="text" v-model="orderFormsByQuarter[quarter][currentTab].deliveryPlace" class="print-input" style="padding-left: 10px; text-align: left;" placeholder="예: 학동초등학교 방과후담당자 앞">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th>비고</th>
+                                                <td style="padding: 0;">
+                                                    <div v-if="isCapturing" class="print-text" style="padding-left: 10px;">{{ orderFormsByQuarter[quarter][currentTab].note || '\u00A0' }}</div>
+                                                    <input v-else type="text" v-model="orderFormsByQuarter[quarter][currentTab].note" class="print-input" style="padding-left: 10px; text-align: left;" placeholder="예: 학동초 6/4 목요일 견적서 요청">
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div style="display: flex; justify-content: center; gap: 12px; margin-top: 18px;">
+                                    <button class="btn" @click="copyScreenshot(1)" :disabled="isCapturing">📸 주문서 복사</button>
+                                    <button class="btn btn-success" @click="saveOrderToList(currentTab, 1)" :disabled="isSaving || isCapturing">📥 리스트 저장</button>
+                                </div>
+                            </div>
+
+                            <!-- 2️⃣ [오른쪽] 추가 주문서 (수기 전용) -->
+                            <div>
+                                <div id="order-capture-area-2" class="order-form-container" style="border-color: #FCD34D;">
+                                    <div class="order-title" style="color: #B45309;">{{ getSchoolFullName(currentTab) }} 추가 교구재 주문서</div>
+                                    
+                                    <table class="order-table" border="1" style="border-color: #B45309 !important;">
+                                        <tbody>
+                                            <tr>
+                                                <th width="18%">학교명</th>
+                                                <td width="32%" style="text-align: center; font-weight: 700; font-size: 15px;">{{ getSchoolFullName(currentTab) }}</td>
+                                                <th width="18%">부서명</th>
+                                                <td width="32%" style="text-align: center; font-weight: 700; font-size: 15px;">{{ getDeptName(currentTab) }}</td>
+                                            </tr>
+                                            <tr>
+                                                <th>이메일</th>
+                                                <td style="text-align: center; font-weight: 700;">dlrka131@naver.com</td>
+                                                <th>강사명</th>
+                                                <td style="text-align: center; font-weight: 700;">김정이</td>
+                                            </tr>
+                                            <tr>
+                                                <th>주문일자</th>
+                                                <td style="padding: 0;">
+                                                    <div v-if="isCapturing" class="print-text text-center">{{ orderFormsByQuarter[quarter][currentTab].orderDateAdd || '\u00A0' }}</div>
+                                                    <input v-else type="text" v-model="orderFormsByQuarter[quarter][currentTab].orderDateAdd" class="print-input text-center" placeholder="예: 2026.5.26">
+                                                </td>
+                                                <th>연락처</th>
+                                                <td style="text-align: center; font-weight: 700;">010-2416-5282</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    
+                                    <div style="background:#FEF3C7; text-align:center; padding:9px; font-weight:800; border:2px solid #B45309; border-top:none; border-bottom:none; color: #B45309; font-size: 15px;">추가 주문 내역 (수기 작성)</div>
+                                    
+                                    <table class="order-table" border="1" style="text-align: center; border-color: #B45309 !important;">
+                                        <thead>
+                                            <tr>
+                                                <th width="8%">No</th>
+                                                <th width="32%">품목</th>
+                                                <th width="16%">수량</th>
+                                                <th width="20%">공급단가</th>
+                                                <th width="24%">금액</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr v-for="(item, index) in orderItems" :key="item">
+                                                <td style="font-weight: 700;">{{ index + 1 }}</td>
+                                                <td style="font-weight: 700; font-size: 14.5px; text-align: center;">{{ itemMapping[item] || item }}</td>
+                                                
+                                                <!-- 수기 입력 수량 -->
+                                                <td style="padding: 0; background-color: #FFFBEB;">
+                                                    <div v-if="isCapturing" class="print-text text-center" style="font-weight: 800; color: #D97706; font-size: 15px;">
+                                                        {{ orderFormsByQuarter[quarter][currentTab].addQty && orderFormsByQuarter[quarter][currentTab].addQty[item] ? orderFormsByQuarter[quarter][currentTab].addQty[item] : 0 }}
+                                                    </div>
+                                                    <input v-else type="number" v-model.number="orderFormsByQuarter[quarter][currentTab].addQty[item]" class="print-input text-center" style="font-weight: 800; color: #D97706; font-size: 15px;" min="0" placeholder="0">
+                                                </td>
+
+                                                <td style="font-weight: 700;">{{ formatMoney(price) }}</td>
+                                                <td style="font-weight: 800; white-space: nowrap;">{{ formatMoney((orderFormsByQuarter[quarter][currentTab].addQty && orderFormsByQuarter[quarter][currentTab].addQty[item] ? orderFormsByQuarter[quarter][currentTab].addQty[item] : 0) * price) }}</td>
+                                            </tr>
+                                            <tr class="total-row-add">
+                                                <td colspan="2">합계</td>
+                                                <td style="font-size: 17px;">{{ getAdditionalOrderQty(currentTab) }}</td>
+                                                <td>합계</td>
+                                                <td style="font-size: 16px; white-space: nowrap;">₩ {{ formatMoney(getAdditionalOrderQty(currentTab) * price) }}</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                    
+                                    <table class="order-table" border="1" style="margin-top: -2px; border-color: #B45309 !important;">
+                                        <tbody>
+                                            <tr>
+                                                <th width="22%">배송요청일</th>
+                                                <td style="padding: 0;">
+                                                    <div v-if="isCapturing" class="print-text" style="padding-left: 10px;">{{ orderFormsByQuarter[quarter][currentTab].deliveryDateAdd || '\u00A0' }}</div>
+                                                    <input v-else type="text" v-model="orderFormsByQuarter[quarter][currentTab].deliveryDateAdd" class="print-input" style="padding-left: 10px; text-align: left;" placeholder="예: 2026.6.1">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th>배송요청지</th>
+                                                <td style="padding: 0;">
+                                                    <div v-if="isCapturing" class="print-text" style="padding-left: 10px;">{{ orderFormsByQuarter[quarter][currentTab].deliveryPlaceAdd || '\u00A0' }}</div>
+                                                    <input v-else type="text" v-model="orderFormsByQuarter[quarter][currentTab].deliveryPlaceAdd" class="print-input" style="padding-left: 10px; text-align: left;" placeholder="예: 학동초등학교 방과후담당자 앞">
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <th>비고</th>
+                                                <td style="padding: 0;">
+                                                    <div v-if="isCapturing" class="print-text" style="padding-left: 10px;">{{ orderFormsByQuarter[quarter][currentTab].noteAdd || '\u00A0' }}</div>
+                                                    <input v-else type="text" v-model="orderFormsByQuarter[quarter][currentTab].noteAdd" class="print-input" style="padding-left: 10px; text-align: left;" placeholder="예: 학동초 추가주문 건">
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div style="display: flex; justify-content: center; gap: 12px; margin-top: 18px;">
+                                    <button class="btn btn-warning" @click="copyScreenshot(2)" :disabled="isCapturing">📸 추가주문서 복사</button>
+                                    <button class="btn btn-success" @click="saveOrderToList(currentTab, 2)" :disabled="isSaving || isCapturing">📥 추가 리스트 저장</button>
+                                </div>
+                            </div>
+
+                        </div>
+                        
+                        <div class="saved-orders-area">
+                            <h3 style="margin-top: 0; font-size: 20px; color: #0F172A; font-weight: 900; display: flex; align-items: center; gap: 8px;">📑 저장된 주문서 보관함</h3>
+                            <table class="main-table" style="margin-bottom: 20px;">
+                                <thead>
+                                    <tr>
+                                        <th width="160">저장 일시</th>
+                                        <th width="100">주문 종류</th>
+                                        <th width="80">분기</th>
+                                        <th width="160">학교명</th>
+                                        <th width="130">주문일자</th>
+                                        <th width="90">총 수량</th>
+                                        <th width="160">총 금액</th>
+                                        <th width="160">관리</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="order in savedOrders" :key="order.id">
+                                        <td style="color: #475569; font-size: 14px; font-weight: 600;">{{ order.timestamp }}</td>
+                                        <td>
+                                            <span :style="{ color: order.orderType === '추가 주문서' ? '#D97706' : 'var(--primary)', fontWeight: '800', fontSize: '14.5px' }">
+                                                {{ order.orderType || '주문서' }}
+                                            </span>
+                                        </td>
+                                        <td style="font-weight: 700;">{{ order.quarter }}</td>
+                                        <td style="font-weight: 800; color: #0F172A; font-size: 15px;">{{ order.schoolName }}</td>
+                                        <td style="font-weight: 700;">{{ order.orderDate }}</td>
+                                        <td style="font-weight: 800; color: var(--theme-color, var(--primary)); font-size: 15px;">{{ order.totalQty }}개</td>
+                                        <td style="font-weight: 900; color: #BE185D; font-size: 15.5px;">₩ {{ formatMoney(order.totalAmount) }}</td>
+                                        <td>
+                                            <button v-if="order.image" class="btn btn-outline" style="padding: 6px 14px; font-size: 14px; color: #0284C7; border-color: #7DD3FC; margin-right: 6px; font-weight: 800;" @click="selectedImage = order.image">👁️ 보기</button>
+                                            <button class="btn btn-outline" style="padding: 6px 14px; font-size: 14px; color: #EF4444; border-color: #FCA5A5; font-weight: 800;" @click="removeSavedOrder(order.id)">삭제</button>
+                                        </td>
+                                    </tr>
+                                    <tr v-if="savedOrders.length === 0">
+                                        <td colspan="8" style="color: #64748B; padding: 45px; font-size: 16px; font-weight: 600;">'리스트 저장' 버튼을 누르면 이곳에 주문 내역과 캡처본이 안전하게 보관됩니다.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <!-- 보관함 가장 아래에 추가된 전체 저장하기 버튼 -->
+                            <div style="text-align: right;">
+                                <button class="btn" @click="saveData" style="background: var(--theme-color, var(--primary)); color: white; padding: 14px 28px; font-size: 16px;">💾 전체 저장하기</button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- 전체 종합 현황 탭 -->
+                    <div v-if="currentTab === 'matrix'">
+                        <h2 style="font-size: 24px; font-weight: 900; margin-bottom: 25px; color: #0F172A;">📊 전체 학교 출강 및 교구 주문 종합 ({{ quarter }})</h2>
+                        <table class="main-table matrix-table" style="font-size: 16px;">
+                            <thead>
+                                <tr>
+                                    <th width="200">품명</th>
+                                    <th class="school-hakdong" style="background:#FEF2F2;">학동초(화)</th>
+                                    <th class="school-bareun" style="background:#FFFBEB;">바른초(수)</th>
+                                    <th class="school-banwol" style="background:#ECFDF5;">반월초(목)</th>
+                                    <th class="school-sejeong" style="background:#EEF2FF;">세정초(금)</th>
+                                    <th class="total-col" style="background:#F1F5F9; color:#0F172A;">총합 수량</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="item in orderItems" :key="item">
+                                    <td style="font-weight: 800; color: #1E293B; font-size: 16px;">{{ item }}</td>
+                                    <td style="font-weight: 700;">{{ getCount('hakdong', item) || '-' }}</td>
+                                    <td style="font-weight: 700;">{{ getCount('bareun', item) || '-' }}</td>
+                                    <td style="font-weight: 700;">{{ getCount('banwol', item) || '-' }}</td>
+                                    <td style="font-weight: 700;">{{ getCount('sejeong', item) || '-' }}</td>
+                                    <td class="total-col" style="font-weight: 900; color: var(--primary); font-size: 17px;">{{ getTotalCount(item) }} 개</td>
+                                </tr>
+                                <tr class="total-row" style="background: #FFF7ED;">
+                                    <td style="font-weight: 900; font-size: 16.5px;">실물 교구 합계</td>
+                                    <td style="font-weight: 800; font-size: 16px;">{{ getSchoolTotal('hakdong') }}</td>
+                                    <td style="font-weight: 800; font-size: 16px;">{{ getSchoolTotal('bareun') }}</td>
+                                    <td style="font-weight: 800; font-size: 16px;">{{ getSchoolTotal('banwol') }}</td>
+                                    <td style="font-weight: 800; font-size: 16px;">{{ getSchoolTotal('sejeong') }}</td>
+                                    <td style="font-weight: 900; font-size: 19px; color: #EA580C;">{{ getGrandTotal() }} 개</td>
+                                </tr>
+                                <tr class="total-row" style="background: #FFF1F2;">
+                                    <td style="font-weight: 900; font-size: 16.5px;">총 주문 금액</td>
+                                    <td style="font-weight: 800; font-size: 15px;">₩ {{ formatMoney(getSchoolTotal('hakdong') * price) }}</td>
+                                    <td style="font-weight: 800; font-size: 15px;">₩ {{ formatMoney(getSchoolTotal('bareun') * price) }}</td>
+                                    <td style="font-weight: 800; font-size: 15px;">₩ {{ formatMoney(getSchoolTotal('banwol') * price) }}</td>
+                                    <td style="font-weight: 800; font-size: 15px;">₩ {{ formatMoney(getSchoolTotal('sejeong') * price) }}</td>
+                                    <td style="font-weight: 900; font-size: 19px; color: #E11D48;">₩ {{ formatMoney(getGrandTotal() * price) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- 재고 이동 및 정산 탭 -->
+                    <div v-if="currentTab === 'inventory'">
+                        <h2 style="font-size: 24px; font-weight: 900; margin-bottom: 25px; color: #0F172A;">🔄 전체 학교 간 재고 이동 및 반품 스마트 정산 ({{ quarter }})</h2>
+                        <div class="summary-cards">
+                            <div class="card">
+                                <h3>발생한 총 삭제 처리 수량</h3>
+                                <div class="value" style="color: #EF4444;">{{ totalCanceledCount }} 개</div>
+                            </div>
+                            <div class="card">
+                                <h3>발생한 총 신규 추가 수량</h3>
+                                <div class="value" style="color: #3B82F6;">{{ totalAddedCount }} 개</div>
+                            </div>
+                            <div class="card">
+                                <h3>최종 처리 방향</h3>
+                                <div class="value" style="color: #10B981;">스마트 매칭 완료</div>
+                            </div>
+                        </div>
+
+                        <table class="main-table" style="font-size: 16px;">
+                            <thead>
+                                <tr>
+                                    <th width="180">품명</th>
+                                    <th>삭제처리 (남는 재고)</th>
+                                    <th>신규추가 (필요 재고)</th>
+                                    <th style="background-color: #FEF08A; color: #854D0E;">타 학교 전용 (돌려쓰기)</th>
+                                    <th style="background-color: #FECACA; color: #991B1B;">최종 반품 확정</th>
+                                    <th style="background-color: #BFDBFE; color: #1E40AF;">최종 추가 주문</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="item in orderItems" :key="item">
+                                    <td style="font-weight: 800; color: #1E293B; font-size: 16px;">{{ item }}</td>
+                                    <td style="font-weight: 700; color: #475569;">{{ getCanceledItemCount(item) }}</td>
+                                    <td style="font-weight: 700; color: #475569;">{{ getAddedItemCount(item) }}</td>
+                                    <td style="font-weight: 900; color: #CA8A04; background: #FEFCE8; font-size: 17px;">{{ getTransferCount(item) }}</td>
+                                    <td style="font-weight: 900; color: #DC2626; background: #FEF2F2; font-size: 17px;">{{ getReturnCount(item) }}</td>
+                                    <td style="font-weight: 900; color: #2563EB; background: #EFF6FF; font-size: 17px;">{{ getNetAddCount(item) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <div style="background: #F8FAFC; border-left: 5px solid var(--primary); padding: 18px 24px; border-radius: 8px;">
+                            <p style="color: #334155; font-size: 15px; margin: 0; line-height: 1.6; font-weight: 600;">
+                                <b>💡 스마트 정산 안내:</b> 여러 학교를 돌아다니며 수업하시는 센서 제어 코딩 클래스의 특성을 반영하여, 한 학교에서 삭제된 교구를 다른 학교의 신규 등록 학생에게 바로 배정(전용)하여 불필요한 실물 교구 재주문과 반품 물류비를 최소화하도록 자동 계산됩니다.
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, computed, watch, onMounted } = Vue;
+
+        createApp({
+            setup() {
+                const isLoggedIn = ref(false);
+                const landingQuarter = ref('3분기');
+
+                const currentTab = ref('hakdong');
+                const showBulkInput = ref(false);
+                const bulkText = ref('');
+                const quarter = ref('3분기');
+
+                const selectedImage = ref(null);
+                const isSaving = ref(false);
+                const isCapturing = ref(false); 
+                const selectedLevelFilter = ref(null);
+
+                const searchQuery = ref('');
+                const selectedStudentIds = ref([]);
+                const batchItemValue = ref('DEFAULT');
+                const batchStatusValue = ref('DEFAULT');
+                const fileInputRef = ref(null);
+
+                const selectSchoolAndEnter = (schoolKey) => {
+                    quarter.value = landingQuarter.value;
+                    currentTab.value = schoolKey;
+                    isLoggedIn.value = true;
+                };
+
+                const goHome = () => {
+                    isLoggedIn.value = false;
+                };
+
+                // 홈 버튼 클릭 시 index.html 페이지로 이동 (존재하지 않을 경우 랜딩뷰로 안전하게 리셋)
+                const goToIndex = () => {
+                    window.location.href = 'index.html';
+                };
+
+                // 🌟 랜딩 뷰에서 선택한 분기에 따라 배경 테마 컬러가 실시간으로 변경되도록 watch 설정
+                watch(landingQuarter, (newQ) => {
+                    document.body.className = '';
+                    if (newQ === '1분기') document.body.classList.add('theme-spring');
+                    if (newQ === '2분기') document.body.classList.add('theme-summer');
+                    if (newQ === '3분기') document.body.classList.add('theme-autumn');
+                    if (newQ === '4분기') document.body.classList.add('theme-winter');
+                }, { immediate: true });
+
+                watch([currentTab, quarter], () => {
+                    selectedLevelFilter.value = null;
+                    searchQuery.value = '';
+                    selectedStudentIds.value = [];
+                    batchItemValue.value = 'DEFAULT';
+                    batchStatusValue.value = 'DEFAULT';
+                });
+
+                watch(quarter, (newQ) => {
+                    if (isLoggedIn.value) {
+                        document.body.className = '';
+                        if (newQ === '1분기') document.body.classList.add('theme-spring');
+                        if (newQ === '2분기') document.body.classList.add('theme-summer');
+                        if (newQ === '3분기') document.body.classList.add('theme-autumn');
+                        if (newQ === '4분기') document.body.classList.add('theme-winter');
+                    }
+                });
+
+                const schoolNames = { 'hakdong': '학동초(화)', 'bareun': '바른초(수)', 'banwol': '반월초(목)', 'sejeong': '세정초(금)' };
+                const getSchoolFullName = (key) => ({ 'hakdong': '학동초등학교', 'bareun': '바른초등학교', 'banwol': '반월초등학교', 'sejeong': '세정초등학교' }[key]);
+                const deptNames = { 'hakdong': '코딩로봇부', 'bareun': '코딩부', 'banwol': '코딩부', 'sejeong': '코딩&마인크래프트부' };
+                const getDeptName = (key) => deptNames[key] || '코딩부';
+                
+                const items = ['말랑1', '말랑2', '말랑3', '말랑4', '자격증'];
+                const orderItems = ['말랑1', '말랑2', '말랑3', '말랑4'];
+                const itemMapping = { '말랑1': '말랑말랑 코딩여행 Lv1', '말랑2': '말랑말랑 코딩여행 Lv2', '말랑3': '말랑말랑 코딩여행 Lv3', '말랑4': '말랑말랑 코딩여행 Lv4', '자격증': '코딩 자격증 과정' };
+                const price = 75000;
+
+                const getInitialForms = () => ({
+                    hakdong: { orderDate: '', deliveryDate: '', deliveryPlace: '경기도 화성시 동탄지성로 79-17 학동초등학교 2층 교무실 방과후담당자', note: '', orderDateAdd: '', deliveryDateAdd: '', deliveryPlaceAdd: '경기도 화성시 동탄지성로 79-17 학동초등학교 2층 교무실 방과후담당자', noteAdd: '', addQty: { '말랑1': 0, '말랑2': 0, '말랑3': 0, '말랑4': 0 } },
+                    bareun: { orderDate: '', deliveryDate: '', deliveryPlace: '바른초등학교 방과후담당자 앞', note: '', orderDateAdd: '', deliveryDateAdd: '', deliveryPlaceAdd: '바른초등학교 방과후담당자 앞', noteAdd: '', addQty: { '말랑1': 0, '말랑2': 0, '말랑3': 0, '말랑4': 0 } },
+                    banwol: { orderDate: '', deliveryDate: '', deliveryPlace: '반월초등학교 방과후담당자 앞', note: '', orderDateAdd: '', deliveryDateAdd: '', deliveryPlaceAdd: '반월초등학교 방과후담당자 앞', noteAdd: '', addQty: { '말랑1': 0, '말랑2': 0, '말랑3': 0, '말랑4': 0 } },
+                    sejeong: { orderDate: '', deliveryDate: '', deliveryPlace: '세정초등학교 방과후담당자 앞', note: '', orderDateAdd: '', deliveryDateAdd: '', deliveryPlaceAdd: '세정초등학교 방과후담당자 앞', noteAdd: '', addQty: { '말랑1': 0, '말랑2': 0, '말랑3': 0, '말랑4': 0 } }
+                });
+
+                const orderFormsByQuarter = ref({ '1분기': getInitialForms(), '2분기': getInitialForms(), '3분기': getInitialForms(), '4분기': getInitialForms() });
+                const students = ref([
+                    { id: 1, quarter: '2분기', school: 'hakdong', grade: '1', classNum: '1', num: '8', name: '백진우', phone: '010-7767-6858', status: '기존', item: '말랑1', note: '' },
+                    { id: 2, quarter: '3분기', school: 'hakdong', grade: '1', classNum: '1', num: '8', name: '백진우', phone: '010-7767-6858', status: '기존', item: '말랑2', note: '' },
+                    { id: 3, quarter: '3분기', school: 'bareun', grade: '3', classNum: '1', num: '4', name: '김아린', phone: '010-3391-5062', status: '신규', item: '말랑2', note: '중도 편입' }
+                ]);
+                const savedOrders = ref([]);
+
+                const filteredStudents = computed(() => {
+                    let list = students.value.filter(s => s.school === currentTab.value && s.quarter === quarter.value);
+                    if (selectedLevelFilter.value) list = list.filter(s => s.item === selectedLevelFilter.value);
+                    if (searchQuery.value) {
+                        const q = searchQuery.value.trim().toLowerCase();
+                        list = list.filter(s => s.name.includes(q) || s.phone.includes(q));
+                    }
+                    return list;
+                });
+
+                const getClassHeadCount = (classType) => {
+                    const list = students.value.filter(s => s.school === currentTab.value && s.quarter === quarter.value && s.status !== '삭제');
+                    let count = 0;
+                    list.forEach(s => {
+                        if (s.grade) {
+                            const g = parseInt(s.grade.toString().replace(/[^0-9]/g, ''), 10);
+                            if (classType === 1 && (g === 1 || g === 2)) count++;
+                            else if (classType === 2 && g >= 3 && g <= 6) count++;
+                        }
+                    });
+                    return count;
+                };
+
+                const selectAfterSchoolClass = (classType) => {
+                    const ids = [];
+                    filteredStudents.value.forEach(s => {
+                        if (s.grade) {
+                            const g = parseInt(s.grade.toString().replace(/[^0-9]/g, ''), 10);
+                            if (classType === 1 && (g === 1 || g === 2)) ids.push(s.id);
+                            else if (classType === 2 && g >= 3 && g <= 6) ids.push(s.id);
+                        }
+                    });
+                    if (ids.length === 0) {
+                        Swal.fire({ title: '알림', text: classType === 1 ? '1~2학년 학생이 없습니다.' : '3~6학년 학생이 없습니다.', icon: 'info', confirmButtonColor: '#78649c' });
+                        return;
+                    }
+                    selectedStudentIds.value = ids; 
+                };
+
+                const isAllSelected = computed(() => filteredStudents.value.length > 0 && selectedStudentIds.value.length === filteredStudents.value.length);
+                const toggleAll = (e) => { selectedStudentIds.value = e.target.checked ? filteredStudents.value.map(s => s.id) : []; };
+
+                const applyBatchItem = () => {
+                    if (!batchItemValue.value || batchItemValue.value === 'DEFAULT') {
+                        Swal.fire({ title: '안내', text: '변경할 단계나 교구X(주문안함)을 선택해주세요.', icon: 'warning', confirmButtonColor: '#78649c' });
+                        return;
+                    }
+                    students.value.forEach(s => {
+                        if (selectedStudentIds.value.includes(s.id)) {
+                            s.item = (batchItemValue.value === 'NONE') ? '' : batchItemValue.value;
+                        }
+                    });
+                    selectedStudentIds.value = []; 
+                    batchItemValue.value = 'DEFAULT';
+                    Swal.fire({ title: '완료!', text: '선택한 학생들의 교구 주문 내역이 변경되었습니다.', icon: 'success', timer: 1200, showConfirmButton: false });
+                };
+
+                const applyBatchStatus = () => {
+                    if (!batchStatusValue.value || batchStatusValue.value === 'DEFAULT') {
+                        Swal.fire({ title: '안내', text: '변경할 상태(기존/신규/삭제)를 선택해주세요.', icon: 'warning', confirmButtonColor: '#78649c' });
+                        return;
+                    }
+                    students.value.forEach(s => {
+                        if (selectedStudentIds.value.includes(s.id)) {
+                            s.status = batchStatusValue.value;
+                        }
+                    });
+                    selectedStudentIds.value = []; 
+                    batchStatusValue.value = 'DEFAULT';
+                    Swal.fire({ title: '완료!', text: '선택한 학생들의 상태가 변경되었습니다.', icon: 'success', timer: 1200, showConfirmButton: false });
+                };
+
+                const toggleLevelFilter = (level) => { selectedLevelFilter.value = selectedLevelFilter.value === level ? null : level; selectedStudentIds.value = []; };
+
+                const resetCurrentStudents = () => {
+                    Swal.fire({ title: '명단 리셋', html: `[주의] <b>${getSchoolFullName(currentTab.value)} ${quarter.value}</b><br>명단을 지우시겠습니까?`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#EF4444', cancelButtonColor: '#94A3B8', confirmButtonText: '삭제', cancelButtonText: '취소' }).then((result) => {
+                        if (result.isConfirmed) {
+                            students.value = students.value.filter(s => !(s.school === currentTab.value && s.quarter === quarter.value));
+                            selectedStudentIds.value = [];
+                            Swal.fire({ title: '완료!', text: '초기화되었습니다.', icon: 'success', timer: 1500, showConfirmButton: false });
+                        }
+                    });
+                };
+
+                const getPrevItem = (student) => {
+                    const qList = ['1분기', '2분기', '3분기', '4분기'];
+                    const idx = qList.indexOf(student.quarter);
+                    if (idx <= 0) return '-'; 
+                    const prevStudent = students.value.find(s => s.quarter === qList[idx - 1] && s.school === student.school && s.name === student.name);
+                    return prevStudent && prevStudent.item ? prevStudent.item : '-';
+                };
+
+                const importFromPrevQuarter = () => {
+                    const qList = ['1분기', '2분기', '3분기', '4분기'];
+                    const idx = qList.indexOf(quarter.value);
+                    if (idx <= 0) return Swal.fire({ title: '알림', text: '1분기는 이전 분기 데이터가 없습니다.', icon: 'info', confirmButtonColor: '#78649c' });
+                    
+                    const prevQ = qList[idx - 1];
+                    const prevStudents = students.value.filter(s => s.quarter === prevQ && s.school === currentTab.value && s.status !== '삭제');
+                    
+                    if(prevStudents.length === 0) return Swal.fire({ title: '명단 없음', text: `${prevQ} 명단이 없습니다.`, icon: 'warning', confirmButtonColor: '#78649c' });
+
+                    let importedCount = 0;
+                    prevStudents.forEach(ps => {
+                        if (!students.value.find(s => s.quarter === quarter.value && s.school === ps.school && s.name === ps.name)) {
+                            students.value.push({ id: Date.now() + Math.random(), quarter: quarter.value, school: ps.school, grade: ps.grade, classNum: ps.classNum, num: ps.num, name: ps.name, phone: ps.phone, status: '기존', item: ps.item, note: '' });
+                            importedCount++;
+                        }
+                    });
+                    
+                    if (importedCount > 0) Swal.fire({ title: '성공!', text: `${importedCount}명 불러왔습니다!`, icon: 'success', confirmButtonColor: '#10B981' });
+                    else Swal.fire({ title: '안내', text: '이미 모두 등록되어 있습니다.', icon: 'info', confirmButtonColor: '#78649c' });
+                };
+
+                const addStudent = (schoolKey) => { students.value.unshift({ id: Date.now() + Math.random(), quarter: quarter.value, school: schoolKey, grade: '', classNum: '', num: '', name: '', phone: '', status: '신규', item: '', note: '' }); };
+
+                const processBulkInput = () => {
+                    if(!bulkText.value.trim()) return Swal.fire({ title: '입력 오류', text: '데이터가 없습니다.', icon: 'error', confirmButtonColor: '#EF4444' });
+                    const lines = bulkText.value.split('\n');
+                    let addedCount = 0;
+                    lines.forEach(line => {
+                        const parts = line.trim().split(/\s+/);
+                        if (parts.length >= 2 && parts[0] !== '') {
+                            students.value.push({ id: Date.now() + Math.random(), quarter: quarter.value, school: currentTab.value, grade: parts[0] || '', classNum: parts[1] || '', num: parts[2] || '', name: parts[3] || '', phone: parts[4] || '', status: '신규', item: '', note: '' });
+                            addedCount++;
+                        }
+                    });
+                    Swal.fire({ title: '완료!', text: `${addedCount}명 추가되었습니다.`, icon: 'success', confirmButtonColor: '#10B981' });
+                    bulkText.value = ''; showBulkInput.value = false;
+                };
+
+                const removeStudent = (id) => {
+                    Swal.fire({ title: '삭제', text: '삭제하시겠습니까?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#EF4444', cancelButtonColor: '#94A3B8', confirmButtonText: '삭제' }).then((result) => {
+                        if (result.isConfirmed) { students.value = students.value.filter(s => s.id !== id); selectedStudentIds.value = selectedStudentIds.value.filter(sid => sid !== id); }
+                    });
+                };
+
+                const getRowClass = (item) => {
+                    if (item === '말랑1') return 'row-level-1'; if (item === '말랑2') return 'row-level-2'; if (item === '말랑3') return 'row-level-3'; if (item === '말랑4') return 'row-level-4'; if (item === '자격증') return 'row-level-cert'; return '';
+                };
+
+                const getCount = (school, item) => students.value.filter(s => s.quarter === quarter.value && s.school === school && s.item === item && s.status !== '삭제').length;
+                const getTotalCount = (item) => students.value.filter(s => s.quarter === quarter.value && s.item === item && s.status !== '삭제').length;
+                const getSchoolTotal = (school) => students.value.filter(s => s.quarter === quarter.value && s.school === school && s.status !== '삭제' && orderItems.includes(s.item)).length;
+                const getGrandTotal = () => students.value.filter(s => s.quarter === quarter.value && s.status !== '삭제' && orderItems.includes(s.item)).length;
+                const getSchoolTotalByStatus = (school, item) => students.value.filter(s => s.quarter === quarter.value && s.school === school && s.item === item && (s.status === '기존' || s.status === '신규')).length;
+                const getSchoolOrderQty = (school) => orderItems.reduce((acc, item) => acc + getSchoolTotalByStatus(school, item), 0);
+
+                const getAdditionalOrderQty = (school) => {
+                    const form = orderFormsByQuarter.value[quarter.value][school];
+                    if (!form || !form.addQty) return 0;
+                    return orderItems.reduce((acc, item) => acc + (Number(form.addQty[item]) || 0), 0);
+                };
+
+                const getCanceledItemCount = (item) => students.value.filter(s => s.quarter === quarter.value && s.item === item && s.status === '삭제').length;
+                const getAddedItemCount = (item) => students.value.filter(s => s.quarter === quarter.value && s.item === item && s.status === '신규').length;
+                const getTransferCount = (item) => Math.min(getCanceledItemCount(item), getAddedItemCount(item));
+                const getReturnCount = (item) => { const c = getCanceledItemCount(item); const a = getAddedItemCount(item); return c > a ? c - a : 0; };
+                const getNetAddCount = (item) => { const c = getCanceledItemCount(item); const a = getAddedItemCount(item); return a > c ? a - c : 0; };
+
+                const totalCanceledCount = computed(() => students.value.filter(s => s.quarter === quarter.value && s.status === '삭제' && orderItems.includes(s.item)).length);
+                const totalAddedCount = computed(() => students.value.filter(s => s.quarter === quarter.value && s.status === '신규' && orderItems.includes(s.item)).length);
+
+                const formatMoney = (amount) => amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+                const copySavedImage = (dataUrl) => {
+                    const img = new Image(); img.src = dataUrl;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas'); canvas.width = img.width; canvas.height = img.height; const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0);
+                        canvas.toBlob(async (blob) => {
+                            try { await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]); Swal.fire({ title: '복사 완료!', text: '클립보드에 복사되었습니다.', icon: 'success', confirmButtonColor: '#10B981' });
+                            } catch(e) { Swal.fire({ title: '실패', text: '우클릭으로 복사해주세요.', icon: 'warning', confirmButtonColor: '#F59E0B' }); }
+                        }, 'image/png');
+                    };
+                };
+
+                const saveOrderToList = async (school, type) => {
+                    const isAddOrder = (type === 2);
+                    const totalQty = isAddOrder ? getAdditionalOrderQty(school) : getSchoolOrderQty(school);
+                    
+                    if (totalQty === 0) return Swal.fire({ title: '안내', text: isAddOrder ? '추가 주문 품목이 없습니다.' : '주문 품목이 없습니다.', icon: 'info', confirmButtonColor: '#78649c' });
+                    
+                    isSaving.value = true; isCapturing.value = true; await Vue.nextTick();
+                    const captureAreaId = isAddOrder ? 'order-capture-area-2' : 'order-capture-area-1';
+                    const captureArea = document.getElementById(captureAreaId); 
+                    let imageDataUrl = '';
+                    
+                    try { 
+                        if (captureArea) imageDataUrl = (await html2canvas(captureArea, { scale: 1.5 })).toDataURL("image/jpeg", 0.7);
+                    } catch (e) { Swal.fire({ title: '캡처 오류', text: '오류가 발생했습니다.', icon: 'error' }); } finally { isCapturing.value = false; }
+                    
+                    const orderDateVal = isAddOrder ? orderFormsByQuarter.value[quarter.value][school].orderDateAdd : orderFormsByQuarter.value[quarter.value][school].orderDate;
+
+                    savedOrders.value.unshift({
+                        id: Date.now(), 
+                        orderType: isAddOrder ? '추가 주문서' : '주문서',
+                        quarter: quarter.value, 
+                        schoolName: getSchoolFullName(school),
+                        orderDate: orderDateVal || '미입력',
+                        totalQty, 
+                        totalAmount: totalQty * price, 
+                        image: imageDataUrl, 
+                        timestamp: new Intl.DateTimeFormat('ko-KR', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }).format(new Date())
+                    });
+                    
+                    isSaving.value = false; 
+                    Swal.fire({ title: '저장 완료!', text: `${isAddOrder ? '추가' : ''} 주문서가 리스트에 저장되었습니다.`, icon: 'success', confirmButtonColor: '#10B981', timer: 1500, showConfirmButton: false });
+                };
+
+                const removeSavedOrder = (id) => {
+                    Swal.fire({ title: '삭제', text: '삭제하시겠습니까?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#EF4444', confirmButtonText: '삭제' }).then((result) => {
+                        if (result.isConfirmed) savedOrders.value = savedOrders.value.filter(o => o.id !== id);
+                    });
+                };
+
+                const saveData = () => {
+                    try {
+                        localStorage.setItem('codingClassData', JSON.stringify(students.value));
+                        localStorage.setItem('codingClassOrderFormsByQuarter', JSON.stringify(orderFormsByQuarter.value));
+                        localStorage.setItem('codingClassQuarter', quarter.value);
+                        localStorage.setItem('codingClassSavedOrders', JSON.stringify(savedOrders.value));
+                        Swal.fire({ title: '성공!', text: '전체 데이터가 브라우저에 저장되었습니다.', icon: 'success', confirmButtonColor: '#10B981' });
+                    } catch (e) { Swal.fire({ title: '오류', text: '저장 공간 부족 혹은 오류 발생', icon: 'error', confirmButtonColor: '#EF4444' }); }
+                };
+
+                const loadData = () => {
+                    const data = localStorage.getItem('codingClassData'); if (data) students.value = JSON.parse(data);
+                    
+                    const forms = localStorage.getItem('codingClassOrderFormsByQuarter');
+                    if (forms) {
+                        const parsedForms = JSON.parse(forms);
+                        Object.keys(parsedForms).forEach(q => {
+                            Object.keys(parsedForms[q]).forEach(s => {
+                                if (!parsedForms[q][s].addQty) {
+                                    parsedForms[q][s].addQty = { '말랑1': 0, '말랑2': 0, '말랑3': 0, '말랑4': 0 };
+                                }
+                                if (!parsedForms[q][s].orderDateAdd) parsedForms[q][s].orderDateAdd = '';
+                                if (!parsedForms[q][s].deliveryDateAdd) parsedForms[q][s].deliveryDateAdd = '';
+                                if (!parsedForms[q][s].deliveryPlaceAdd) parsedForms[q][s].deliveryPlaceAdd = parsedForms[q][s].deliveryPlace;
+                                if (!parsedForms[q][s].noteAdd) parsedForms[q][s].noteAdd = '';
+                            });
+                        });
+                        orderFormsByQuarter.value = parsedForms;
+                    }
+                    
+                    const q = localStorage.getItem('codingClassQuarter'); if (q) quarter.value = q;
+                    const orders = localStorage.getItem('codingClassSavedOrders'); if (orders) savedOrders.value = JSON.parse(orders);
+                };
+
+                const exportDataToFile = () => {
+                    const allData = {
+                        students: students.value,
+                        orderFormsByQuarter: orderFormsByQuarter.value,
+                        savedOrders: savedOrders.value,
+                        quarter: quarter.value
+                    };
+                    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(allData, null, 2));
+                    const downloadAnchor = document.createElement('a');
+                    downloadAnchor.setAttribute("href", dataStr);
+                    downloadAnchor.setAttribute("download", `coding_dashboard_backup_${new Date().toISOString().slice(0,10)}.json`);
+                    document.body.appendChild(downloadAnchor);
+                    downloadAnchor.click();
+                    downloadAnchor.remove();
+                    Swal.fire({ title: '백업 완료!', text: 'USB 폴더에 백업 파일이 저장되었습니다.', icon: 'success', confirmButtonColor: '#10B981' });
+                };
+
+                const triggerFileInput = () => {
+                    if (fileInputRef.value) {
+                        fileInputRef.value.click();
+                    }
+                };
+
+                const importDataFromFile = (event) => {
+                    const file = event.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        try {
+                            const imported = JSON.parse(e.target.result);
+                            if (imported.students) students.value = imported.students;
+                            if (imported.orderFormsByQuarter) orderFormsByQuarter.value = imported.orderFormsByQuarter;
+                            if (imported.savedOrders) savedOrders.value = imported.savedOrders;
+                            if (imported.quarter) quarter.value = imported.quarter;
+                            saveData();
+                            Swal.fire({ title: '불러오기 성공!', text: 'USB 백업 데이터가 성공적으로 적용되었습니다.', icon: 'success', confirmButtonColor: '#10B981' });
+                        } catch (err) {
+                            Swal.fire({ title: '오류', text: '올바른 백업 파일이 아닙니다.', icon: 'error', confirmButtonColor: '#EF4444' });
+                        }
+                    };
+                    reader.readAsText(file);
+                    event.target.value = '';
+                };
+
+                const copyScreenshot = async (type) => {
+                    const isAddOrder = (type === 2);
+                    const captureAreaId = isAddOrder ? 'order-capture-area-2' : 'order-capture-area-1';
+                    const captureArea = document.getElementById(captureAreaId); 
+                    if (!captureArea) return;
+                    
+                    isCapturing.value = true; await Vue.nextTick();
+                    try {
+                        const canvas = await html2canvas(captureArea, { scale: 2 });
+                        canvas.toBlob(async (blob) => {
+                            try { await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]); Swal.fire({ title: '완료!', text: `${isAddOrder ? '추가' : ''} 주문서가 클립보드에 복사되었습니다! (Ctrl+V)`, icon: 'success', confirmButtonColor: '#10B981' });
+                            } catch (err) { Swal.fire({ title: '실패', text: '우클릭으로 복사해주세요.', icon: 'warning' }); }
+                        });
+                    } catch (error) { Swal.fire({ title: '오류', text: '오류가 발생했습니다.', icon: 'error' }); } finally { isCapturing.value = false; }
+                };
+
+                const exportToExcel = () => {
+                    if (filteredStudents.value.length === 0) {
+                        Swal.fire({ title: '안내', text: '내보낼 명단이 없습니다.', icon: 'warning', confirmButtonColor: '#78649c' });
+                        return;
+                    }
+                    const excelData = filteredStudents.value.map(s => ({
+                        '학년': s.grade,
+                        '반': s.classNum,
+                        '번호': s.num,
+                        '이름': s.name,
+                        '전화번호': s.phone
+                    }));
+                    const worksheet = XLSX.utils.json_to_sheet(excelData);
+                    worksheet['!cols'] = [
+                        { wpx: 50 },
+                        { wpx: 50 },
+                        { wpx: 50 },
+                        { wpx: 100 },
+                        { wpx: 150 }
+                    ];
+                    const workbook = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(workbook, worksheet, '학생명단');
+                    const fileName = `${getSchoolFullName(currentTab.value)}_${quarter.value}_명단.xlsx`;
+                    XLSX.writeFile(workbook, fileName);
+                    Swal.fire({ title: '완료!', text: '엑셀 파일이 다운로드되었습니다.', icon: 'success', timer: 1500, showConfirmButton: false });
+                };
+
+                onMounted(() => {
+                    loadData();
+                    window.addEventListener('keydown', (e) => {
+                        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+                            const searchInput = document.querySelector('.search-input');
+                            if (searchInput) { e.preventDefault(); searchInput.focus(); }
+                        }
+                    });
+                });
+
+                return { 
+                    isLoggedIn, landingQuarter, selectSchoolAndEnter, goHome, goToIndex, currentTab, showBulkInput, bulkText, 
+                    quarter, searchQuery, selectedStudentIds, isAllSelected, toggleAll, selectAfterSchoolClass, batchItemValue, 
+                    batchStatusValue, applyBatchItem, applyBatchStatus, schoolNames, getSchoolFullName, getDeptName, items, 
+                    orderItems, itemMapping, price, students, filteredStudents, orderFormsByQuarter, savedOrders, selectedImage, 
+                    isSaving, isCapturing, selectedLevelFilter, toggleLevelFilter, addStudent, processBulkInput, removeStudent, 
+                    resetCurrentStudents, getRowClass, formatMoney, getPrevItem, importFromPrevQuarter, getCount, getTotalCount, 
+                    getSchoolTotal, getGrandTotal, getSchoolTotalByStatus, getSchoolOrderQty, getAdditionalOrderQty, getClassHeadCount, 
+                    getCanceledItemCount, getAddedItemCount, getTransferCount, getReturnCount, getNetAddCount, totalCanceledCount, 
+                    totalAddedCount, saveOrderToList, removeSavedOrder, copySavedImage, saveData, loadData, exportDataToFile, 
+                    triggerFileInput, fileInputRef, importDataFromFile, copyScreenshot, exportToExcel
+                };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
