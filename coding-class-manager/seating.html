@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>방과후 코딩 통합 자리배치도 (Cloud)</title>
+    
+    <!-- 엑셀 파일 업로드용 호환 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- 폰트어썸 웹폰트 아이콘 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- 🔥 파이어베이스 클라우드 통신용 시스템 파일 🔥 -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+    <style>
+        /* 🌟 화면의 모든 가로/세로 스크롤바(슬라이더) UI 완벽 제거 🌟 */
+        ::-webkit-scrollbar { display: none !important; } 
+        * { -ms-overflow-style: none !important; scrollbar-width: none !important; box-sizing: border-box; }
+
+        body { 
+            display: flex; height: 100vh; width: 100%; margin: 0; font-family: 'Malgun Gothic', sans-serif; 
+            background-color: #f0f2f5; color: #333; overflow: hidden;
+            transition: background-color 0.4s ease;
+        }
+        
+        /* 좌측 설정 사이드바 */
+        #sidebar { 
+            min-width: 340px; max-width: 340px; padding: 20px; background: #2c3e50; color: white; 
+            display: flex; flex-direction: column; gap: 10px; 
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1); z-index: 10;
+            overflow-y: auto; flex-shrink: 0;
+        }
+
+        /* 타이틀 및 홈 버튼 영역 */
+        .sidebar-header-box {
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 2px solid #34495e; padding-bottom: 10px; margin-bottom: 5px; gap: 10px;
+        }
+        #sidebar h2 { margin: 0; font-size: 1.3rem; color: #ecf0f1; text-align: left; letter-spacing: -0.5px; word-break: keep-all;}
+        
+        .btn-home-icon {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%); color: #fff;
+            width: 38px; height: 38px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; cursor: pointer; border: none;
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
+            transition: transform 0.1s, box-shadow 0.2s; text-decoration: none; flex-shrink: 0;
+        }
+        .btn-home-icon:hover { transform: scale(1.08); box-shadow: 0 6px 15px rgba(255, 107, 107, 0.6); }
+
+        label { font-size: 0.85rem; margin-bottom: -3px; color: #bdc3c7; font-weight: bold; }
+        
+        /* 탭 버튼 레이아웃 */
+        .school-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+        .quarter-tabs { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 5px; margin-bottom: 10px; }
+        
+        .base-tab { 
+            padding: 10px 0; text-align: center; background: #34495e; color: #bdc3c7; 
+            border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 0.9rem; transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center;
+        }
+        .base-tab:hover { background: #3d566e; color: #fff; }
+        
+        .s-tab.active { background: linear-gradient(135deg, #1dd1a1 0%, #10ac84 100%); color: #fff; box-shadow: 0 4px 12px rgba(29, 209, 161, 0.4); text-shadow: none; }
+        .q-tab.active { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); color: #d35400; box-shadow: 0 4px 12px rgba(253, 160, 133, 0.4); text-shadow: none; }
+        
+        /* 반 선택 탭 */
+        .class-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 15px; }
+        .class-tab { 
+            padding: 10px; text-align: center; background: #34495e; color: #bdc3c7; 
+            border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 1.05rem; transition: all 0.2s;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .class-tab:hover { background: #3d566e; color: #fff; }
+        .class-tab.active.tab-class1 { background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%); color: #900C3F; box-shadow: 0 4px 12px rgba(255, 154, 158, 0.4); }
+        .class-tab.active.tab-class2 { background: linear-gradient(135deg, #a1c4fd 0%, #c2e9fb 100%); color: #1a5276; box-shadow: 0 4px 12px rgba(161, 196, 253, 0.4); }
+
+        /* 공통 버튼 디자인 */
+        button { 
+            width: 100%; padding: 11px; border-radius: 10px; border: none; font-size: 0.95rem; 
+            cursor: pointer; font-weight: bold; transition: transform 0.1s, box-shadow 0.2s;
+            color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.15); display: flex; align-items: center; justify-content: center; gap: 8px;
+        }
+        button:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+        
+        .btn-input-modal { background: linear-gradient(135deg, #fbc5eb 0%, #e8a5df 100%); color: #4a235a; }
+        .btn-load-prev { background: linear-gradient(135deg, #e7a9d7 0%, #d896d8 100%); color: #fff; } 
+        .btn-save-pos { background: linear-gradient(135deg, #df98d7 0%, #cc88d0 100%); color: #fff; }
+        .btn-export { background: linear-gradient(135deg, #bd81c9 0%, #aa7bc4 100%); color: #fff; }
+        .btn-import { background: linear-gradient(135deg, #986ebb 0%, #8363b4 100%); color: #fff; }
+        .btn-print { background: linear-gradient(135deg, #7457ad 0%, #b19cd9 100%); color: #fff; }
+        
+        .btn-reset-current { background: #e67e22; color: white; font-size: 0.85rem; padding: 9px; margin-top: 5px; }
+        .btn-reset-all { background: #e74c3c; color: white; font-size: 0.85rem; padding: 9px; margin-top: 5px; }
+
+        /* 12차시 진도 체크 */
+        .progress-container { background: #34495e; padding: 12px; border-radius: 10px; margin-top: 2px; }
+        .progress-title { color: #ecf0f1; font-size: 0.8rem; font-weight: bold; margin-bottom: 8px; }
+        .prog-row { display: flex; align-items: center; gap: 5px; margin-bottom: 6px; } 
+        .prog-label { color: #bdc3c7; font-size: 0.75rem; cursor: pointer; width: 40px; transition: color 0.2s;}
+        .prog-label:hover { color: #fff; }
+        .prog-input { flex: 1; background: transparent; border: none; border-bottom: 1px solid #7f8c8d; color: #ecf0f1; font-size: 0.75rem; outline: none; padding: 2px 0; }
+        .prog-input:focus { border-bottom-color: #3498db; }
+        .prog-done .prog-label, .prog-done .prog-input { color: #7f8c8d; text-decoration: line-through; }
+
+        /* 메인 컨테이너 비율 수정 */
+        #main-container { flex: 1; display: flex; flex-direction: column; width: 100%; min-width: 0; }
+        #workspace { flex: 1; display: flex; gap: 20px; padding: 20px; overflow: hidden; transition: background-color 0.4s ease; width: 100%; }
+
+        .workspace-class1 { background: linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%) !important; }
+        .workspace-class2 { background: linear-gradient(135deg, #f0f7ff 0%, #dbeafe 100%) !important; }
+
+        /* 왼쪽: 자리배치도 */
+        #left-pane { 
+            flex: 3; border-radius: 16px; padding: 25px; display: flex; flex-direction: column; 
+            transition: all 0.4s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.03); 
+            min-width: 0; overflow: hidden; 
+        }
+        .pane-class1 { background: #fff0f3; border: 2px solid #ffccd5; }
+        .pane-class2 { background: #f0f6ff; border: 2px solid #bfdbfe; }
+        
+        .board-header { display: flex; flex-wrap: wrap; justify-content: center; align-items: center; margin-bottom: 25px; gap: 15px; }
+        .title-card {
+            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); padding: 12px 25px; border-radius: 50px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06); border: 1px solid rgba(255, 255, 255, 0.8);
+            display: flex; align-items: center; gap: 12px; white-space: nowrap;
+        }
+        .school-title-text { font-size: 1.7rem; font-weight: 900; color: #2c3e50; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
+        .class-title-badge { padding: 3px 14px; border-radius: 20px; font-size: 1.4rem; font-weight: 900; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1); display: inline-block; }
+        .badge-class1 { background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%); color: #ffffff; }
+        .badge-class2 { background: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%); color: #ffffff; }
+        .quarter-title-tag { font-size: 1.2rem; color: #7f8c8d; font-weight: bold; margin: 0 5px; background: #ecf0f1; padding: 2px 10px; border-radius: 8px; }
+
+        #attendance-stats {
+            font-size: 1.5rem; font-weight: 900; background: rgba(255, 255, 255, 0.85); padding: 10px 20px; border-radius: 20px; color: #2c3e50;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04); white-space: nowrap;
+        }
+        .stat-total { color: #2980b9; } .stat-present { color: #27ae60; } .stat-absent { color: #e74c3c; }
+
+        /* 좌석 스크롤 구역 */
+        .classroom-scroll-area {
+            flex: 1; overflow: auto; width: 100%; display: flex; justify-content: center; align-items: flex-start; padding-bottom: 20px;
+        }
+
+        /* 🌟 공통 책상 설정 🌟 */
+        .classroom { display: flex; flex-direction: column; gap: 10px; min-width: max-content; padding: 10px; align-items: center; }
+        .row { display: flex; gap: 40px; justify-content: center; } 
+        .group { display: flex; gap: 12px; background: rgba(255,255,255,0.5); padding: 10px; border-radius: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.03); }
+        .desk-wrapper { display: flex; flex-direction: column; gap: 4px; align-items: center; }
+        
+        .desk { 
+            width: 125px; height: 95px; background: white; border: 2px solid #bdc3c7; border-radius: 8px; 
+            display: flex; flex-direction: column; align-items: center; justify-content: center; 
+            color: #2c3e50; box-shadow: 0 3px 6px rgba(0,0,0,0.08); user-select: none; 
+            transition: transform 0.1s, border-color 0.2s, background-color 0.2s; position: relative; 
+        }
+        .desk-num { 
+            font-size: 1.15rem; font-weight: 900; color: #2c3e50; background-color: #dfe6e9;
+            padding: 3px 12px; border-radius: 12px; border: 1px solid #b2bec3; margin-bottom: 5px; pointer-events: none; 
+        }
+        .student-name { font-size: 1.6rem; font-weight: 900; pointer-events: none; letter-spacing: 1px; } 
+        
+        .desk-memo-input { width: 125px; font-size: 11px; border: 1px solid #cbd5e0; background: #ffffff; border-radius: 4px; text-align: center; outline: none; color: #555; padding: 2px 4px; font-family: inherit; }
+        .desk-memo-input:focus { border-color: #3498db; box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.15); }
+
+        /* 🔥 출석(초록색) 테마 강화 🔥 */
+        .desk.present { 
+            background-color: #bbf2d5; border: 2px solid #20bf6b; color: #0b7a42; 
+        }
+        
+        .desk.has-student { cursor: grab; }
+        .desk.has-student:active { cursor: grabbing; }
+        .desk.has-student:hover { transform: scale(1.05); border-color: #3498db; }
+        .desk.absent { background-color: #ffeaa7; border-color: #e17055; color: #d63031; }
+        .desk.drag-over { border: 2px dashed #3498db; transform: scale(1.05); }
+        .desk.dragging { opacity: 0.4; }
+        .empty-desk { background: #f9f9f9; border: 2px dashed #bdc3c7; color: #ccc; box-shadow: none; cursor: context-menu;}
+        .empty-desk:hover { border-color: #3498db; background-color: #fff; }
+
+        .level-badge {
+            position: absolute; top: -6px; right: -6px; width: 26px; height: 26px; border-radius: 50%;
+            font-size: 0.85rem; font-weight: bold; color: white; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; z-index: 5; box-shadow: 0 2px 5px rgba(0,0,0,0.3); transition: transform 0.1s;
+        }
+        .level-badge:hover { transform: scale(1.15); }
+        .lvl-0 { background-color: #ecf0f1; color: #bdc3c7; box-shadow: none; border: 1px solid #bdc3c7;}
+        .lvl-1 { background: linear-gradient(135deg, #ffe259 0%, #ffa751 100%); color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,0.2); }
+        .lvl-2 { background: linear-gradient(135deg, #ff9966 0%, #ff5e62 100%); color: #fff; text-shadow: 0 1px 1px rgba(0,0,0,0.2); }
+        .lvl-3 { background-color: #2ecc71; }
+        .lvl-4 { background-color: #3498db; }
+        .lvl-5 { background-color: #9b59b6; }
+        .lvl-6 { background-color: transparent; box-shadow: none; font-size: 1.5rem; top: -10px; right: -10px; } 
+
+        /* 오른쪽: 안내 및 메모장 영역 */
+        #right-pane { 
+            flex: 1; min-width: 320px; background: #fdf2e9; border-radius: 12px; padding: 25px; 
+            border: 2px solid #fadbd8; display: flex; flex-direction: column; gap: 15px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03); transition: all 0.4s ease;
+        }
+        .board-section { display: flex; flex-direction: column; flex: 1.5; gap: 8px; }
+        .board-section h2 { margin: 0; color: #2c3e50; font-size: 1.4rem; text-align: center; }
+        .announcement-board { 
+            flex: 1; width: 100%; border: 2px solid #fadbd8; border-radius: 10px; 
+            padding: 15px; font-size: 3rem; font-weight: 600; resize: none; font-family: inherit; 
+            line-height: 1.6; outline: none; background: rgba(255, 255, 255, 0.7); color: #2d3436;
+        }
+        .announcement-board:focus { border-color: #3498db; background: rgba(255, 255, 255, 0.9); }
+        .memo-section { display: flex; flex-direction: column; height: 180px; gap: 6px; border-top: 2px dashed #fadbd8; padding-top: 12px; }
+        .memo-section h3 { margin: 0; color: #c0392b; font-size: 1rem; text-align: left; display: flex; align-items: center; gap: 6px; padding-left: 2px; }
+        .memo-board {
+            flex: 1; width: 100%; border: 2px solid #f5b7b1; border-radius: 8px;
+            padding: 10px 12px; font-size: 1rem; font-family: inherit; resize: none; outline: none;
+            background: rgba(254, 249, 231, 0.9); color: #78281f; line-height: 1.5;
+        }
+        .memo-board:focus { border-color: #e74c3c; background: rgba(254, 249, 231, 1); }
+
+        /* 🔥 학동초(4-4) 전용 레이아웃 분리 🔥 */
+        .layout-4-4 #left-pane { flex: 4; } 
+        .layout-4-4 #right-pane { flex: 0.8; min-width: 260px; padding: 20px; }
+        .layout-4-4 .announcement-board { font-size: 2.2rem; } 
+        .layout-4-4 .row { gap: 20px; } 
+
+        /* 모달 및 우클릭 메뉴 */
+        #context-menu {
+            display: none; position: absolute; z-index: 9999; background: white; border: 2px solid #d6eaf8; 
+            border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.15); padding: 5px 0; min-width: 140px;
+        }
+        .cm-item { padding: 12px 18px; cursor: pointer; font-size: 1rem; font-weight: bold; color: #2c3e50; transition: background 0.2s; display: flex; align-items: center; gap: 8px; }
+        .cm-item:hover { background: #ebf5fb; }
+        .cm-item.delete { color: #e74c3c; }
+        .cm-item.delete:hover { background: #fadbd8; }
+
+        .custom-modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.5); z-index: 10000; justify-content: center; align-items: center;
+            backdrop-filter: blur(4px); animation: fadeIn 0.2s ease;
+        }
+        .custom-modal-box {
+            background: white; width: 420px; padding: 25px; border-radius: 16px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2); display: flex; flex-direction: column; gap: 18px;
+            text-align: center; animation: scaleUp 0.2s ease;
+        }
+        .custom-modal-icon { font-size: 2.5rem; margin-bottom: -5px; }
+        .custom-modal-title { margin: 0; color: #2c3e50; font-size: 1.35rem; font-weight: bold; }
+        .custom-modal-desc { font-size: 0.95rem; color: #555; line-height: 1.5; text-align: left; }
+        .custom-modal-btns { display: flex; gap: 10px; margin-top: 5px; }
+        .custom-modal-btns button { flex: 1; padding: 12px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1rem; border: none; }
+        
+        .btn-modal-confirm { background: linear-gradient(135deg, #986ebb 0%, #8363b4 100%); color: white; }
+        .btn-modal-cancel { background: #e2e8f0; color: #4a5568; }
+        .btn-modal-danger { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes scaleUp { from { transform: scale(0.9); } to { transform: scale(1); } }
+
+        @media print {
+            @page { size: A4 landscape; margin: 10mm; }
+            #sidebar { display: none; }
+            body { background: white; overflow: visible; display: block;}
+            #main-container { display: block; }
+            #workspace { padding: 0; gap: 15px; border: none; overflow: visible; display: flex; }
+            #left-pane, #right-pane { box-shadow: none; border: 2px solid #000; border-radius: 0; background: white; min-width: auto; }
+            .group { background: transparent; padding: 0; border: none; box-shadow: none; }
+            .desk { border: 2px solid #000; box-shadow: none; }
+            .desk-num { border: 1px solid #000; background: white !important; -webkit-print-color-adjust: exact; }
+            .desk.present { -webkit-print-color-adjust: exact; color-adjust: exact; background-color: #bbf2d5 !important; }
+            .desk.absent { -webkit-print-color-adjust: exact; color-adjust: exact; background-color: #ffeaa7 !important; }
+            .level-badge { -webkit-print-color-adjust: exact; color-adjust: exact; box-shadow: none; border: 1px solid #333;}
+            .lvl-6 { border: none !important; } 
+            .desk-memo-input { border: 1px solid #000 !important; background: transparent !important; }
+            .announcement-board, .memo-board { border: none; background: transparent; }
+            #attendance-stats { border: 1px solid #bdc3c7; background: transparent; }
+            #context-menu, .custom-modal-overlay { display: none !important; }
+            .quarter-title-tag { border: 1px solid #000; background: transparent !important; -webkit-print-color-adjust: exact; color: #000; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="sidebar">
+        <div class="sidebar-header-box">
+            <h2><i class="fa-solid fa-chalkboard-user"></i> 자리배치 통합 시스템</h2>
+            <a href="index.html" class="btn-home-icon" title="처음으로 돌아가기"><i class="fa-solid fa-house"></i></a>
+        </div>
+
+        <label>학교 선택</label>
+        <div class="school-tabs">
+            <div class="base-tab s-tab" id="btn-hakdong" onclick="switchSchool('hakdong')">학동초(화)</div>
+            <div class="base-tab s-tab" id="btn-bareun" onclick="switchSchool('bareun')">바른초(수)</div>
+            <div class="base-tab s-tab" id="btn-banwol" onclick="switchSchool('banwol')">반월초(목)</div>
+            <div class="base-tab s-tab" id="btn-sejeong" onclick="switchSchool('sejeong')">세정초(금)</div>
+        </div>
+
+        <label>분기 선택</label>
+        <div class="quarter-tabs">
+            <div class="base-tab q-tab" id="btn-q1" onclick="switchQuarter('q1')">1분기</div>
+            <div class="base-tab q-tab" id="btn-q2" onclick="switchQuarter('q2')">2분기</div>
+            <div class="base-tab q-tab" id="btn-q3" onclick="switchQuarter('q3')">3분기</div>
+            <div class="base-tab q-tab" id="btn-q4" onclick="switchQuarter('q4')">4분기</div>
+        </div>
+
+        <label>반 선택</label>
+        <div class="class-tabs">
+            <div class="class-tab tab-class1" id="btn-class1" onclick="switchClass('class1')">1반</div>
+            <div class="class-tab tab-class2" id="btn-class2" onclick="switchClass('class2')">2반</div>
+        </div>
+
+        <button class="btn-input-modal" onclick="openModal()"><i class="fa-solid fa-clipboard-list"></i> 명단 추가</button>
+        <button class="btn-load-prev" onclick="loadPreviousQuarterStudents()"><i class="fa-solid fa-clock-rotate-left"></i> 이전 분기 불러오기</button>
+        <button class="btn-save-pos" onclick="manualSaveData()"><i class="fa-solid fa-floppy-disk"></i> 수동 저장</button>
+        <button class="btn-export" onclick="exportDataToFile()"><i class="fa-solid fa-cloud-arrow-up"></i> 4개 학교 전체 백업</button>
+        <button class="btn-import" onclick="document.getElementById('import-file').click()"><i class="fa-solid fa-cloud-arrow-down"></i> USB에서 불러오기</button>
+        <input type="file" id="import-file" style="display: none;" accept=".json" onchange="importDataFromFile(event)">
+        <button class="btn-print" onclick="window.print()"><i class="fa-solid fa-print"></i> 인쇄하기</button>
+
+        <div class="progress-container">
+            <div class="progress-title"><i class="fa-solid fa-list-check"></i> 12차시 진도 (글자 클릭=완료)</div>
+            <div id="progress-list"></div>
+        </div>
+
+        <button class="btn-reset-current" onclick="resetCurrentClass()"><i class="fa-solid fa-eraser"></i> 현재 반 초기화</button>
+        <button class="btn-reset-all" onclick="resetAllData()"><i class="fa-solid fa-trash-can"></i> 전체 학교 데이터 삭제</button>
+    </div>
+
+    <div id="main-container">
+        <div id="workspace">
+            <div id="left-pane">
+                <div class="board-header">
+                    <div class="title-card">
+                        <div class="school-title-text" id="school-title-text"></div>
+                    </div>
+                    <div id="attendance-stats"></div>
+                </div>
+                <div class="classroom-scroll-area">
+                    <div id="classroom-area" class="classroom"></div>
+                </div>
+            </div>
+
+            <div id="right-pane">
+                <div class="board-section">
+                    <h2>오늘의 코딩 수업 안내</h2>
+                    <textarea class="announcement-board" id="announcement-text" placeholder="수업내용"></textarea>
+                </div>
+                <div class="memo-section">
+                    <h3><i class="fa-solid fa-note-sticky"></i> 선생님 메모장</h3>
+                    <textarea class="memo-board" id="memo-text" placeholder="간단한 메모나 특이사항을 적어두세요."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 우클릭 메뉴 및 모달들 -->
+    <div id="context-menu">
+        <div class="cm-item" id="cm-add" onclick="handleAddStudentModal()"><i class="fa-solid fa-user-plus"></i> 학생 추가</div>
+        <div class="cm-item" id="cm-edit" onclick="handleEditStudentModal()"><i class="fa-solid fa-pen"></i> 이름 수정</div>
+        <div class="cm-item delete" id="cm-delete" onclick="handleDeleteStudent()"><i class="fa-solid fa-trash"></i> 학생 삭제</div>
+    </div>
+
+    <div id="modal-overlay" class="custom-modal-overlay">
+        <div id="modal-box" class="custom-modal-box" style="width: 460px;">
+            <div class="custom-modal-icon"><i class="fa-solid fa-address-book" style="color: #986ebb;"></i></div>
+            <h3 class="custom-modal-title">학생 명단 일괄 붙여넣기</h3>
+            <div class="custom-modal-desc">
+                엑셀이나 메모장에서 명단을 복사(Ctrl+C)하여 아래 칸에 붙여넣기(Ctrl+V) 하세요.<br>
+                (형식: <b>이름</b> 또는 <b>이름 레벨</b> / 한 줄에 한 명씩 입력)
+            </div>
+            <textarea id="modal-textarea" style="width: 100%; height: 180px; padding: 12px; border: 2px solid #cbd5e0; border-radius: 8px; font-size: 1rem; font-family: inherit; resize: none; outline: none;" placeholder="예시:&#10;김철수 1&#10;이영희 2&#10;박민수"></textarea>
+            <div class="custom-modal-btns">
+                <button class="btn-modal-cancel" onclick="closeModal()"><i class="fa-solid fa-xmark"></i> 취소</button>
+                <button class="btn-modal-confirm" onclick="saveModalData()"><i class="fa-solid fa-check"></i> 저장하기</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="student-input-overlay" class="custom-modal-overlay">
+        <div class="custom-modal-box" style="width: 360px;">
+            <div class="custom-modal-icon" id="student-modal-icon"><i class="fa-solid fa-user-pen" style="color: #986ebb;"></i></div>
+            <h3 class="custom-modal-title" id="student-modal-title">학생 이름 입력</h3>
+            <div class="custom-modal-desc" id="student-modal-desc" style="text-align: center; margin-bottom: -5px;">학생의 이름을 입력해주세요.</div>
+            <input type="text" id="student-input-field" style="width: 100%; padding: 12px; border: 2px solid #cbd5e0; border-radius: 8px; font-size: 1.1rem; outline: none; font-family: inherit;" placeholder="예: 김철수">
+            <div class="custom-modal-btns">
+                <button class="btn-modal-cancel" onclick="closeStudentModal()"><i class="fa-solid fa-xmark"></i> 취소</button>
+                <button class="btn-modal-confirm" id="student-modal-submit-btn"><i class="fa-solid fa-check"></i> 확인</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="custom-alert-overlay" class="custom-modal-overlay">
+        <div class="custom-modal-box">
+            <div id="alert-icon" class="custom-modal-icon"><i class="fa-solid fa-circle-info" style="color: #986ebb;"></i></div>
+            <h3 id="alert-title" class="custom-modal-title">알림</h3>
+            <div id="alert-desc" class="custom-modal-desc" style="text-align: center;">메시지 내용</div>
+            <div class="custom-modal-btns" id="alert-btn-container">
+                <button class="btn-modal-confirm" onclick="closeCustomAlert()"><i class="fa-solid fa-check"></i> 확인</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 🔥 1. 파이어베이스 클라우드 연결 설정 🔥
+        const firebaseConfig = {
+            apiKey: "AIzaSyDzu6qc5uyAGX7ucznxZInL4D8Kmcw1T68",
+            authDomain: "coding-class-seating.firebaseapp.com",
+            projectId: "coding-class-seating",
+            storageBucket: "coding-class-seating.firebasestorage.app",
+            messagingSenderId: "54819541417",
+            appId: "1:54819541417:web:9fc185f5064f50219fb4b8"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // 🏫 2. 학교 기본 설정
+        const SCHOOLS = {
+            'hakdong': { id: 'hakdong', name: '학동초 (화)', layout: '4-4', maxDesks: 32 },
+            'bareun': { id: 'bareun', name: '바른초 (수)', layout: '2-2-2', maxDesks: 30 },
+            'banwol': { id: 'banwol', name: '반월초 (목)', layout: '2-2-2', maxDesks: 30 },
+            'sejeong': { id: 'sejeong', name: '세정초 (금)', layout: '2-2-2', maxDesks: 30 }
+        };
+
+        let currentSchool = 'hakdong';
+        let currentQuarter = 'q1';
+        let currentClassType = 'class1';
+        
+        let draggedIndex = null; 
+        let contextTargetIdx = null; 
+        let classData = {}; 
+
+        const qTextMap = { q1: '1분기', q2: '2분기', q3: '3분기', q4: '4분기' };
+        const classTextMap = { class1: '1반', class2: '2반' };
+
+        function getEmptySingleClass(max) {
+            return {
+                students: Array.from({length: max}, () => null),
+                announcement: "", memo: "",
+                progress: Array.from({length: 12}, () => ({text: '', done: false}))
+            };
+        }
+
+        function getEmptyClassData(max) {
+            return { class1: getEmptySingleClass(max), class2: getEmptySingleClass(max) };
+        }
+
+        function padStudentsArray(arr, max) {
+            let padded = [...arr];
+            while (padded.length < max) padded.push(null); 
+            return padded.slice(0, max);
+        }
+
+        function showCustomAlert(title, desc, iconHtml = '<i class="fa-solid fa-circle-check" style="color: #986ebb;"></i>', isConfirm = false, onConfirm = null) {
+            document.getElementById('alert-title').innerText = title;
+            document.getElementById('alert-desc').innerText = desc;
+            document.getElementById('alert-icon').innerHTML = iconHtml;
+            
+            const btnContainer = document.getElementById('alert-btn-container');
+            if (isConfirm) {
+                btnContainer.innerHTML = `
+                    <button class="btn-modal-cancel" onclick="closeCustomAlert()"><i class="fa-solid fa-xmark"></i> 취소</button>
+                    <button class="btn-modal-danger" id="alert-ok-btn"><i class="fa-solid fa-check"></i> 확인</button>
+                `;
+                document.getElementById('alert-ok-btn').onclick = function() {
+                    closeCustomAlert();
+                    if (onConfirm) onConfirm();
+                };
+            } else {
+                btnContainer.innerHTML = `<button class="btn-modal-confirm" onclick="closeCustomAlert()"><i class="fa-solid fa-check"></i> 확인</button>`;
+            }
+            document.getElementById('custom-alert-overlay').style.display = 'flex';
+        }
+        function closeCustomAlert() { document.getElementById('custom-alert-overlay').style.display = 'none'; }
+
+        function updateCurrentState() {
+            const annArea = document.getElementById('announcement-text');
+            const memoArea = document.getElementById('memo-text');
+            if (annArea && classData[currentClassType]) classData[currentClassType].announcement = annArea.value;
+            if (memoArea && classData[currentClassType]) classData[currentClassType].memo = memoArea.value;
+        }
+
+        // 🔥 3. 파이어베이스에 수동 저장하는 기능 (비동기 처리) 🔥
+        async function manualSaveData(silent = false) {
+            try {
+                updateCurrentState();
+                localStorage.setItem('seatingApp_global_settings', JSON.stringify({ school: currentSchool, quarter: currentQuarter, classType: currentClassType }));
+                
+                // Firestore 클라우드 저장
+                await db.collection('seatingData').doc(currentSchool + '_' + currentQuarter).set(classData);
+                
+                if(!silent) showCustomAlert("클라우드 저장 완료", `[${SCHOOLS[currentSchool].name}] 배치가 안전하게 저장되었습니다!`, '<i class="fa-solid fa-cloud-arrow-up" style="color: #2ecc71;"></i>');
+            } catch (e) {
+                console.error("Save Error:", e);
+                showCustomAlert("저장 실패", "클라우드 저장 중 오류가 발생했습니다.", '<i class="fa-solid fa-triangle-exclamation" style="color: #e74c3c;"></i>');
+            }
+        }
+
+        // 🔥 앱 시작 시 클라우드에서 데이터 불러오기 🔥
+        async function initApp() {
+            try {
+                const settingsStr = localStorage.getItem('seatingApp_global_settings');
+                if (settingsStr) {
+                    const settings = JSON.parse(settingsStr);
+                    currentSchool = settings.school || 'hakdong';
+                    currentQuarter = settings.quarter || 'q1';
+                    currentClassType = settings.classType || 'class1';
+                }
+            } catch(e) { console.error(e); }
+            
+            await loadData();
+        }
+
+        async function loadData() {
+            document.querySelectorAll('.s-tab').forEach(t => t.classList.remove('active'));
+            if(document.getElementById('btn-' + currentSchool)) document.getElementById('btn-' + currentSchool).classList.add('active');
+
+            document.querySelectorAll('.q-tab').forEach(t => t.classList.remove('active'));
+            if(document.getElementById('btn-' + currentQuarter)) document.getElementById('btn-' + currentQuarter).classList.add('active');
+
+            document.querySelectorAll('.class-tab').forEach(t => t.classList.remove('active'));
+            if(document.getElementById('btn-' + currentClassType)) document.getElementById('btn-' + currentClassType).classList.add('active');
+
+            const maxDesks = SCHOOLS[currentSchool].maxDesks;
+
+            try {
+                // 파이어베이스에서 문서 가져오기
+                const docRef = db.collection('seatingData').doc(currentSchool + '_' + currentQuarter);
+                const docSnap = await docRef.get();
+
+                if (docSnap.exists) {
+                    classData = docSnap.data();
+                } else {
+                    classData = getEmptyClassData(maxDesks);
+                }
+            } catch(e) {
+                console.error("Firestore Load Error:", e);
+                classData = getEmptyClassData(maxDesks);
+            }
+
+            for(let c in classData) {
+                classData[c].students = padStudentsArray(classData[c].students || [], maxDesks).map(student => {
+                    if (student && student.level === undefined) student.level = 0;
+                    if (student && student.status === undefined) student.status = 'normal';
+                    if (student && student.note === undefined) student.note = '';
+                    return student;
+                });
+                if(!classData[c].progress) classData[c].progress = Array.from({length: 12}, () => ({text: '', done: false}));
+                if(classData[c].memo === undefined) classData[c].memo = "";
+            }
+            
+            updateTitleAndRender();
+        }
+
+        async function switchSchool(schoolId) {
+            if (currentSchool === schoolId) return;
+            await manualSaveData(true); 
+            currentSchool = schoolId;
+            localStorage.setItem('seatingApp_global_settings', JSON.stringify({ school: currentSchool, quarter: currentQuarter, classType: currentClassType }));
+            await loadData();
+        }
+
+        async function switchQuarter(q) {
+            if (currentQuarter === q) return;
+            await manualSaveData(true); 
+            currentQuarter = q;
+            localStorage.setItem('seatingApp_global_settings', JSON.stringify({ school: currentSchool, quarter: currentQuarter, classType: currentClassType }));
+            await loadData();
+        }
+
+        async function switchClass(classType) {
+            if (currentClassType === classType) return;
+            updateCurrentState(); 
+            currentClassType = classType;
+            await manualSaveData(true);
+            
+            document.querySelectorAll('.class-tab').forEach(t => t.classList.remove('active'));
+            document.getElementById('btn-' + classType).classList.add('active');
+            updateTitleAndRender();
+        }
+
+        function loadPreviousQuarterStudents() {
+            const prevMap = { 'q1': null, 'q2': 'q1', 'q3': 'q2', 'q4': 'q3' };
+            const prevQ = prevMap[currentQuarter];
+            
+            if (!prevQ) {
+                showCustomAlert("알림", "1분기는 이전 분기 데이터가 없습니다.", '<i class="fa-solid fa-circle-info" style="color: #986ebb;"></i>');
+                return;
+            }
+
+            showCustomAlert("명단 복사", `[${SCHOOLS[currentSchool].name}]의 이전 분기 명단을 가져오시겠습니까?`, '<i class="fa-solid fa-clock-rotate-left" style="color: #986ebb;"></i>', true, 
+            async function() {
+                try {
+                    const docSnap = await db.collection('seatingData').doc(`${currentSchool}_${prevQ}`).get();
+                    if (docSnap.exists) {
+                        const prevData = docSnap.data();
+                        const maxDesks = SCHOOLS[currentSchool].maxDesks;
+                        const getResetStudents = (students) => {
+                            if (!students) return [];
+                            return students.map(s => s ? { ...s, status: 'normal' } : null);
+                        };
+
+                        if(prevData.class1 && prevData.class1.students) classData.class1.students = padStudentsArray(getResetStudents(prevData.class1.students), maxDesks);
+                        if(prevData.class2 && prevData.class2.students) classData.class2.students = padStudentsArray(getResetStudents(prevData.class2.students), maxDesks);
+                        
+                        await manualSaveData(true); 
+                        renderClassroom();    
+                        showCustomAlert("성공", "명단을 성공적으로 불러왔습니다.");
+                    } else {
+                        showCustomAlert("오류", "이전 분기 데이터가 클라우드에 없습니다.", '<i class="fa-solid fa-triangle-exclamation" style="color: #e74c3c;"></i>');
+                    }
+                } catch(e) {
+                    showCustomAlert("오류", "클라우드에서 불러오는 중 에러가 발생했습니다.");
+                }
+            });
+        }
+
+        function resetCurrentClass() {
+            showCustomAlert("현재 반 초기화", `[${SCHOOLS[currentSchool].name} - ${classTextMap[currentClassType]}]을 초기화할까요?`, '<i class="fa-solid fa-eraser" style="color: #e67e22;"></i>', true, async function() {
+                classData[currentClassType] = getEmptySingleClass(SCHOOLS[currentSchool].maxDesks);
+                await manualSaveData(true);
+                updateTitleAndRender();
+                showCustomAlert("초기화 완료", "데이터가 초기화되었습니다.");
+            });
+        }
+
+        function resetAllData() {
+            showCustomAlert("⚠️ 전체 데이터 삭제", `클라우드에 저장된 4개 학교 1~4분기 데이터가 모두 영구 삭제됩니다.\n정말 지우시겠습니까?`, '<i class="fa-solid fa-trash-can" style="color: #e74c3c;"></i>', true, async function() {
+                showCustomAlert("삭제 중...", "클라우드 데이터를 삭제하고 있습니다.", '<i class="fa-solid fa-spinner fa-spin"></i>');
+                for(let s in SCHOOLS) {
+                    for(let q in qTextMap) {
+                        await db.collection('seatingData').doc(`${s}_${q}`).delete();
+                    }
+                }
+                localStorage.removeItem('seatingApp_global_settings');
+                location.reload();
+            });
+        }
+
+        // 🔥 USB 백업 시스템 (클라우드에서 다운로드)
+        async function exportDataToFile() {
+            await manualSaveData(true); 
+            showCustomAlert("백업 중...", "클라우드에서 데이터를 모으고 있습니다. 잠시만 기다려주세요.", '<i class="fa-solid fa-spinner fa-spin" style="color: #986ebb;"></i>');
+            
+            try {
+                const exportObj = { settings: JSON.parse(localStorage.getItem('seatingApp_global_settings')) || {} };
+                
+                for(let s in SCHOOLS) {
+                    exportObj[s] = {};
+                    for(let q in qTextMap) {
+                        const docSnap = await db.collection('seatingData').doc(`${s}_${q}`).get();
+                        if(docSnap.exists) {
+                            exportObj[s][q] = docSnap.data();
+                        }
+                    }
+                }
+
+                const dataStr = JSON.stringify(exportObj, null, 2);
+                const blob = new Blob([dataStr], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.href = url;
+                downloadAnchor.download = `Total_seating_data_all.json`;
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                document.body.removeChild(downloadAnchor);
+                URL.revokeObjectURL(url);
+                
+                showCustomAlert("전체 백업 완료", "모든 학교 데이터가 백업되었습니다.", '<i class="fa-solid fa-cloud-arrow-up" style="color: #986ebb;"></i>');
+            } catch (e) {
+                showCustomAlert("오류", "백업 중 문제가 발생했습니다.", '<i class="fa-solid fa-triangle-exclamation" style="color: #e74c3c;"></i>');
+            }
+        }
+
+        // 🔥 USB 복구 시스템 (클라우드에 덮어쓰기)
+        async function importDataFromFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            showCustomAlert("복구 중...", "USB 데이터를 클라우드에 덮어쓰고 있습니다. 창을 닫지 마세요.", '<i class="fa-solid fa-spinner fa-spin" style="color: #986ebb;"></i>');
+
+            const reader = new FileReader();
+            reader.onload = async function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    if(importedData.settings) localStorage.setItem('seatingApp_global_settings', JSON.stringify(importedData.settings));
+                    
+                    for(let s in SCHOOLS) {
+                        if(importedData[s]) {
+                            for(let q in qTextMap) {
+                                if(importedData[s][q]) {
+                                    await db.collection('seatingData').doc(`${s}_${q}`).set(importedData[s][q]);
+                                }
+                            }
+                        }
+                    }
+                    await initApp(); 
+                    showCustomAlert("복구 성공", "USB 백업 데이터가 클라우드에 성공적으로 반영되었습니다!", '<i class="fa-solid fa-cloud-arrow-down" style="color: #986ebb;"></i>');
+                } catch (error) {
+                    showCustomAlert("오류", "올바른 백업 파일이 아닙니다.", '<i class="fa-solid fa-triangle-exclamation" style="color: #e74c3c;"></i>');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function updateTitleAndRender() {
+            const schoolConfig = SCHOOLS[currentSchool];
+            const className = classTextMap[currentClassType];
+            const badgeClass = currentClassType === 'class1' ? 'badge-class1' : 'badge-class2';
+            
+            const styledTitle = `
+                <i class="fa-solid fa-school" style="color: #986ebb;"></i> ${schoolConfig.name} 
+                <span class="quarter-title-tag">[${qTextMap[currentQuarter]}]</span> 
+                <span class="class-title-badge ${badgeClass}">${className}</span>`;
+            
+            document.getElementById('school-title-text').innerHTML = styledTitle;
+            document.getElementById('announcement-text').value = classData[currentClassType].announcement || "";
+            document.getElementById('memo-text').value = classData[currentClassType].memo || "";
+            
+            const workspace = document.getElementById('workspace');
+            const leftPane = document.getElementById('left-pane');
+            
+            workspace.className = 'layout-' + schoolConfig.layout; 
+            leftPane.className = '';
+            
+            if (currentClassType === 'class1') {
+                workspace.classList.add('workspace-class1'); leftPane.classList.add('pane-class1');
+            } else {
+                workspace.classList.add('workspace-class2'); leftPane.classList.add('pane-class2');
+            }
+
+            renderClassroom();
+            renderProgress(); 
+        }
+
+        function updateAttendanceStats() {
+            const currentStudents = classData[currentClassType].students.filter(s => s !== null);
+            const total = currentStudents.length;
+            const presentCount = currentStudents.filter(s => s.status === 'present').length;
+            const absentCount = currentStudents.filter(s => s.status === 'absent').length;
+
+            document.getElementById('attendance-stats').innerHTML = `
+                <span class="stat-total"><i class="fa-solid fa-user-graduate"></i> 총원: ${total}명</span> &nbsp;|&nbsp; 
+                <span class="stat-present">🟢 출석: ${presentCount}명</span> &nbsp;|&nbsp; 
+                <span class="stat-absent">🔴 결석: ${absentCount}명</span>
+            `;
+        }
+
+        function renderClassroom() {
+            const container = document.getElementById('classroom-area');
+            container.innerHTML = ''; 
+            
+            const schoolConfig = SCHOOLS[currentSchool];
+            const layoutType = schoolConfig.layout;
+            
+            container.className = 'classroom layout-' + layoutType;
+
+            let studentsArr = classData[currentClassType].students;
+            
+            updateAttendanceStats();
+
+            let idx = 0;
+            const createDeskHTML = () => {
+                const student = studentsArr[idx];
+                const displayNum = idx + 1;
+                let html = '';
+                
+                if (student) {
+                    const lvl = student.level || 0;
+                    let lvlText = ['-', 'N', '1', '2', '3', '4', '🏅'][lvl];
+                    let statusClass = student.status === 'present' ? 'present' : (student.status === 'absent' ? 'absent' : '');
+
+                    html = `
+                        <div class="desk-wrapper">
+                            <div class="desk has-student ${statusClass}" 
+                                 draggable="true" ondragstart="handleDragStart(event, ${idx})" ondragend="handleDragEnd(event)"
+                                 ondragenter="handleDragEnter(event)" ondragleave="handleDragLeave(event)"
+                                 ondragover="handleDragOver(event)" ondrop="handleDrop(event, ${idx})"
+                                 onclick="toggleAttendance(${idx})" oncontextmenu="showContextMenu(event, ${idx})"> 
+                                <div class="level-badge lvl-${lvl}" onclick="toggleLevel(event, ${idx})" title="레벨 변경">${lvlText}</div>
+                                <div class="desk-num">${displayNum}번</div>
+                                <div class="student-name">${student.name}</div>
+                            </div>
+                            <input type="text" class="desk-memo-input" value="${student.note || ''}" onchange="updateStudentNote(${idx}, this.value)">
+                        </div>`;
+                } else {
+                    html = `
+                        <div class="desk-wrapper">
+                            <div class="desk empty-desk"
+                                 ondragenter="handleDragEnter(event)" ondragleave="handleDragLeave(event)"
+                                 ondragover="handleDragOver(event)" ondrop="handleDrop(event, ${idx})"
+                                 oncontextmenu="showContextMenu(event, ${idx})">
+                                <div class="desk-num">${displayNum}번</div>
+                                <div class="student-name"></div>
+                            </div>
+                            <input type="text" class="desk-memo-input" disabled style="opacity:0.3; background:transparent; border:none;">
+                        </div>`;
+                }
+                idx++;
+                return html;
+            };
+
+            if (layoutType === '2-2-2') {
+                for (let r = 0; r < 5; r++) { 
+                    const rowDiv = document.createElement('div');
+                    rowDiv.className = 'row';
+                    for (let g = 0; g < 3; g++) {
+                        const group = document.createElement('div');
+                        group.className = 'group';
+                        for (let i = 0; i < 2; i++) group.innerHTML += createDeskHTML();
+                        rowDiv.appendChild(group);
+                    }
+                    container.appendChild(rowDiv);
+                }
+            } else if (layoutType === '4-4') {
+                for (let r = 0; r < 4; r++) { 
+                    const rowDiv = document.createElement('div');
+                    rowDiv.className = 'row';
+                    for (let g = 0; g < 2; g++) {
+                        const group = document.createElement('div');
+                        group.className = 'group';
+                        for (let i = 0; i < 4; i++) group.innerHTML += createDeskHTML();
+                        rowDiv.appendChild(group);
+                    }
+                    container.appendChild(rowDiv);
+                }
+            }
+        }
+
+        function handleDragStart(e, index) { draggedIndex = index; e.target.classList.add('dragging'); e.dataTransfer.effectAllowed = 'move'; }
+        function handleDragEnd(e) { e.target.classList.remove('dragging'); draggedIndex = null; }
+        function handleDragEnter(e) { e.preventDefault(); const desk = e.target.closest('.desk'); if (desk) desk.classList.add('drag-over'); }
+        function handleDragLeave(e) { const desk = e.target.closest('.desk'); if (desk) desk.classList.remove('drag-over'); }
+        function handleDragOver(e) { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; }
+        function handleDrop(e, targetIndex) {
+            e.preventDefault(); const desk = e.target.closest('.desk'); if (desk) desk.classList.remove('drag-over');
+            if (draggedIndex === null || draggedIndex === targetIndex) return;
+            let studentsArr = classData[currentClassType].students;
+            [studentsArr[draggedIndex], studentsArr[targetIndex]] = [studentsArr[targetIndex], studentsArr[draggedIndex]];
+            renderClassroom();
+        }
+
+        function toggleAttendance(index) {
+            let s = classData[currentClassType].students[index];
+            if (s !== null) {
+                if (!s.status || s.status === 'normal') s.status = 'present';
+                else if (s.status === 'present') s.status = 'absent';
+                else s.status = 'normal';
+                renderClassroom(); 
+            }
+        }
+
+        function toggleLevel(e, index) {
+            e.stopPropagation(); 
+            let s = classData[currentClassType].students[index];
+            if (s !== null) { s.level = (s.level || 0) >= 6 ? 0 : (s.level || 0) + 1; renderClassroom(); }
+        }
+
+        function updateStudentNote(index, val) {
+            let s = classData[currentClassType].students[index];
+            if (s !== null) s.note = val;
+        }
+
+        function showContextMenu(e, idx) {
+            e.preventDefault(); contextTargetIdx = idx;
+            const menu = document.getElementById('context-menu');
+            const student = classData[currentClassType].students[idx];
+            if (student) {
+                document.getElementById('cm-add').style.display = 'none';
+                document.getElementById('cm-edit').style.display = 'flex';
+                document.getElementById('cm-delete').style.display = 'flex';
+            } else {
+                document.getElementById('cm-add').style.display = 'flex';
+                document.getElementById('cm-edit').style.display = 'none';
+                document.getElementById('cm-delete').style.display = 'none';
+            }
+            menu.style.display = 'block'; menu.style.left = e.pageX + 'px'; menu.style.top = e.pageY + 'px';
+        }
+
+        document.addEventListener('click', function(e) { if (e.button !== 2) document.getElementById('context-menu').style.display = 'none'; });
+
+        function handleDeleteStudent() {
+            if (contextTargetIdx === null) return;
+            showCustomAlert("학생 삭제", "이 자리의 학생을 삭제할까요?", '<i class="fa-solid fa-triangle-exclamation" style="color: #e74c3c;"></i>', true, function() {
+                classData[currentClassType].students[contextTargetIdx] = null;
+                renderClassroom();
+            });
+        }
+
+        function renderProgress() {
+            const list = document.getElementById('progress-list'); list.innerHTML = '';
+            const progData = classData[currentClassType].progress;
+            for(let i=0; i<12; i++) {
+                const item = progData[i];
+                const row = document.createElement('div'); row.className = 'prog-row' + (item.done ? ' prog-done' : '');
+                const label = document.createElement('div'); label.className = 'prog-label'; label.innerText = `${i+1}차시`;
+                label.onclick = () => { progData[i].done = !progData[i].done; renderProgress(); };
+                const input = document.createElement('input'); input.className = 'prog-input'; input.type = 'text';
+                input.value = item.text; input.placeholder = '내용 입력...';
+                input.onchange = (e) => { progData[i].text = e.target.value; };
+                row.appendChild(label); row.appendChild(input); list.appendChild(row);
+            }
+        }
+
+        function openModal() {
+            const currentStudents = classData[currentClassType].students.filter(s => s !== null);
+            let textLines = currentStudents.map(s => {
+                let lvlStr = ''; let l = s.level || 0;
+                if(l === 1) lvlStr = ' New'; else if(l >= 2 && l <= 5) lvlStr = ` ${l-1}`; else if(l === 6) lvlStr = ' 자격증';
+                return `${s.name}${lvlStr}`;
+            }).join('\n');
+            document.getElementById('modal-textarea').value = textLines;
+            document.getElementById('modal-overlay').style.display = 'flex';
+        }
+        function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+        
+        async function saveModalData() {
+            const lines = document.getElementById('modal-textarea').value.split('\n');
+            let parsedStudents = [];
+            lines.forEach(line => {
+                let trimmed = line.trim();
+                if(trimmed !== '') {
+                    let parts = trimmed.split(/\s+/); let name = parts[0]; let lvlVal = parts.length > 1 ? parts[1].toLowerCase() : '';
+                    let lvl = 0;
+                    if(lvlVal.includes('자격증') || lvlVal === '6' || lvlVal === '5') lvl = 6;
+                    else if(lvlVal.includes('4')) lvl = 5; else if(lvlVal.includes('3')) lvl = 4; else if(lvlVal.includes('2')) lvl = 3; else if(lvlVal.includes('1')) lvl = 2; else if(lvlVal.includes('new') || lvlVal === 'n') lvl = 1;
+                    parsedStudents.push({ name: name, status: 'normal', level: lvl, note: '' });
+                }
+            });
+            classData[currentClassType].students = padStudentsArray(parsedStudents, SCHOOLS[currentSchool].maxDesks);
+            await manualSaveData(true); 
+            renderClassroom(); closeModal();
+            showCustomAlert("적용 완료", "명단이 적용되었습니다.");
+        }
+
+        function openStudentModal(title, iconHtml, defaultVal, onSubmit) {
+            document.getElementById('student-modal-title').innerText = title;
+            document.getElementById('student-modal-icon').innerHTML = iconHtml;
+            const inputField = document.getElementById('student-input-field'); inputField.value = defaultVal || '';
+            document.getElementById('student-modal-submit-btn').onclick = function() {
+                const val = inputField.value.trim();
+                if (val !== '') { onSubmit(val); closeStudentModal(); } else { alert('이름을 입력해주세요.'); }
+            };
+            document.getElementById('student-input-overlay').style.display = 'flex';
+            setTimeout(() => inputField.focus(), 100);
+        }
+        function closeStudentModal() { document.getElementById('student-input-overlay').style.display = 'none'; }
+        
+        function handleAddStudentModal() {
+            if (contextTargetIdx === null) return;
+            openStudentModal("학생 추가", '<i class="fa-solid fa-user-plus" style="color: #986ebb;"></i>', '', function(name) {
+                classData[currentClassType].students[contextTargetIdx] = { name: name, status: 'normal', level: 0, note: '' };
+                renderClassroom();
+            });
+        }
+        function handleEditStudentModal() {
+            if (contextTargetIdx === null) return;
+            const student = classData[currentClassType].students[contextTargetIdx];
+            if (!student) return;
+            openStudentModal("학생 이름 수정", '<i class="fa-solid fa-user-pen" style="color: #986ebb;"></i>', student.name, function(name) {
+                student.name = name; renderClassroom();
+            });
+        }
+
+        // 앱 구동
+        window.onload = function() { initApp(); };
+    </script>
+</body>
+</html>
