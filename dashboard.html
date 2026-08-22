@@ -417,7 +417,7 @@
                         </button>
                         <h1>코딩 교구재 통합 관리 대시보드 (강사: 김정이)</h1>
                     </div>
-                    <!-- 분기 선택 탭 (대시보드 내부에서도 변경 가능) -->
+                    <!-- 분기 선택 탭 -->
                     <div class="q-tabs" v-if="isLoggedIn">
                         <div class="q-tab" :class="{ 'active spring': quarter === '1분기' }" @click="quarter = '1분기'">🌸 1분기</div>
                         <div class="q-tab" :class="{ 'active summer': quarter === '2분기' }" @click="quarter = '2분기'">🌳 2분기</div>
@@ -431,14 +431,13 @@
                 </div>
             </div>
             
-            <!-- 🌟 [랜딩 뷰] 분기에 맞게 배경 컬러가 변경되고 대형 버튼과 예쁜 카드가 적용된 화면 -->
+            <!-- 🌟 [랜딩 뷰] -->
             <div v-if="!isLoggedIn" class="landing-container">
                 <div class="landing-header-row">
                     <div class="landing-title-area">
                         <h2>🏫 관리할 학교와 분기를 선택해주세요</h2>
                         <p>작업할 분기를 먼저 고른 뒤, 출강 학교 카드를 클릭하여 대시보드에 진입하세요.</p>
                     </div>
-                    <!-- 한 줄로 정돈된 대형 분기 선택 버튼 그룹 -->
                     <div class="landing-quarter-row">
                         <button class="landing-quarter-btn" :class="{ 'active spring': landingQuarter === '1분기' }" @click="landingQuarter = '1분기'">🌸 1분기</button>
                         <button class="landing-quarter-btn" :class="{ 'active summer': landingQuarter === '2분기' }" @click="landingQuarter = '2분기'">🌳 2분기</button>
@@ -447,7 +446,6 @@
                     </div>
                 </div>
 
-                <!-- 4개의 학교 카드 그리드 -->
                 <div class="landing-school-grid">
                     <div class="school-card" style="--theme-color: #EF4444;" @click="selectSchoolAndEnter('hakdong')">
                         <div class="school-badge">화요일 출강</div>
@@ -472,7 +470,7 @@
                 </div>
             </div>
 
-            <!-- 🌟 [메인 대시보드 영역] 학교가 선택된 이후에만 표시됨 -->
+            <!-- 🌟 [메인 대시보드 영역] -->
             <div v-else>
                 <div class="tabs">
                     <div class="tab" :class="{ active: currentTab === 'hakdong' }" @click="currentTab = 'hakdong'"> 학동초(화)</div>
@@ -480,6 +478,7 @@
                     <div class="tab" :class="{ active: currentTab === 'banwol' }" @click="currentTab = 'banwol'"> 반월초(목)</div>
                     <div class="tab" :class="{ active: currentTab === 'sejeong' }" @click="currentTab = 'sejeong'"> 세정초(금)</div>
                     <div class="tab" :class="{ active: currentTab === 'matrix' }" @click="currentTab = 'matrix'" style="margin-left: auto; background: #334155; color: white;">📊 종합 현황</div>
+                    <!-- 복구: 재고 정산 탭 -->
                     <div class="tab" :class="{ active: currentTab === 'inventory' }" @click="currentTab = 'inventory'" style="background: #334155; color: white;">🔄 재고 정산</div>
                 </div>
 
@@ -502,15 +501,20 @@
                                 </h2>
                                 <input type="text" v-model="searchQuery" class="search-input" placeholder="🔍 이름/전화번호 검색 (Ctrl+F)">
                             </div>
-                            <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end;">
+                            
+                            <!-- 깔끔하게 그룹화 및 재배치된 버튼 영역 -->
+                            <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; align-items: center;">
+                                <button class="btn btn-outline" @click="importFromPrevQuarter" style="color: #475569; border-color: #CBD5E1;">🔄 이전 분기 가져오기</button>
                                 <button class="btn btn-outline" @click="resetCurrentStudents" style="color: #EF4444; border-color: #FCA5A5;">🗑️ 명단 리셋</button>
-                                <button class="btn btn-outline" @click="importFromPrevQuarter">🔄 이전 분기 가져오기</button>
-                                <!-- 새로운 정렬 버튼 추가 -->
-                                <button class="btn btn-outline" @click="sortByGradeClassNum" style="color: #4F46E5; border-color: #A5B4FC;">🔽 학년·반·번호순 정렬</button>
-                                <!-- 엑셀/CSV 버튼 영역 -->
+                                
+                                <div style="width: 1px; height: 20px; background: #CBD5E1; margin: 0 4px;"></div>
+                                
                                 <button class="btn btn-outline" @click="exportToExcel" style="color: #059669; border-color: #6EE7B7;">📊 엑셀 내보내기</button>
                                 <button class="btn btn-outline" @click="exportContactCSV" style="color: #10B981; border-color: #34D399;">📞 연락처 CSV</button>
-                                <button class="btn btn-bulk" @click="showBulkInput = !showBulkInput">📋 명단일괄추가</button>
+                                
+                                <div style="width: 1px; height: 20px; background: #CBD5E1; margin: 0 4px;"></div>
+                                
+                                <button class="btn btn-bulk" @click="showBulkInput = !showBulkInput">📋 명단 일괄추가</button>
                                 <button class="btn" @click="addStudent(currentTab)">+ 인원 추가</button>
                             </div>
                         </div>
@@ -561,10 +565,7 @@
 
                             <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
                                 
-                                <!-- 새로운 일괄 '기존' 변경 버튼 영역 -->
-                                <button class="btn" style="padding: 8px 14px; font-size: 14px; background: #10B981; border: none; color: white;" @click="applyBatchStatusDirect('기존')" :disabled="selectedStudentIds.length === 0">✅ 상태 일괄 '기존' 변경</button>
-
-                                <!-- 상태 일괄변경 영역 (유지) -->
+                                <!-- 복구: 상태 일괄변경 영역 (목록 선택 방식) -->
                                 <div style="display: flex; align-items: center; gap: 6px;">
                                     <span style="font-size: 14.5px; font-weight: 800; color: #334155;">상태일괄:</span>
                                     <select v-model="batchStatusValue" style="width: 110px; padding: 7px; font-size: 14px; border-radius: 6px; font-weight: 600;">
@@ -575,6 +576,8 @@
                                     </select>
                                     <button class="btn btn-outline" style="padding: 8px 14px; font-size: 14px;" @click="applyBatchStatus" :disabled="selectedStudentIds.length === 0">상태적용</button>
                                 </div>
+
+                                <div style="width: 1px; height: 18px; background: #CBD5E1; margin: 0 2px;"></div>
 
                                 <!-- 교구 단계 일괄변경 영역 -->
                                 <div style="display: flex; align-items: center; gap: 6px;">
@@ -596,13 +599,13 @@
                                 <tr>
                                     <th width="40"><input type="checkbox" @change="toggleAll" :checked="isAllSelected" title="전체 선택"></th>
                                     <th width="45">No</th>
-                                    <th width="75" @click="sortBy('grade')" style="cursor: pointer;">학년 {{ getSortIcon('grade') }}</th>
-                                    <th width="75" @click="sortBy('classNum')" style="cursor: pointer;">반 {{ getSortIcon('classNum') }}</th>
-                                    <th width="75" @click="sortBy('num')" style="cursor: pointer;">번호 {{ getSortIcon('num') }}</th>
+                                    <th width="65">학년</th>
+                                    <th width="65">반</th>
+                                    <th width="65">번호</th>
                                     <th width="130">성명</th>
                                     <th width="160">연락처</th>
-                                    <th width="110">상태</th>
-                                    <th width="130">현재 단계</th> <!-- 수정된 부분: 현재 단계 -->
+                                    <th width="110">상태</th> <!-- 복구: 상태 열 -->
+                                    <th width="130">현재 단계</th>
                                     <th width="160">교구 주문</th>
                                     <th width="150">비고</th>
                                     <th width="50">삭제</th>
@@ -618,6 +621,7 @@
                                     <td><input type="text" v-model="student.name" style="font-weight: 700;"></td>
                                     <td><input type="text" v-model="student.phone"></td>
                                     <td>
+                                        <!-- 복구: 상태 선택 드롭다운 -->
                                         <select v-model="student.status" style="font-weight: 700;">
                                             <option value="기존">기존</option>
                                             <option value="신규">신규</option>
@@ -625,7 +629,6 @@
                                         </select>
                                     </td>
                                     <td>
-                                        <!-- 수정된 부분: 현재 단계 선택 드롭다운 -->
                                         <select v-model="student.currentLevel" style="font-weight: 700;">
                                             <option value="">선택</option>
                                             <option v-for="item in items" :value="item">{{ item }}</option>
@@ -888,7 +891,6 @@
                                     </tr>
                                 </tbody>
                             </table>
-                            <!-- 보관함 가장 아래에 추가된 전체 저장하기 버튼 -->
                             <div style="text-align: right;">
                                 <button class="btn" @click="saveData" style="background: var(--theme-color, var(--primary)); color: white; padding: 14px 28px; font-size: 16px;">💾 전체 저장하기</button>
                             </div>
@@ -939,7 +941,7 @@
                         </table>
                     </div>
 
-                    <!-- 재고 이동 및 정산 탭 -->
+                    <!-- 복구: 재고 이동 및 정산 탭 -->
                     <div v-if="currentTab === 'inventory'">
                         <h2 style="font-size: 24px; font-weight: 900; margin-bottom: 25px; color: #0F172A;">🔄 전체 학교 간 재고 이동 및 반품 스마트 정산 ({{ quarter }})</h2>
                         <div class="summary-cards">
@@ -994,7 +996,7 @@
     <script>
         const { createApp, ref, computed, watch, onMounted } = Vue;
 
-        // Firebase 모듈이 준비될 때까지 기다리는 헬퍼 (최대 8초)
+        // Firebase 연결 대기
         const waitForFirebase = () => {
             return new Promise((resolve, reject) => {
                 if (window.firebaseReady) return resolve();
@@ -1028,24 +1030,7 @@
                 const searchQuery = ref('');
                 const selectedStudentIds = ref([]);
                 const batchItemValue = ref('DEFAULT');
-                const batchStatusValue = ref('DEFAULT');
-
-                const sortKey = ref(null);
-                const sortOrder = ref('asc');
-
-                const sortBy = (key) => {
-                    if (sortKey.value === key) {
-                        sortOrder.value = sortOrder.value === 'asc' ? 'desc' : 'asc';
-                    } else {
-                        sortKey.value = key;
-                        sortOrder.value = 'asc';
-                    }
-                };
-
-                const getSortIcon = (key) => {
-                    if (sortKey.value !== key) return '↕';
-                    return sortOrder.value === 'asc' ? '▲' : '▼';
-                };
+                const batchStatusValue = ref('DEFAULT'); // 복구: 상태 일괄 변경 드롭다운용
 
                 const selectSchoolAndEnter = (schoolKey) => {
                     quarter.value = landingQuarter.value;
@@ -1074,7 +1059,7 @@
                     searchQuery.value = '';
                     selectedStudentIds.value = [];
                     batchItemValue.value = 'DEFAULT';
-                    batchStatusValue.value = 'DEFAULT';
+                    batchStatusValue.value = 'DEFAULT'; // 초기화 복구
                 });
 
                 watch(quarter, (newQ) => {
@@ -1106,17 +1091,12 @@
 
                 const orderFormsByQuarter = ref({ '1분기': getInitialForms(), '2분기': getInitialForms(), '3분기': getInitialForms(), '4분기': getInitialForms() });
                 const students = ref([
+                    // 복구: status 필드 추가
                     { id: 1, quarter: '2분기', school: 'hakdong', grade: '1', classNum: '1', num: '8', name: '백진우', phone: '010-7767-6858', status: '기존', currentLevel: '말랑1', item: '말랑1', note: '' },
                     { id: 2, quarter: '3분기', school: 'hakdong', grade: '1', classNum: '1', num: '8', name: '백진우', phone: '010-7767-6858', status: '기존', currentLevel: '말랑1', item: '말랑2', note: '' },
                     { id: 3, quarter: '3분기', school: 'bareun', grade: '3', classNum: '1', num: '4', name: '김아린', phone: '010-3391-5062', status: '신규', currentLevel: '', item: '말랑2', note: '중도 편입' }
                 ]);
                 const savedOrders = ref([]);
-
-                // 🌟 수정: 학년/반/번호 순 정렬 기능 추가
-                const sortByGradeClassNum = () => {
-                    sortKey.value = 'gradeClassNum';
-                    sortOrder.value = 'asc';
-                };
 
                 const filteredStudents = computed(() => {
                     let list = students.value.filter(s => s.school === currentTab.value && s.quarter === quarter.value);
@@ -1125,35 +1105,10 @@
                         const q = searchQuery.value.trim().toLowerCase();
                         list = list.filter(s => s.name.includes(q) || s.phone.includes(q));
                     }
-
-                    if (sortKey.value === 'gradeClassNum') {
-                        list.sort((a, b) => {
-                            let gA = parseInt((a.grade || '').toString().replace(/[^0-9]/g, ''), 10) || 0;
-                            let gB = parseInt((b.grade || '').toString().replace(/[^0-9]/g, ''), 10) || 0;
-                            if (gA !== gB) return gA - gB;
-
-                            let cA = parseInt((a.classNum || '').toString().replace(/[^0-9]/g, ''), 10) || 0;
-                            let cB = parseInt((b.classNum || '').toString().replace(/[^0-9]/g, ''), 10) || 0;
-                            if (cA !== cB) return cA - cB;
-
-                            let nA = parseInt((a.num || '').toString().replace(/[^0-9]/g, ''), 10) || 0;
-                            let nB = parseInt((b.num || '').toString().replace(/[^0-9]/g, ''), 10) || 0;
-                            return nA - nB;
-                        });
-                    } else if (sortKey.value) {
-                        list.sort((a, b) => {
-                            let valA = parseInt((a[sortKey.value] || '').toString().replace(/[^0-9]/g, ''), 10) || 0;
-                            let valB = parseInt((b[sortKey.value] || '').toString().replace(/[^0-9]/g, ''), 10) || 0;
-                            
-                            if (valA < valB) return sortOrder.value === 'asc' ? -1 : 1;
-                            if (valA > valB) return sortOrder.value === 'asc' ? 1 : -1;
-                            return 0;
-                        });
-                    }
-
                     return list;
                 });
 
+                // 명단 카운트 시 '삭제' 상태 제외 처리 유지
                 const getClassHeadCount = (classType) => {
                     const list = students.value.filter(s => s.school === currentTab.value && s.quarter === quarter.value && s.status !== '삭제');
                     let count = 0;
@@ -1201,26 +1156,20 @@
                     Swal.fire({ title: '완료!', text: '선택한 학생들의 교구 주문 내역이 변경되었습니다.', icon: 'success', timer: 1200, showConfirmButton: false });
                 };
 
-                // 🌟 수정: 상태 일괄 적용 로직
+                // 복구: 상태 일괄 적용 로직
                 const applyBatchStatus = () => {
                     if (!batchStatusValue.value || batchStatusValue.value === 'DEFAULT') {
                         Swal.fire({ title: '안내', text: '변경할 상태(기존/신규/삭제)를 선택해주세요.', icon: 'warning', confirmButtonColor: '#78649c' });
                         return;
                     }
-                    applyBatchStatusDirect(batchStatusValue.value);
-                };
-
-                // 🌟 수정: 퀵버튼을 통해 특정 상태(예: '기존')로 다이렉트 일괄 변경
-                const applyBatchStatusDirect = (status) => {
-                    if (selectedStudentIds.value.length === 0) return;
                     students.value.forEach(s => {
                         if (selectedStudentIds.value.includes(s.id)) {
-                            s.status = status;
+                            s.status = batchStatusValue.value;
                         }
                     });
                     selectedStudentIds.value = []; 
                     batchStatusValue.value = 'DEFAULT';
-                    Swal.fire({ title: '완료!', text: `선택 학생의 상태가 '${status}'(으)로 변경되었습니다.`, icon: 'success', timer: 1200, showConfirmButton: false });
+                    Swal.fire({ title: '완료!', text: '선택한 학생들의 상태가 변경되었습니다.', icon: 'success', timer: 1200, showConfirmButton: false });
                 };
 
                 const toggleLevelFilter = (level) => { selectedLevelFilter.value = selectedLevelFilter.value === level ? null : level; selectedStudentIds.value = []; };
@@ -1235,13 +1184,13 @@
                     });
                 };
 
-                // 🌟 수정: 이전 분기 데이터를 불러올 때 지난 분기 주문 교구(item)를 현재 단계(currentLevel)로 초기화 적용
                 const importFromPrevQuarter = () => {
                     const qList = ['1분기', '2분기', '3분기', '4분기'];
                     const idx = qList.indexOf(quarter.value);
                     if (idx <= 0) return Swal.fire({ title: '알림', text: '1분기는 이전 분기 데이터가 없습니다.', icon: 'info', confirmButtonColor: '#78649c' });
                     
                     const prevQ = qList[idx - 1];
+                    // 복구: 삭제 상태는 제외하고 가져옴
                     const prevStudents = students.value.filter(s => s.quarter === prevQ && s.school === currentTab.value && s.status !== '삭제');
                     
                     if(prevStudents.length === 0) return Swal.fire({ title: '명단 없음', text: `${prevQ} 명단이 없습니다.`, icon: 'warning', confirmButtonColor: '#78649c' });
@@ -1258,8 +1207,8 @@
                                 num: ps.num, 
                                 name: ps.name, 
                                 phone: ps.phone, 
-                                status: '기존', 
-                                currentLevel: ps.item || '', // 이전 분기 교구를 현재 단계로 적용
+                                status: '기존', // 복구: 이전 분기에서 온 학생은 기본 '기존' 상태
+                                currentLevel: ps.item || '', 
                                 item: '', 
                                 note: '' 
                             });
@@ -1272,6 +1221,7 @@
                 };
 
                 const addStudent = (schoolKey) => { 
+                    // 복구: 신규 추가시 상태 '신규' 지정
                     students.value.unshift({ id: Date.now() + Math.random(), quarter: quarter.value, school: schoolKey, grade: '', classNum: '', num: '', name: '', phone: '', status: '신규', currentLevel: '', item: '', note: '' }); 
                 };
 
@@ -1282,6 +1232,7 @@
                     lines.forEach(line => {
                         const parts = line.trim().split(/\s+/);
                         if (parts.length >= 2 && parts[0] !== '') {
+                            // 복구: 일괄 추가시 상태 '신규' 지정
                             students.value.push({ id: Date.now() + Math.random(), quarter: quarter.value, school: currentTab.value, grade: parts[0] || '', classNum: parts[1] || '', num: parts[2] || '', name: parts[3] || '', phone: parts[4] || '', status: '신규', currentLevel: '', item: '', note: '' });
                             addedCount++;
                         }
@@ -1300,10 +1251,13 @@
                     if (item === '말랑1') return 'row-level-1'; if (item === '말랑2') return 'row-level-2'; if (item === '말랑3') return 'row-level-3'; if (item === '말랑4') return 'row-level-4'; if (item === '자격증') return 'row-level-cert'; return '';
                 };
 
+                // 통계 및 재고 정산 함수들 전면 복구
                 const getCount = (school, item) => students.value.filter(s => s.quarter === quarter.value && s.school === school && s.item === item && s.status !== '삭제').length;
                 const getTotalCount = (item) => students.value.filter(s => s.quarter === quarter.value && s.item === item && s.status !== '삭제').length;
                 const getSchoolTotal = (school) => students.value.filter(s => s.quarter === quarter.value && s.school === school && s.status !== '삭제' && orderItems.includes(s.item)).length;
                 const getGrandTotal = () => students.value.filter(s => s.quarter === quarter.value && s.status !== '삭제' && orderItems.includes(s.item)).length;
+                
+                // 복구: 삭제 제외 (기존/신규만 포함)
                 const getSchoolTotalByStatus = (school, item) => students.value.filter(s => s.quarter === quarter.value && s.school === school && s.item === item && (s.status === '기존' || s.status === '신규')).length;
                 const getSchoolOrderQty = (school) => orderItems.reduce((acc, item) => acc + getSchoolTotalByStatus(school, item), 0);
 
@@ -1313,6 +1267,7 @@
                     return orderItems.reduce((acc, item) => acc + (Number(form.addQty[item]) || 0), 0);
                 };
 
+                // 복구: 재고 정산 전용 계산 함수
                 const getCanceledItemCount = (item) => students.value.filter(s => s.quarter === quarter.value && s.item === item && s.status === '삭제').length;
                 const getAddedItemCount = (item) => students.value.filter(s => s.quarter === quarter.value && s.item === item && s.status === '신규').length;
                 const getTransferCount = (item) => Math.min(getCanceledItemCount(item), getAddedItemCount(item));
@@ -1405,10 +1360,10 @@
                         if (docSnap.exists()) {
                             const data = docSnap.data();
                             if (data.students) {
-                                // 기존 데이터에 현재 단계 필드가 없으면 ''로 초기화 반영
                                 students.value = data.students.map(s => ({
                                     ...s,
-                                    currentLevel: s.currentLevel || ''
+                                    currentLevel: s.currentLevel || '',
+                                    status: s.status || '기존' // 누락 방지 처리
                                 }));
                             }
                             if (data.orderFormsByQuarter) {
@@ -1451,11 +1406,13 @@
                 };
 
                 const exportToExcel = () => {
-                    if (filteredStudents.value.length === 0) {
+                    // 복구: 엑셀 내보내기 시에도 삭제 학생 제외 처리
+                    const targetStudents = filteredStudents.value.filter(s => s.status !== '삭제');
+                    if (targetStudents.length === 0) {
                         Swal.fire({ title: '안내', text: '내보낼 명단이 없습니다.', icon: 'warning', confirmButtonColor: '#78649c' });
                         return;
                     }
-                    const excelData = filteredStudents.value.map(s => ({
+                    const excelData = targetStudents.map(s => ({
                         '학년': s.grade,
                         '반': s.classNum,
                         '번호': s.num,
@@ -1478,6 +1435,7 @@
                 };
 
                 const exportContactCSV = async () => {
+                    // 복구: 삭제 학생 제외
                     const targetStudents = filteredStudents.value.filter(s => s.status !== '삭제');
                     
                     if (targetStudents.length === 0) {
@@ -1539,15 +1497,15 @@
 
                 return { 
                     isLoggedIn, landingQuarter, selectSchoolAndEnter, goHome, goToIndex, currentTab, showBulkInput, bulkText, 
-                    quarter, searchQuery, selectedStudentIds, isAllSelected, toggleAll, selectAfterSchoolClass, batchItemValue, 
-                    batchStatusValue, applyBatchItem, applyBatchStatus, applyBatchStatusDirect, schoolNames, getSchoolFullName, getDeptName, items, 
+                    quarter, searchQuery, selectedStudentIds, isAllSelected, toggleAll, selectAfterSchoolClass, batchItemValue, batchStatusValue,
+                    applyBatchItem, applyBatchStatus, schoolNames, getSchoolFullName, getDeptName, items, 
                     orderItems, itemMapping, price, students, filteredStudents, orderFormsByQuarter, savedOrders, selectedImage, 
                     isSaving, isCapturing, selectedLevelFilter, toggleLevelFilter, addStudent, processBulkInput, removeStudent, 
                     resetCurrentStudents, getRowClass, formatMoney, importFromPrevQuarter, getCount, getTotalCount, 
                     getSchoolTotal, getGrandTotal, getSchoolTotalByStatus, getSchoolOrderQty, getAdditionalOrderQty, getClassHeadCount, 
-                    getCanceledItemCount, getAddedItemCount, getTransferCount, getReturnCount, getNetAddCount, totalCanceledCount, 
-                    totalAddedCount, saveOrderToList, removeSavedOrder, copySavedImage, saveData, copyScreenshot, exportToExcel,
-                    sortBy, getSortIcon, sortByGradeClassNum, exportContactCSV
+                    getCanceledItemCount, getAddedItemCount, getTransferCount, getReturnCount, getNetAddCount, totalCanceledCount, totalAddedCount,
+                    saveOrderToList, removeSavedOrder, copySavedImage, saveData, copyScreenshot, exportToExcel,
+                    exportContactCSV
                 };
             }
         }).mount('#app');
