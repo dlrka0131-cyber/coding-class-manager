@@ -8,8 +8,6 @@
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- qrcode.js (단체 문자 QR용) -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <!-- Pretendard Font -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
     <!-- FontAwesome -->
@@ -169,11 +167,6 @@
         .t-tab-add { background: #10B981; color: white; border-color: #059669; }
         .t-tab-add:hover { background: #059669; }
 
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(4px); }
-        .modal-content { background: white; padding: 30px; border-radius: 16px; max-width: 90%; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 12px; align-items: center; }
-        #qr-code-box { display: flex; justify-content: center; background: white; padding: 12px; border-radius: 10px; border: 1px solid #E2E8F0; margin: 5px 0;}
-        .qr-preview-text { text-align: left; background: #F8FAFC; padding: 12px; border-radius: 8px; font-size: 13.5px; color: #334155; line-height: 1.5; border: 1px solid #E2E8F0; width: 100%; max-height: 200px; overflow-y: auto; }
-
         .var-input-group { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px 18px; margin-bottom: 12px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
         .var-input-item { flex: 1; min-width: 200px; }
         .var-input-item label { display: block; font-size: 12.5px; font-weight: 800; color: #475569; margin-bottom: 4px; }
@@ -183,25 +176,6 @@
 </head>
 <body>
     <div id="app">
-        <!-- 단체 문자 전송 QR 모달 -->
-        <div v-if="showQRModal" class="modal-overlay" @click.self="closeQRModal">
-            <div class="modal-content" style="width: 400px;">
-                <h3 style="margin: 0; color: #0F172A; font-size: 1.3rem; font-weight: 900;"><i class="fa-solid fa-users"></i> 학부모 단체 문자 전송</h3>
-                <div style="font-size: 0.9rem; color: #64748B; margin-top: -3px;">
-                    <b>스마트폰:</b> 아래 QR 코드를 카메라로 스캔하세요.<br>
-                    <b>PC 카카오톡:</b> 복사 버튼을 눌러 채팅창에 붙여넣으세요.
-                </div>
-                <div id="qr-code-box"></div>
-                <div class="qr-preview-text" v-html="qrPreviewText"></div>
-                <div style="display: flex; gap: 8px; width: 100%; margin-top: 5px;">
-                    <button class="btn" style="flex: 2; background: #10B981; padding: 10px;" @click="copyQRText">
-                        <i class="fa-solid fa-copy"></i> {{ copyBtnText }}
-                    </button>
-                    <button class="btn btn-outline" style="flex: 1; padding: 10px;" @click="closeQRModal">닫기</button>
-                </div>
-            </div>
-        </div>
-
         <div class="container">
             <div class="header">
                 <div class="header-left">
@@ -280,46 +254,95 @@
 
                 <div class="content-area">
                     
-                    <!-- 📍 [특수 탭] 전체 자격증 학생 안내 및 전용 관리 화면 -->
-                    <div v-if="currentTab === 'certification'">
-                        <div class="template-panel">
-                            <!-- 🌟 불필요한 설명글 삭제 -->
-                            <div class="template-header">
-                                <div>
-                                    <h2 style="margin: 0; font-size: 18px; font-weight: 900; color: #0F172A;"><i class="fa-solid fa-medal" style="color: #8B5CF6;"></i> 전체 학교 자격증반 학부모 안내 문자 전송</h2>
-                                </div>
+                    <!-- 📍 공통 템플릿 패널 (일반 학교 및 자격증 모두 동일한 UI 사용) -->
+                    <div class="template-panel">
+                        <div class="template-header">
+                            <div>
+                                <h2 v-if="currentTab !== 'certification'" style="margin: 0; font-size: 18px; font-weight: 900; color: #0F172A;">
+                                    <i class="fa-solid fa-comment-dots" style="color: #3B82F6;"></i> {{ getSchoolFullName(currentTab) }} 전용 학부모 안내문 보관함
+                                </h2>
+                                <h2 v-else style="margin: 0; font-size: 18px; font-weight: 900; color: #0F172A;">
+                                    <i class="fa-solid fa-medal" style="color: #8B5CF6;"></i> 전체 학교 자격증반 학부모 안내문 보관함
+                                </h2>
                             </div>
+                        </div>
 
-                            <textarea v-model="certMessageTemplate" class="message-textarea" placeholder="자격증 안내 문구를 작성해주세요."></textarea>
+                        <!-- 첫수업일자 입력 칸 (일반 학교의 첫 수업 탭에서만 보임) -->
+                        <div class="var-input-group" v-if="currentTab !== 'certification' && activeTemplate === 'first'">
+                            <div class="var-input-item" style="max-width: 300px;">
+                                <label><i class="fa-solid fa-calendar-days" style="color: #3B82F6;"></i> [첫수업일자] 입력</label>
+                                <input type="text" v-model="commonVars[currentTab]" placeholder="예: 9월 5일 (화)">
+                            </div>
+                        </div>
+                        
+                        <!-- 템플릿 탭바 -->
+                        <div class="template-tabs" style="margin-bottom: 10px;">
+                            <div v-for="(content, key) in currentSchoolTemplates" :key="key" 
+                                 class="t-tab" :class="{ active: activeTemplate === key }" @click="activeTemplate = key">
+                                {{ getTemplateTitle(key) }}
+                                <i class="fa-solid fa-xmark" @click.stop="removeTemplate(key)" title="양식 삭제" style="margin-left: 6px; opacity: 0.6; cursor: pointer;"></i>
+                            </div>
+                            <div class="t-tab t-tab-add" @click="addNewTemplate"><i class="fa-solid fa-plus"></i> 새 양식 추가</div>
+                        </div>
+
+                        <textarea v-if="activeTemplate && currentSchoolTemplates[activeTemplate] !== undefined" v-model="currentSchoolTemplates[activeTemplate]" class="message-textarea" placeholder="내용을 작성해주세요."></textarea>
+                        
+                        <!-- 저장 및 복사 버튼 -->
+                        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 15px;">
+                            <button class="btn btn-outline" @click="saveData"><i class="fa-solid fa-floppy-disk"></i> 양식 저장하기</button>
+                            <button class="btn" :style="{ background: currentTab === 'certification' ? '#8B5CF6' : '#3B82F6' }" @click="copyCurrentTemplate">
+                                <i class="fa-solid fa-copy"></i> 텍스트 복사하기
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 📍 명단 테이블 영역 -->
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px;">
+                        <h2 style="margin: 0; font-size: 18px; font-weight: 900; color: #0F172A; display: flex; align-items: center;">
+                            <i v-if="currentTab === 'certification'" class="fa-solid fa-users" style="color: #8B5CF6; margin-right: 6px;"></i>
+                            <i v-else class="fa-solid fa-address-book" style="color: var(--theme-color, var(--primary)); margin-right: 6px;"></i>
                             
-                            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 15px;">
-                                <button class="btn btn-outline" @click="saveData"><i class="fa-solid fa-floppy-disk"></i> 양식 저장하기</button>
-                                <button class="btn" style="background: #8B5CF6;" @click="openCertBulkMessageQR"><i class="fa-solid fa-paper-plane"></i> 모든 자격증반 학부모에게 발송 (QR)</button>
-                            </div>
+                            {{ currentTab === 'certification' ? quarter + ' 전체 학교 자격증 수강생 통합 명단' : getSchoolFullName(currentTab) + ' ' + quarter + ' 학생 심층 상담 일지' }}
+                            
+                            <span v-if="currentTab === 'certification'" style="margin-left: 10px; padding: 2px 10px; background: #FEF2F2; color: #991B1B; border-radius: 20px; font-size: 13.5px; font-weight: 800; border: 1px solid #FCA5A5;">총 {{ allCertStudents.length }}명</span>
+                            <span v-else style="margin-left: 10px; padding: 2px 10px; background: #F1F5F9; color: #334155; border-radius: 20px; font-size: 13.5px; font-weight: 800; border: 1px solid #E2E8F0;">총 {{ filteredStudents.length }}명</span>
+                        </h2>
+                        
+                        <div style="display: flex; gap: 6px;" v-if="currentTab !== 'certification'">
+                            <button @click="sortStudents" class="btn btn-outline" style="padding: 5px 12px; font-size: 13.5px; border-radius: 20px; color: #4F46E5; border-color: #A5B4FC;"><i class="fa-solid fa-arrow-down-1-9"></i> 학년·반·번호순 정렬</button>
+                            <button class="btn btn-outline" @click="exportToExcel" style="color: #059669; border-color: #6EE7B7; padding: 5px 12px; font-size: 13.5px; border-radius: 20px;">📊 엑셀 저장</button>
                         </div>
+                    </div>
+                    
+                    <div v-if="currentTab !== 'certification'" style="background: #FFFBEB; border-left: 4px solid #F59E0B; padding: 8px 14px; border-radius: 6px; margin-bottom: 12px; font-size: 13.5px; color: #92400E; font-weight: 600;">
+                        💡 <b>Tip:</b> 교구 대시보드에 등록된 명단이 자동으로 연동됩니다. (명단 추가/삭제는 교구 대시보드 탭을 이용해 주세요.)
+                    </div>
 
-                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px;">
-                            <h2 style="margin: 0; font-size: 18px; font-weight: 900; color: #0F172A; display: flex; align-items: center;">
-                                <i class="fa-solid fa-users" style="color: #8B5CF6; margin-right: 6px;"></i>
-                                {{ quarter }} 전체 학교 자격증 수강생 통합 명단
-                                <span style="margin-left: 10px; padding: 2px 10px; background: #FEF2F2; color: #991B1B; border-radius: 20px; font-size: 13.5px; font-weight: 800; border: 1px solid #FCA5A5;">총 {{ allCertStudents.length }}명</span>
-                            </h2>
-                        </div>
-
-                        <table class="main-table">
-                            <thead>
-                                <tr>
-                                    <th width="45">No</th>
-                                    <th width="110">출강 학교</th>
-                                    <th width="55">학년</th>
-                                    <th width="55">반</th>
-                                    <th width="55">번호</th>
-                                    <th width="95">성명</th>
-                                    <th width="125">학부모 연락처</th>
-                                    <th>🏅 자격증 시험 준비 및 상담 기록장</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+                    <table class="main-table">
+                        <thead>
+                            <tr v-if="currentTab === 'certification'">
+                                <th width="45">No</th>
+                                <th width="110">출강 학교</th>
+                                <th width="55">학년</th>
+                                <th width="55">반</th>
+                                <th width="55">번호</th>
+                                <th width="95">성명</th>
+                                <th width="125">학부모 연락처</th>
+                                <th>🏅 자격증 시험 준비 및 상담 기록장</th>
+                            </tr>
+                            <tr v-else>
+                                <th width="45">No</th>
+                                <th width="60">학년</th>
+                                <th width="60">반</th>
+                                <th width="60">번호</th>
+                                <th width="100">성명</th>
+                                <th width="125">학부모 연락처</th>
+                                <th>📝 학부모 상담 및 학생 특이사항 (세부 기록장)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- 자격증반 렌더링 -->
+                            <template v-if="currentTab === 'certification'">
                                 <tr v-for="(student, index) in allCertStudents" :key="student.id">
                                     <td style="font-weight: 800; color: #64748B;">{{ index + 1 }}</td>
                                     <td style="font-weight: 800; color: #3B82F6;">{{ getSchoolFullName(student.school) }}</td>
@@ -338,79 +361,10 @@
                                         현재 등록된 자격증반 학생이 없습니다.
                                     </td>
                                 </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <!-- 📍 일반 학교별 탭 화면 -->
-                    <div v-else>
-                        <!-- Zone 1: 메시지 템플릿 보관함 -->
-                        <div class="template-panel">
-                            <!-- 🌟 불필요한 설명글 삭제 -->
-                            <div class="template-header">
-                                <div>
-                                    <h2 style="margin: 0; font-size: 18px; font-weight: 900; color: #0F172A;"><i class="fa-solid fa-comment-dots" style="color: #3B82F6;"></i> {{ getSchoolFullName(currentTab) }} 전용 학부모 안내문 보관함</h2>
-                                </div>
-                            </div>
-
-                            <!-- 첫수업일자 입력 칸 -->
-                            <div class="var-input-group" v-if="activeTemplate === 'first'">
-                                <div class="var-input-item" style="max-width: 300px;">
-                                    <label><i class="fa-solid fa-calendar-days" style="color: #3B82F6;"></i> [첫수업일자] 입력</label>
-                                    <input type="text" v-model="commonVars[currentTab]" placeholder="예: 9월 5일 (화)">
-                                </div>
-                            </div>
+                            </template>
                             
-                            <!-- 템플릿 탭바 (삭제 버튼 포함) -->
-                            <div class="template-tabs" style="margin-bottom: 10px;">
-                                <div v-for="(content, key) in currentSchoolTemplates" :key="key" 
-                                     class="t-tab" :class="{ active: activeTemplate === key }" @click="activeTemplate = key">
-                                    {{ getTemplateTitle(key) }}
-                                    <!-- 🌟 어떤 템플릿이든 X 버튼을 누르면 삭제 가능하도록 변경 -->
-                                    <i class="fa-solid fa-xmark" @click.stop="removeTemplate(key)" title="양식 삭제" style="margin-left: 6px; opacity: 0.6; cursor: pointer;"></i>
-                                </div>
-                                <div class="t-tab t-tab-add" @click="addNewTemplate"><i class="fa-solid fa-plus"></i> 새 양식 추가</div>
-                            </div>
-
-                            <textarea v-if="activeTemplate && currentSchoolTemplates[activeTemplate] !== undefined" v-model="currentSchoolTemplates[activeTemplate]" class="message-textarea" placeholder="내용을 작성해주세요."></textarea>
-                            
-                            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 15px;">
-                                <button class="btn btn-outline" @click="saveData"><i class="fa-solid fa-floppy-disk"></i> 양식 저장하기</button>
-                                <button class="btn" style="background: #3B82F6;" @click="openBulkMessageQR"><i class="fa-solid fa-paper-plane"></i> 현재 학교 학부모에게 발송 (QR)</button>
-                            </div>
-                        </div>
-
-                        <!-- Zone 2: 학생 심층 상담 일지 -->
-                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px;">
-                            <h2 style="margin: 0; font-size: 18px; font-weight: 900; color: #0F172A; display: flex; align-items: center;">
-                                <i class="fa-solid fa-address-book" style="color: var(--theme-color, var(--primary)); margin-right: 6px;"></i>
-                                {{ getSchoolFullName(currentTab) }} {{ quarter }} 학생 심층 상담 일지
-                                <span style="margin-left: 10px; padding: 2px 10px; background: #F1F5F9; color: #334155; border-radius: 20px; font-size: 13.5px; font-weight: 800; border: 1px solid #E2E8F0;">총 {{ filteredStudents.length }}명</span>
-                            </h2>
-                            
-                            <div style="display: flex; gap: 6px;">
-                                <button @click="sortStudents" class="btn btn-outline" style="padding: 5px 12px; font-size: 13.5px; border-radius: 20px; color: #4F46E5; border-color: #A5B4FC;"><i class="fa-solid fa-arrow-down-1-9"></i> 학년·반·번호순 정렬</button>
-                                <button class="btn btn-outline" @click="exportToExcel" style="color: #059669; border-color: #6EE7B7; padding: 5px 12px; font-size: 13.5px; border-radius: 20px;">📊 엑셀 저장</button>
-                            </div>
-                        </div>
-                        
-                        <div style="background: #FFFBEB; border-left: 4px solid #F59E0B; padding: 8px 14px; border-radius: 6px; margin-bottom: 12px; font-size: 13.5px; color: #92400E; font-weight: 600;">
-                            💡 <b>Tip:</b> 교구 대시보드에 등록된 명단이 자동으로 연동됩니다. (명단 추가/삭제는 교구 대시보드 탭을 이용해 주세요.)
-                        </div>
-
-                        <table class="main-table">
-                            <thead>
-                                <tr>
-                                    <th width="45">No</th>
-                                    <th width="60">학년</th>
-                                    <th width="60">반</th>
-                                    <th width="60">번호</th>
-                                    <th width="100">성명</th>
-                                    <th width="125">학부모 연락처</th>
-                                    <th>📝 학부모 상담 및 학생 특이사항 (세부 기록장)</th>
-                                </tr>
-                            </thead>
-                            <tbody>
+                            <!-- 일반 학교 렌더링 -->
+                            <template v-else>
                                 <tr v-for="(student, index) in filteredStudents" :key="student.id">
                                     <td style="font-weight: 800; color: #64748B;">{{ index + 1 }}</td>
                                     <td style="font-weight: 700; color: #334155;">{{ student.grade }}</td>
@@ -419,7 +373,6 @@
                                     <td style="font-weight: 900; color: #0F172A; font-size: 14.5px;">{{ student.name }}</td>
                                     <td style="font-weight: 700; color: #475569;">{{ student.phone || '-' }}</td>
                                     <td style="padding: 4px 6px;">
-                                        <!-- 🌟 슬림형 한 줄 인풋 적용 -->
                                         <input type="text" v-model="student.consultationNote" class="note-input" placeholder="상담 및 특이사항 입력...">
                                     </td>
                                 </tr>
@@ -429,9 +382,9 @@
                                         현재 등록된 학생 명단이 없습니다.<br>'교구 대시보드'에서 학생 명단을 먼저 추가해 주세요.
                                     </td>
                                 </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                            </template>
+                        </tbody>
+                    </table>
 
                 </div>
             </div>
@@ -439,7 +392,7 @@
     </div>
 
     <script>
-        const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
+        const { createApp, ref, computed, watch, onMounted } = Vue;
 
         const waitForFirebase = () => {
             return new Promise((resolve, reject) => {
@@ -462,13 +415,8 @@
                 const activeTemplate = ref('first');
                 
                 const commonVars = ref({
-                    hakdong: '',
-                    bareun: '',
-                    banwol: '',
-                    sejeong: ''
+                    hakdong: '', bareun: '', banwol: '', sejeong: ''
                 });
-
-                const certMessageTemplate = ref(`💌 SW 코딩자격 시험 접수 안내\n\n안녕하세요, 학부모님!\n코딩부 강사 김정이입니다. 👩‍💻\n\n그동안 우리 아이들이 열심히 준비해 온 [SW 코딩자격 시험] 접수 기간이 다가와 안내해 드립니다.\n자신의 실력을 확인하고 성취감을 맛볼 좋은 기회가 될 것입니다.\n\n📌 시험 일정: O월 O일\n📌 접수 기간: O/O ~ O/O\n\n수업 시간에도 꼼꼼히 대비할 예정 매진할 수 있도록 응원 부탁드립니다! 🌷`);
 
                 const schoolNames = { 'hakdong': '학동초(화)', 'bareun': '바른초(수)', 'banwol': '반월초(목)', 'sejeong': '세정초(금)' };
                 const getSchoolFullName = (key) => ({ 'hakdong': '학동초등학교', 'bareun': '바른초등학교', 'banwol': '반월초등학교', 'sejeong': '세정초등학교' }[key]);
@@ -482,6 +430,14 @@
                 };
 
                 const getDefaultTemplates = (schoolKey) => {
+                    if (schoolKey === 'certification') {
+                        return {
+                            exam_reg: `💌 SW 코딩자격 시험 접수 안내\n\n안녕하세요, 학부모님!\n코딩부 강사 김정이입니다. 👩‍💻\n\n그동안 우리 아이들이 열심히 준비해 온 [SW 코딩자격 시험] 접수 기간이 다가와 안내해 드립니다.\n자신의 실력을 확인하고 성취감을 맛볼 좋은 기회가 될 것입니다.\n\n📌 시험 일정: O월 O일\n📌 접수 기간: O/O ~ O/O\n\n수업 시간에도 꼼꼼히 대비할 예정입니다. 학부모님들의 많은 응원 부탁드립니다! 🌷`,
+                            book_buy: `💌 자격증반 교재 구매 안내\n\n안녕하세요 학부모님!\n코딩부 강사 김정이입니다. ☺️\n\n원활한 자격증반 수업 진행을 위해 아래 교재를 준비해 주시기 바랍니다.\n\n📌 교재명: [교재명 입력]\n📌 구매처: [온라인 서점 등 안내]\n📌 준비기한: O월 O일까지\n\n감사합니다!`,
+                            exam_prep: `💌 자격증 시험 준비 및 유의사항 안내\n\n안녕하세요 학부모님, 강사 김정이입니다.\n\n자격증 시험이 얼마 남지 않았습니다!\n남은 기간 동안 아이들이 가정에서도 복습할 수 있도록 격려 부탁드립니다.\n\n📌 준비물: 수험표, 신분증(학생증 등), 필기도구\n📌 입실 시간: 시험 당일 오전 O시 O분까지\n\n좋은 결과가 있도록 최선을 다해 지도하겠습니다. 🌷`
+                        };
+                    }
+
                     const sName = getSchoolFullName(schoolKey);
                     const details = getSchoolDetails(schoolKey);
                     
@@ -503,7 +459,8 @@
                     hakdong: getDefaultTemplates('hakdong'),
                     bareun: getDefaultTemplates('bareun'),
                     banwol: getDefaultTemplates('banwol'),
-                    sejeong: getDefaultTemplates('sejeong')
+                    sejeong: getDefaultTemplates('sejeong'),
+                    certification: getDefaultTemplates('certification')
                 });
 
                 const currentSchoolTemplates = computed(() => {
@@ -517,6 +474,12 @@
                     if (key === 'first') return '첫 수업 안내';
                     if (key === 'reenroll_or_enroll') return currentTab.value === 'hakdong' ? '재수강 안내' : '수강 접수 안내';
                     if (key === 'end') return '종강 안내';
+                    
+                    // 자격증반 탭 전용 이름
+                    if (key === 'exam_reg') return '시험 접수 안내';
+                    if (key === 'book_buy') return '교재 구매 안내';
+                    if (key === 'exam_prep') return '시험 준비 안내';
+                    
                     if (key.startsWith('custom_title_')) return key.replace('custom_title_', '');
                     return key; 
                 };
@@ -534,13 +497,16 @@
 
                     if (title && title.trim()) {
                         const newKey = 'custom_' + Date.now();
-                        const titleKey = 'custom_title_' + newKey;
-                        // 제목 구분을 위해 템플릿 객체에 타이틀 저장용 키 부여
-                        currentSchoolTemplates.value[newKey] = `💌 [학교명] [분기] ${title.trim()} 안내\n\n안녕하세요, 학부모님!\n코딩부 강사 김정이입니다. ☺️\n\n[내용을 입력하세요]`;
-                        // 편의를 위해 키 이름에 직접 타이틀 반영
-                        delete currentSchoolTemplates.value[newKey];
+                        let defaultText = '';
+                        
+                        if(currentTab.value === 'certification') {
+                            defaultText = `💌 자격증반 [분기] ${title.trim()} 안내\n\n안녕하세요, 학부모님!\n강사 김정이입니다. ☺️\n\n[내용을 입력하세요]`;
+                        } else {
+                            defaultText = `💌 [학교명] [분기] ${title.trim()} 안내\n\n안녕하세요, 학부모님!\n코딩부 강사 김정이입니다. ☺️\n\n[내용을 입력하세요]`;
+                        }
+                        
                         const finalKey = 'custom_title_' + title.trim();
-                        currentSchoolTemplates.value[finalKey] = `💌 [학교명] [분기] ${title.trim()} 안내\n\n안녕하세요, 학부모님!\n코딩부 강사 김정이입니다. ☺️\n\n[내용을 입력하세요]`;
+                        currentSchoolTemplates.value[finalKey] = defaultText;
                         activeTemplate.value = finalKey;
                     }
                 };
@@ -563,9 +529,13 @@
                     });
                 };
 
-                const showQRModal = ref(false);
-                const qrPreviewText = ref('');
-                const copyBtnText = ref('텍스트 복사하기');
+                // 탭 변경 시 템플릿의 첫 번째 탭이 활성화되도록 함
+                watch(currentTab, (newTab) => {
+                    const keys = Object.keys(messageTemplates.value[newTab] || {});
+                    if (keys.length > 0) {
+                        activeTemplate.value = keys[0];
+                    }
+                });
 
                 const selectSchoolAndEnter = (schoolKey) => { quarter.value = landingQuarter.value; currentTab.value = schoolKey; isLoggedIn.value = true; };
                 const goHome = () => { isLoggedIn.value = false; };
@@ -612,93 +582,34 @@
                     Swal.fire({ title: '정렬 완료', text: '학년·반·번호 순으로 정렬되었습니다.', icon: 'success', timer: 1000, showConfirmButton: false });
                 };
 
-                const openBulkMessageQR = () => {
-                    const targetStudents = filteredStudents.value.filter(s => s.phone);
-                    
-                    if (targetStudents.length === 0) {
-                        Swal.fire({ title: '안내', text: '현재 발송 가능한(연락처가 있는) 학생이 없습니다.', icon: 'warning', confirmButtonColor: '#ff7675' });
+                // 공통 복사 기능
+                const copyCurrentTemplate = () => {
+                    const textToCopy = currentSchoolTemplates.value[activeTemplate.value];
+                    if (!textToCopy || !textToCopy.trim()) {
+                        Swal.fire({ title: '내용 없음', text: '복사할 내용이 없습니다.', icon: 'warning', confirmButtonColor: '#ff7675' });
                         return;
                     }
 
-                    const phoneNumbers = targetStudents.map(s => s.phone.replace(/[^0-9]/g, '')).join(',');
-                    let messageBody = currentSchoolTemplates.value[activeTemplate.value];
-                    
-                    if (!messageBody || !messageBody.trim()) {
-                        Swal.fire({ title: '내용 없음', text: '발송할 메시지 내용을 입력해주세요.', icon: 'warning', confirmButtonColor: '#ff7675' });
-                        return;
+                    let finalText = textToCopy.replace(/\[분기\]/g, quarter.value);
+                    if(currentTab.value !== 'certification') {
+                         finalText = finalText.replace(/\[첫수업일자\]/g, commonVars.value[currentTab.value] || 'O월 O일');
                     }
 
-                    messageBody = messageBody.replace(/\[분기\]/g, quarter.value);
-                    messageBody = messageBody.replace(/\[첫수업일자\]/g, commonVars.value[currentTab.value] || 'O월 O일');
-
-                    generateQRModal(phoneNumbers, messageBody);
-                };
-
-                const openCertBulkMessageQR = () => {
-                    const targetStudents = allCertStudents.value.filter(s => s.phone);
-                    if (targetStudents.length === 0) {
-                        Swal.fire({ title: '안내', text: '전체 학교 중 연락처가 있는 자격증반 학생이 없습니다.', icon: 'warning', confirmButtonColor: '#8B5CF6' });
-                        return;
-                    }
-
-                    const phoneNumbers = targetStudents.map(s => s.phone.replace(/[^0-9]/g, '')).join(',');
-                    let messageBody = certMessageTemplate.value;
-                    
-                    if (!messageBody || !messageBody.trim()) {
-                        Swal.fire({ title: '내용 없음', text: '발송할 메시지 내용을 입력해주세요.', icon: 'warning', confirmButtonColor: '#8B5CF6' });
-                        return;
-                    }
-
-                    messageBody = messageBody.replace(/\[분기\]/g, quarter.value);
-
-                    generateQRModal(phoneNumbers, messageBody);
-                };
-
-                const generateQRModal = async (phoneNumbers, messageBody) => {
-                    const smsUri = `sms:${phoneNumbers}?body=${encodeURIComponent(messageBody)}`;
-                    
-                    showQRModal.value = true;
-                    qrPreviewText.value = messageBody.replace(/\n/g, '<br>');
-                    copyBtnText.value = '텍스트 복사하기';
-
-                    // Vue가 모달 창(DOM)을 화면에 확실히 그릴 때까지 대기합니다.
-                    await nextTick();
-
-                    const qrBox = document.getElementById('qr-code-box');
-                    if (qrBox) {
-                        qrBox.innerHTML = ''; // 기존에 그려진 QR 초기화
-                        
-                        try {
-                            // 단체 문자는 번호와 내용이 길기 때문에 
-                            // 수용량이 가장 큰 CorrectLevel.L 옵션을 사용해야 뻗지 않습니다.
-                            new QRCode(qrBox, {
-                                text: smsUri, 
-                                width: 170, 
-                                height: 170,
-                                colorDark : "#0F172A", 
-                                colorLight : "#ffffff", 
-                                correctLevel : QRCode.CorrectLevel.L
-                            });
-                        } catch (error) {
-                            // 데이터가 QR코드의 물리적 한계를 넘었을 때의 방어 코드
-                            console.error("QR코드 생성 한도 초과 에러:", error);
-                            qrBox.innerHTML = '<div style="color:#EF4444; font-size:13px; padding:10px; text-align:center; font-weight:800; background:#FEF2F2; border-radius:8px;">' +
-                                              '⚠️ 전송 대상이 너무 많아 QR 코드로 묶을 수 없습니다.<br><br>대신 아래 [텍스트 복사하기] 버튼을 눌러 PC 카카오톡이나 단체 문자 사이트에서 붙여넣기 하여 발송해 주세요.</div>';
-                        }
-                    }
-                };
-
-                const closeQRModal = () => { showQRModal.value = false; };
-
-                const copyQRText = () => {
+                    // DOM을 활용한 클립보드 복사 (모든 브라우저 호환)
                     const tempElem = document.createElement('textarea');
-                    tempElem.value = qrPreviewText.value.replace(/<br>/g, '\n');
+                    tempElem.value = finalText;
                     document.body.appendChild(tempElem);
                     tempElem.select();
                     document.execCommand('copy');
                     document.body.removeChild(tempElem);
-                    copyBtnText.value = '복사 완료!';
-                    setTimeout(() => { copyBtnText.value = '텍스트 복사하기'; }, 2000);
+
+                    Swal.fire({ 
+                        title: '복사 완료!', 
+                        text: 'PC 카카오톡이나 문자 사이트에 붙여넣기 하세요.', 
+                        icon: 'success', 
+                        timer: 1500, 
+                        showConfirmButton: false 
+                    });
                 };
 
                 const exportToExcel = () => {
@@ -730,13 +641,12 @@
                         let updatedData = { 
                             students: students.value, 
                             messageTemplates: messageTemplates.value, 
-                            commonVars: commonVars.value,
-                            certMessageTemplate: certMessageTemplate.value 
+                            commonVars: commonVars.value
                         };
                         
                         if (docSnap.exists()) {
                             const oldData = docSnap.data();
-                            updatedData = { ...oldData, students: students.value, messageTemplates: messageTemplates.value, commonVars: commonVars.value, certMessageTemplate: certMessageTemplate.value };
+                            updatedData = { ...oldData, students: students.value, messageTemplates: messageTemplates.value, commonVars: commonVars.value };
                         }
 
                         await window.firebaseSetDoc(docRef, updatedData);
@@ -763,15 +673,17 @@
                                 }));
                             }
                             if (data.messageTemplates) {
-                                if (data.messageTemplates.hakdong && typeof data.messageTemplates.hakdong === 'object') {
-                                    messageTemplates.value = { ...messageTemplates.value, ...data.messageTemplates };
-                                }
+                                messageTemplates.value = { ...messageTemplates.value, ...data.messageTemplates };
                             }
+                            
+                            // 과거 버전에서 쓰던 자격증 단일 템플릿 데이터가 남아있다면 첫 탭에 복원
+                            if (data.certMessageTemplate && !data.messageTemplates?.certification?.migrated) {
+                                messageTemplates.value.certification.exam_reg = data.certMessageTemplate;
+                                messageTemplates.value.certification.migrated = true;
+                            }
+
                             if (data.commonVars) {
                                 commonVars.value = { ...commonVars.value, ...data.commonVars };
-                            }
-                            if (data.certMessageTemplate) {
-                                certMessageTemplate.value = data.certMessageTemplate;
                             }
                         }
                     } catch (e) { console.error('데이터 로드 실패:', e); }
@@ -782,9 +694,8 @@
                 return { 
                     isLoggedIn, landingQuarter, selectSchoolAndEnter, goHome, goToIndex, 
                     currentTab, quarter, students, filteredStudents, allCertStudents, getSchoolFullName, sortStudents,
-                    activeTemplate, messageTemplates, currentSchoolTemplates, commonVars, certMessageTemplate,
-                    getTemplateTitle, addNewTemplate, removeTemplate,
-                    showQRModal, qrPreviewText, copyBtnText, openBulkMessageQR, openCertBulkMessageQR, closeQRModal, copyQRText,
+                    activeTemplate, messageTemplates, currentSchoolTemplates, commonVars,
+                    getTemplateTitle, addNewTemplate, removeTemplate, copyCurrentTemplate,
                     saveData, exportToExcel
                 };
             }
