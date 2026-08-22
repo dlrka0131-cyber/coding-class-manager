@@ -589,15 +589,16 @@
                         const emptyIdx = classData[targetClass].students.findIndex(s => s === null);
                         if (emptyIdx !== -1) {
                             
-                            // 대시보드 교구 아이템 -> 자리배치도 컬러 뱃지 자동 변환 매핑
+                            // 🔥 명단 대시보드의 '현재 단계(currentLevel)' -> 자리배치도 컬러 뱃지 연동 🔥
                             let lvl = 0;
-                            const item = dashStudent.item || '';
-                            if (item === '자격증') lvl = 6;
-                            else if (item === '말랑4') lvl = 5;
-                            else if (item === '말랑3') lvl = 4;
-                            else if (item === '말랑2') lvl = 3;
-                            else if (item === '말랑1') lvl = 2; // 기존 신규(New)가 1번, 레벨1이 2번이므로 매핑
-                            else if (dashStudent.status === '신규') lvl = 1; // 교구는 아직 없어도 신규면 N
+                            const cLevel = dashStudent.currentLevel || ''; // 명단에서 설정한 '현재 단계'를 직접 참조
+
+                            if (cLevel === '자격증') lvl = 6;
+                            else if (cLevel === '말랑4') lvl = 5;
+                            else if (cLevel === '말랑3') lvl = 4;
+                            else if (cLevel === '말랑2') lvl = 3;
+                            else if (cLevel === '말랑1') lvl = 2;
+                            else if (cLevel === '신규' || dashStudent.status === '신규') lvl = 1; // 명단에서 현재단계가 '신규'이거나 상태가 '신규'면 N(1) 부여
 
                             // 빈자리에 착석
                             classData[targetClass].students[emptyIdx] = {
