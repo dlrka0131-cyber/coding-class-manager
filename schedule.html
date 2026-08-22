@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>캘린더_김정이</title>
-<!-- 📸 html2canvas 라이브러리 추가 -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <!-- 🎨 FontAwesome 아이콘 추가 -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <!-- 🌟 SweetAlert2 추가 -->
@@ -200,27 +198,6 @@
     box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: background 0.2s; font-family: inherit;
   }
   .save-btn:hover { background-color: #2563eb; }
-  
-  .print-btn {
-    padding: 10px 14px; background-color: #10b981; color: white; border: none; border-radius: 6px;
-    font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 6px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: background 0.2s; font-family: inherit;
-  }
-  .print-btn:hover { background-color: #059669; }
-
-  .export-btn {
-    padding: 10px 14px; background-color: #6366f1; color: white; border: none; border-radius: 6px;
-    font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 6px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: background 0.2s; font-family: inherit;
-  }
-  .export-btn:hover { background-color: #4f46e5; }
-
-  .import-btn {
-    padding: 10px 14px; background-color: #f59e0b; color: white; border: none; border-radius: 6px;
-    font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; gap: 6px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1); transition: background 0.2s; font-family: inherit;
-  }
-  .import-btn:hover { background-color: #d97706; }
 
   .month-tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
   .tab {
@@ -376,10 +353,6 @@
     <h1 id="calTitle">🗓️ 2026년 3월 방과후 스케줄</h1>
     <div class="btn-group">
       <button class="save-btn" id="saveBtn" onclick="saveData(false)">💾 저장 (기록 없음)</button>
-      <button class="export-btn" onclick="exportToJsonFile()">📤 데이터 백업</button>
-      <button class="import-btn" onclick="triggerJsonImport()">📥 파일 불러오기</button>
-      <input type="file" id="jsonFileInput" style="display: none;" accept=".json" onchange="importFromJsonFile(event)">
-      <button class="print-btn" onclick="captureScreen()">📸 스크린샷 저장</button>
     </div>
   </div>
   <div class="month-tabs" id="monthTabs"></div>
@@ -997,112 +970,6 @@ async function loadData() {
 
 function updateSaveButton(timeString) {
   document.getElementById("saveBtn").innerText = `💾 저장 (마지막: ${timeString})`;
-}
-
-// 📤 JSON 파일로 백업 (내보내기)
-function exportToJsonFile() {
-  syncStorageBox();
-  syncScheduleData();
-  
-  const exportData = {
-    scheduleData: scheduleData,
-    storageBlocksHTML: storageBlocksHTML,
-    logAreaHTML: document.getElementById("logArea").innerHTML,
-    memo: document.getElementById('memoPad').value,
-    colorIndex: selectedColorIndex,
-    currentMonth: currentMonth
-  };
-
-  const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
-  const downloadAnchor = document.createElement('a');
-  downloadAnchor.setAttribute("href", dataStr);
-  const dateStr = new Date().toISOString().slice(0, 10);
-  downloadAnchor.setAttribute("download", `방과후스케줄_백업_${dateStr}.json`);
-  document.body.appendChild(downloadAnchor);
-  downloadAnchor.click();
-  downloadAnchor.remove();
-}
-
-function triggerJsonImport() {
-  document.getElementById('jsonFileInput').click();
-}
-
-function importFromJsonFile(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-
-  const reader = new FileReader();
-  reader.onload = function(e) {
-    try {
-      const imported = JSON.parse(e.target.result);
-      
-      if (imported.scheduleData) {
-        months.forEach(m => {
-          scheduleData[m] = {}; 
-          const monthData = imported.scheduleData[m] || imported.scheduleData[String(m)] || imported.scheduleData[Number(m)];
-          if (monthData) {
-            scheduleData[m] = JSON.parse(JSON.stringify(monthData));
-          }
-        });
-      }
-
-      if (imported.storageBlocksHTML !== undefined) {
-        storageBlocksHTML = imported.storageBlocksHTML;
-        document.getElementById('storageBox').innerHTML = storageBlocksHTML;
-      } else {
-        storageBlocksHTML = '';
-        document.getElementById('storageBox').innerHTML = '';
-      }
-
-      if (imported.logAreaHTML !== undefined) document.getElementById("logArea").innerHTML = imported.logAreaHTML;
-      else document.getElementById("logArea").innerHTML = '';
-
-      if (imported.memo !== undefined) {
-        document.getElementById('memoPad').value = imported.memo;
-      }
-
-      if (imported.colorIndex !== undefined) {
-        selectedColorIndex = imported.colorIndex;
-        renderColorPicker();
-      }
-      
-      if (imported.currentMonth !== undefined && months.includes(imported.currentMonth)) {
-        currentMonth = imported.currentMonth;
-      }
-
-      renderTabs();
-      renderCalendar();
-      updateSessionNumbers();
-      saveData(false); // 파일을 불러왔을때는 확실하게 팝업 띄우고 저장
-      
-    } catch (err) {
-      Swal.fire({ title: '오류', text: '유효하지 않은 백업 파일입니다.', icon: 'error' });
-      console.error(err);
-    }
-  };
-  reader.readAsText(file);
-  event.target.value = ''; 
-}
-
-function captureScreen() {
-  const targetElement = document.getElementById("captureArea");
-  const btnGroup = targetElement.querySelector(".btn-group");
-  
-  btnGroup.style.display = "none";
-  if(document.activeElement) document.activeElement.blur(); 
-
-  html2canvas(targetElement, { scale: 2, useCORS: true }).then(canvas => {
-    btnGroup.style.display = "flex";
-    
-    const displayYear = getYear(currentMonth);
-    const link = document.createElement("a");
-    link.download = `${displayYear}년_${currentMonth}월_방과후스케줄.png`;
-    link.href = canvas.toDataURL("image/png");
-    link.click();
-  }).catch(err => {
-    btnGroup.style.display = "flex";
-    console.error(err);
-  });
 }
 
 window.onload = () => {
