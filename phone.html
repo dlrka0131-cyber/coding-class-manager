@@ -14,6 +14,8 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SheetJS (엑셀 내보내기용) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <!-- 🔥 파이어베이스 클라우드 통신용 시스템 파일 🔥 -->
     <script type="module">
@@ -47,7 +49,7 @@
 
     <style>
         :root {
-            --primary: #ff7675; /* 학생 관리 테마 색상 */
+            --primary: #ff7675; 
             --primary-hover: #d63031;
             --surface: #FFFFFF;
             --border: #CBD5E1;
@@ -66,7 +68,7 @@
             -webkit-font-smoothing: antialiased;
         }
         
-        #app { min-height: 100vh; padding: 40px 20px; box-sizing: border-box; }
+        #app { min-height: 100vh; padding: 20px 15px; box-sizing: border-box; }
         
         body.theme-spring { background: linear-gradient(135deg, #e0a3a6 0%, #d2a6c2 100%) !important; --theme-color: #b56c82; }
         body.theme-summer { background: linear-gradient(135deg, #85b89a 0%, #a2d2bc 100%) !important; --theme-color: #4a825c; }
@@ -74,184 +76,141 @@
         body.theme-winter { background: linear-gradient(135deg, #7b8ea8 0%, #a2b0c4 100%) !important; --theme-color: #566c8a; }
 
         .container { 
-            max-width: 1500px; 
-            margin: 0 auto; 
-            background: var(--surface); 
-            border-radius: 20px; 
-            box-shadow: 0 20px 40px -15px rgba(0,0,0,0.15); 
-            overflow: hidden; 
+            max-width: 1500px; margin: 0 auto; background: var(--surface); 
+            border-radius: 20px; box-shadow: 0 20px 40px -15px rgba(0,0,0,0.15); overflow: hidden; 
         }
         
         .header { 
-            background: rgba(44, 62, 80, 0.95); 
-            color: white; 
-            padding: 30px 40px; 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            background: rgba(44, 62, 80, 0.95); color: white; padding: 20px 30px; 
+            display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(255,255,255,0.1);
         }
-        .header-left { display: flex; flex-direction: column; gap: 18px; }
-        .header h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+        .header-left { display: flex; flex-direction: column; gap: 10px; }
+        .header h1 { margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
         
         .btn-home-circle {
-            width: 46px;
-            height: 46px;
-            background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
-            border-radius: 50%;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4);
-            transition: all 0.25s ease;
-            flex-shrink: 0;
-            cursor: pointer;
-            border: none;
+            width: 40px; height: 40px; background: linear-gradient(135deg, #ff6b6b 0%, #ff8e53 100%);
+            border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.4); transition: all 0.25s ease; cursor: pointer; border: none;
         }
         .btn-home-circle:hover { transform: translateY(-2px) scale(1.05); box-shadow: 0 6px 16px rgba(255, 107, 107, 0.6); }
-        .btn-home-circle i { font-size: 1.2rem; color: white; }
+        .btn-home-circle i { font-size: 1.1rem; color: white; }
 
-        .q-tabs { display: flex; gap: 14px; }
+        .q-tabs { display: flex; gap: 10px; }
         .q-tab { 
-            padding: 12px 26px; background: rgba(255,255,255,0.1); color: #E2E8F0; 
-            border-radius: 30px; cursor: pointer; font-size: 17px; font-weight: 700; 
-            transition: all 0.25s ease; display: inline-flex; align-items: center; gap: 8px;
+            padding: 8px 20px; background: rgba(255,255,255,0.1); color: #E2E8F0; 
+            border-radius: 30px; cursor: pointer; font-size: 15px; font-weight: 700; transition: all 0.25s ease; 
         }
         .q-tab:hover { background: rgba(255,255,255,0.25); color: white; transform: translateY(-2px); }
-        .q-tab.active.spring { background: linear-gradient(135deg, #e0a3a6 0%, #d2a6c2 100%); color: #4a1525; box-shadow: 0 6px 16px rgba(181,108,130,0.3); }
-        .q-tab.active.summer { background: linear-gradient(135deg, #85b89a 0%, #a2d2bc 100%); color: #153b22; box-shadow: 0 6px 16px rgba(133,184,154,0.3); }
-        .q-tab.active.autumn { background: linear-gradient(135deg, #e4c588 0%, #d89679 100%); color: #4d2611; box-shadow: 0 6px 16px rgba(184,115,69,0.3); }
-        .q-tab.active.winter { background: linear-gradient(135deg, #7b8ea8 0%, #a2b0c4 100%); color: #1a2636; box-shadow: 0 6px 16px rgba(86,108,138,0.3); }
+        .q-tab.active.spring { background: linear-gradient(135deg, #e0a3a6 0%, #d2a6c2 100%); color: #4a1525; box-shadow: 0 4px 16px rgba(181,108,130,0.3); }
+        .q-tab.active.summer { background: linear-gradient(135deg, #85b89a 0%, #a2d2bc 100%); color: #153b22; box-shadow: 0 4px 16px rgba(133,184,154,0.3); }
+        .q-tab.active.autumn { background: linear-gradient(135deg, #e4c588 0%, #d89679 100%); color: #4d2611; box-shadow: 0 4px 16px rgba(184,115,69,0.3); }
+        .q-tab.active.winter { background: linear-gradient(135deg, #7b8ea8 0%, #a2b0c4 100%); color: #1a2636; box-shadow: 0 4px 16px rgba(86,108,138,0.3); }
         
-        .tabs { 
-            display: flex; flex-wrap: wrap; gap: 12px; padding: 22px 40px; 
-            background: #F8FAFC; border-bottom: 1px solid #CBD5E1; 
-        }
+        .tabs { display: flex; flex-wrap: wrap; gap: 8px; padding: 15px 30px; background: #F8FAFC; border-bottom: 1px solid #CBD5E1; }
         .tab { 
-            padding: 14px 26px; cursor: pointer; font-weight: 700; color: var(--text-muted); 
-            border-radius: 12px; background: white; transition: all 0.2s ease; 
-            font-size: 16px; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.03); 
+            padding: 10px 20px; cursor: pointer; font-weight: 700; color: var(--text-muted); 
+            border-radius: 10px; background: white; transition: all 0.2s ease; border: 1px solid var(--border); font-size: 15px;
         }
         .tab:hover { border-color: #94A3B8; color: var(--text-main); transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.04); }
-        .tab.active { 
-            background: var(--theme-color, var(--primary)); color: white; border-color: transparent; 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateY(-2px); 
-        }
+        .tab.active { background: var(--theme-color, var(--primary)); color: white; border-color: transparent; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transform: translateY(-2px); }
 
-        /* 랜딩 뷰 스타일 */
-        .landing-container { padding: 60px 40px; max-width: 1400px; margin: 0 auto; }
-        .landing-header-row {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 45px;
-            background: rgba(255, 255, 255, 0.9); padding: 30px 40px; border-radius: 20px;
-            border: 1px solid var(--border); box-shadow: 0 6px 15px rgba(0,0,0,0.03); backdrop-filter: blur(5px);
-        }
-        .landing-title-area h2 { margin: 0 0 6px 0; font-size: 26px; font-weight: 900; color: #0F172A; }
-        .landing-title-area p { margin: 0; font-size: 15.5px; color: #64748B; font-weight: 600; }
-        .landing-quarter-row { display: flex; gap: 14px; }
-        .landing-quarter-btn {
-            padding: 14px 28px; border-radius: 30px; background: white; border: 2px solid var(--border);
-            font-size: 17px; font-weight: 800; color: var(--text-muted); cursor: pointer;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 10px rgba(0,0,0,0.03);
-        }
-        .landing-quarter-btn:hover { border-color: #64748B; transform: translateY(-3px); box-shadow: 0 6px 16px rgba(0,0,0,0.08); }
+        .landing-container { padding: 40px 30px; max-width: 1400px; margin: 0 auto; }
+        .landing-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; background: rgba(255, 255, 255, 0.9); padding: 25px 35px; border-radius: 16px; border: 1px solid var(--border); box-shadow: 0 6px 15px rgba(0,0,0,0.03); backdrop-filter: blur(5px); }
+        .landing-title-area h2 { margin: 0 0 4px 0; font-size: 24px; font-weight: 900; color: #0F172A; }
+        .landing-title-area p { margin: 0; font-size: 14.5px; color: #64748B; font-weight: 600; }
+        .landing-quarter-row { display: flex; gap: 12px; }
+        .landing-quarter-btn { padding: 10px 22px; border-radius: 30px; background: white; border: 2px solid var(--border); font-size: 15.5px; font-weight: 800; color: var(--text-muted); cursor: pointer; transition: all 0.25s; }
+        .landing-quarter-btn:hover { border-color: #64748B; transform: translateY(-2px); }
         .landing-quarter-btn.active.spring { background: linear-gradient(135deg, #e0a3a6 0%, #d2a6c2 100%); color: #4a1525; border-color: transparent; }
         .landing-quarter-btn.active.summer { background: linear-gradient(135deg, #85b89a 0%, #a2d2bc 100%); color: #153b22; border-color: transparent; }
         .landing-quarter-btn.active.autumn { background: linear-gradient(135deg, #e4c588 0%, #d89679 100%); color: #4d2611; border-color: transparent; }
         .landing-quarter-btn.active.winter { background: linear-gradient(135deg, #7b8ea8 0%, #a2b0c4 100%); color: #1a2636; border-color: transparent; }
 
-        .landing-school-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 28px; }
-        .school-card {
-            background: linear-gradient(145deg, #FFFFFF 0%, #F8FAFC 100%); border: 1px solid var(--border);
-            border-radius: 22px; padding: 40px 25px; cursor: pointer; transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-            display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; overflow: hidden;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.04);
-        }
-        .school-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 6px; background: var(--theme-color, var(--primary)); opacity: 0.9; transition: height 0.25s ease; }
-        .school-card:hover { transform: translateY(-10px) scale(1.02); border-color: var(--theme-color, var(--primary)); box-shadow: 0 25px 40px rgba(120,100,156,0.18); background: #FFFFFF; }
-        .school-card:hover::before { height: 10px; }
-        .school-badge { background: #F1F5F9; padding: 7px 16px; border-radius: 20px; font-size: 14px; font-weight: 800; color: #475569; margin-bottom: 20px; border: 1px solid #E2E8F0; }
-        .school-card h3 { margin: 0 0 10px 0; font-size: 24px; font-weight: 900; color: #0F172A; }
-        .school-card p { margin: 0; font-size: 14.5px; color: #64748B; font-weight: 600; line-height: 1.5; }
+        .landing-school-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 20px; }
+        .school-card { background: linear-gradient(145deg, #FFFFFF 0%, #F8FAFC 100%); border: 1px solid var(--border); border-radius: 18px; padding: 25px 15px; cursor: pointer; transition: all 0.35s; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; overflow: hidden; box-shadow: 0 8px 20px rgba(0,0,0,0.03); }
+        .school-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 5px; background: var(--theme-color, var(--primary)); opacity: 0.9; transition: height 0.25s ease; }
+        .school-card:hover { transform: translateY(-6px) scale(1.02); border-color: var(--theme-color, var(--primary)); box-shadow: 0 15px 30px rgba(120,100,156,0.15); background: #FFFFFF; }
+        .school-badge { background: #F1F5F9; padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: 800; color: #475569; margin-bottom: 12px; border: 1px solid #E2E8F0; }
+        .school-card h3 { margin: 0 0 6px 0; font-size: 20px; font-weight: 900; color: #0F172A; }
+        .school-card p { margin: 0; font-size: 13.5px; color: #64748B; font-weight: 600; line-height: 1.4; }
 
-        .content-area { padding: 40px; min-height: 500px; }
+        .content-area { padding: 25px 30px; min-height: 450px; }
         
-        .main-table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02); font-size: 15.5px; }
-        .main-table th { background-color: #F1F5F9; font-weight: 800; color: #334155; padding: 12px 8px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); text-align: center; font-size: 16px; }
-        .main-table td { padding: 8px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); text-align: center; vertical-align: middle; background: #fff; }
-        .main-table th:last-child, .main-table td:last-child { border-right: none; }
-        .main-table tbody tr:last-child td { border-bottom: none; }
+        .main-table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); font-size: 14px; }
+        .main-table th { background-color: #F1F5F9; font-weight: 800; color: #334155; padding: 8px 6px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); text-align: center; font-size: 14px; }
+        .main-table td { padding: 4px 6px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); text-align: center; vertical-align: middle; background: #fff; }
         .main-table tbody tr:hover td { background-color: #F8FAFC; }
         
-        .note-textarea {
-            width: 100%; min-height: 65px; border: 1px solid #CBD5E1; border-radius: 8px; 
-            padding: 10px 12px; font-family: inherit; font-size: 14.5px; resize: vertical; 
-            outline: none; color: #334155; background: #F8FAFC; transition: all 0.2s;
+        .message-textarea {
+            width: 100%; min-height: 350px; border: 2px solid #CBD5E1; border-radius: 12px; 
+            padding: 16px 18px; font-family: inherit; font-size: 15px; resize: vertical; 
+            outline: none; color: #0F172A; background: #FFFFFF; line-height: 1.6; transition: border-color 0.2s;
         }
-        .note-textarea:focus { border-color: var(--theme-color, var(--primary)); background: #FFFFFF; box-shadow: 0 0 0 3px rgba(120, 100, 156, 0.1); }
+        .message-textarea:focus { border-color: #3B82F6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15); }
 
-        .btn { 
-            font-family: inherit; background: var(--theme-color, var(--primary)); color: white; border: none; 
-            padding: 12px 22px; border-radius: 10px; cursor: pointer; font-weight: 700; font-size: 15px; 
-            transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; 
-            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        .note-input {
+            width: 100%; border: 1px solid #CBD5E1; border-radius: 6px; 
+            padding: 6px 10px; font-family: inherit; font-size: 13.5px; 
+            outline: none; color: #334155; background: #F8FAFC; transition: all 0.2s;
+            box-sizing: border-box;
         }
-        .btn:hover { filter: brightness(1.1); transform: translateY(-2px); box-shadow: 0 6px 15px rgba(0,0,0,0.12); }
-        
-        .btn-outline { background: white; color: var(--text-main); border: 1px solid #94A3B8; box-shadow: 0 1px 2px rgba(0,0,0,0.02); font-weight: 700; }
+        .note-input:focus { border-color: var(--theme-color, var(--primary)); background: #FFFFFF; box-shadow: 0 0 0 2px rgba(120, 100, 156, 0.1); }
+
+        .btn { font-family: inherit; background: var(--theme-color, var(--primary)); color: white; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
+        .btn:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .btn-outline { background: white; color: var(--text-main); border: 1px solid #94A3B8; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
         .btn-outline:hover { background: #F8FAFC; border-color: #64748B; }
 
-        /* 모달 및 템플릿 구역 디자인 */
-        .template-panel {
-            background: #FFFFFF; border-radius: 16px; border: 1px solid var(--border); 
-            padding: 35px; margin-bottom: 40px; box-shadow: 0 10px 25px rgba(0,0,0,0.04);
-        }
-        .template-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 20px; border-bottom: 2px solid #F1F5F9; padding-bottom: 15px; }
-        .template-tabs { display: flex; gap: 10px; }
-        .t-tab {
-            padding: 10px 20px; font-size: 15px; font-weight: 800; border-radius: 8px; border: 1px solid #E2E8F0;
-            background: #F8FAFC; color: #64748B; cursor: pointer; transition: all 0.2s;
-        }
-        .t-tab.active { background: #3B82F6; color: white; border-color: #2563EB; box-shadow: 0 4px 10px rgba(59, 130, 246, 0.3); }
+        .template-panel { background: #FFFFFF; border-radius: 14px; border: 1px solid var(--border); padding: 25px 30px; margin-bottom: 25px; box-shadow: 0 6px 15px rgba(0,0,0,0.03); }
+        .template-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 12px; border-bottom: 2px solid #F1F5F9; padding-bottom: 10px; }
+        .template-tabs { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+        .t-tab { padding: 8px 16px; font-size: 13.5px; font-weight: 800; border-radius: 6px; border: 1px solid #E2E8F0; background: #F8FAFC; color: #64748B; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 6px; }
+        .t-tab.active { background: #3B82F6; color: white; border-color: #2563EB; box-shadow: 0 3px 8px rgba(59, 130, 246, 0.3); }
+        .t-tab-add { background: #10B981; color: white; border-color: #059669; }
+        .t-tab-add:hover { background: #059669; }
 
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(15,23,42,0.8); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(4px); }
-        .modal-content { background: white; padding: 35px; border-radius: 16px; max-width: 90%; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 15px; align-items: center; }
-        #qr-code-box { display: flex; justify-content: center; background: white; padding: 15px; border-radius: 12px; border: 1px solid #E2E8F0; margin: 10px 0;}
-        .qr-preview-text { text-align: left; background: #F8FAFC; padding: 15px; border-radius: 8px; font-size: 14.5px; color: #334155; line-height: 1.6; border: 1px solid #E2E8F0; width: 100%; max-height: 200px; overflow-y: auto; }
+        .modal-content { background: white; padding: 30px; border-radius: 16px; max-width: 90%; text-align: center; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); display: flex; flex-direction: column; gap: 12px; align-items: center; }
+        #qr-code-box { display: flex; justify-content: center; background: white; padding: 12px; border-radius: 10px; border: 1px solid #E2E8F0; margin: 5px 0;}
+        .qr-preview-text { text-align: left; background: #F8FAFC; padding: 12px; border-radius: 8px; font-size: 13.5px; color: #334155; line-height: 1.5; border: 1px solid #E2E8F0; width: 100%; max-height: 200px; overflow-y: auto; }
+
+        .var-input-group { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px 18px; margin-bottom: 12px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
+        .var-input-item { flex: 1; min-width: 200px; }
+        .var-input-item label { display: block; font-size: 12.5px; font-weight: 800; color: #475569; margin-bottom: 4px; }
+        .var-input-item input { width: 100%; padding: 7px 10px; border: 1px solid #CBD5E1; border-radius: 6px; font-family: inherit; font-size: 14px; box-sizing: border-box; }
+        .var-input-item input:focus { border-color: #3B82F6; outline: none; }
     </style>
 </head>
 <body>
     <div id="app">
         <!-- 단체 문자 전송 QR 모달 -->
         <div v-if="showQRModal" class="modal-overlay" @click.self="closeQRModal">
-            <div class="modal-content" style="width: 420px;">
-                <h3 style="margin: 0; color: #0F172A; font-size: 1.4rem; font-weight: 900;"><i class="fa-solid fa-users"></i> 단체 문자 전송</h3>
-                <div style="font-size: 0.95rem; color: #64748B; margin-top: -5px;">
+            <div class="modal-content" style="width: 400px;">
+                <h3 style="margin: 0; color: #0F172A; font-size: 1.3rem; font-weight: 900;"><i class="fa-solid fa-users"></i> 학부모 단체 문자 전송</h3>
+                <div style="font-size: 0.9rem; color: #64748B; margin-top: -3px;">
                     <b>스마트폰:</b> 아래 QR 코드를 카메라로 스캔하세요.<br>
                     <b>PC 카카오톡:</b> 복사 버튼을 눌러 채팅창에 붙여넣으세요.
                 </div>
                 <div id="qr-code-box"></div>
                 <div class="qr-preview-text" v-html="qrPreviewText"></div>
-                <div style="display: flex; gap: 10px; width: 100%; margin-top: 10px;">
-                    <button class="btn" style="flex: 2; background: #10B981;" @click="copyQRText">
+                <div style="display: flex; gap: 8px; width: 100%; margin-top: 5px;">
+                    <button class="btn" style="flex: 2; background: #10B981; padding: 10px;" @click="copyQRText">
                         <i class="fa-solid fa-copy"></i> {{ copyBtnText }}
                     </button>
-                    <button class="btn btn-outline" style="flex: 1;" @click="closeQRModal">닫기</button>
+                    <button class="btn btn-outline" style="flex: 1; padding: 10px;" @click="closeQRModal">닫기</button>
                 </div>
             </div>
         </div>
 
         <div class="container">
-            <!-- 상단 헤더 -->
             <div class="header">
                 <div class="header-left">
-                    <div style="display: flex; align-items: center; gap: 16px;">
+                    <div style="display: flex; align-items: center; gap: 14px;">
                         <button class="btn-home-circle" @click="goToIndex" title="처음 화면(index)으로 이동">
                             <i class="fa-solid fa-house"></i>
                         </button>
                         <h1>방과후 코딩 학생관리 대시보드 (강사: 김정이)</h1>
                     </div>
-                    <!-- 분기 탭 -->
                     <div class="q-tabs" v-if="isLoggedIn">
                         <div class="q-tab" :class="{ 'active spring': quarter === '1분기' }" @click="quarter = '1분기'">🌸 1분기</div>
                         <div class="q-tab" :class="{ 'active summer': quarter === '2분기' }" @click="quarter = '2분기'">🌳 2분기</div>
@@ -259,18 +218,18 @@
                         <div class="q-tab" :class="{ 'active winter': quarter === '4분기' }" @click="quarter = '4분기'">⛄ 4분기</div>
                     </div>
                 </div>
-                <div style="display: flex; gap: 12px; align-items: center;">
-                    <button v-if="isLoggedIn" class="btn btn-outline" @click="goHome" style="border: none; background: rgba(255,255,255,0.2); color: white;"><i class="fa-solid fa-arrow-rotate-left"></i> 학교 변경</button>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <button v-if="isLoggedIn" class="btn btn-outline" @click="goHome" style="border: none; background: rgba(255,255,255,0.2); color: white;"><i class="fa-solid fa-arrow-rotate-left"></i> 메뉴로 돌아가기</button>
                     <button class="btn" @click="saveData" style="background: white; color: #1E293B;"><i class="fa-solid fa-floppy-disk"></i> 전체 저장하기</button>
                 </div>
             </div>
             
-            <!-- 랜딩 뷰 (학교 선택) -->
+            <!-- 랜딩 뷰 -->
             <div v-if="!isLoggedIn" class="landing-container">
                 <div class="landing-header-row">
                     <div class="landing-title-area">
-                        <h2>🏫 상담 일지를 관리할 학교와 분기를 선택하세요.</h2>
-                        <p>작업할 분기를 먼저 고른 뒤, 출강 학교 카드를 클릭하여 대시보드에 진입하세요.</p>
+                        <h2>🏫 상담 일지를 관리할 학교 또는 메뉴를 선택하세요.</h2>
+                        <p>작업할 분기를 먼저 고른 뒤, 학교 카드나 자격증 전용 메뉴를 클릭하세요.</p>
                     </div>
                     <div class="landing-quarter-row">
                         <button class="landing-quarter-btn" :class="{ 'active spring': landingQuarter === '1분기' }" @click="landingQuarter = '1분기'">🌸 1분기</button>
@@ -301,92 +260,178 @@
                         <h3>세정초등학교</h3>
                         <p>코딩&마인크래프트부<br>학생 상담 및 소통 관리</p>
                     </div>
+                    <div class="school-card" style="--theme-color: #8B5CF6;" @click="selectSchoolAndEnter('certification')">
+                        <div class="school-badge">전체 학교 통합</div>
+                        <h3>🏅 자격증 학생 안내</h3>
+                        <p>자격증반 학생 집중 관리<br>및 시험 접수 문자 전송</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- 메인 관리 영역 -->
             <div v-else>
-                <!-- 학교 탭 -->
+                <!-- 상단 탭 -->
                 <div class="tabs">
                     <div class="tab" :class="{ active: currentTab === 'hakdong' }" @click="currentTab = 'hakdong'"> 학동초(화)</div>
                     <div class="tab" :class="{ active: currentTab === 'bareun' }" @click="currentTab = 'bareun'"> 바른초(수)</div>
                     <div class="tab" :class="{ active: currentTab === 'banwol' }" @click="currentTab = 'banwol'"> 반월초(목)</div>
                     <div class="tab" :class="{ active: currentTab === 'sejeong' }" @click="currentTab = 'sejeong'"> 세정초(금)</div>
+                    <div class="tab" :class="{ active: currentTab === 'certification' }" @click="currentTab = 'certification'" style="background: #8B5CF6; color: white;"> 🏅 전체 자격증반</div>
                 </div>
 
                 <div class="content-area">
                     
-                    <!-- 📍 Zone 1: 메시지 템플릿 보관함 -->
-                    <div class="template-panel">
-                        <div class="template-header">
-                            <div>
-                                <h2 style="margin: 0 0 8px 0; font-size: 22px; font-weight: 900; color: #0F172A;"><i class="fa-solid fa-comment-dots" style="color: #3B82F6;"></i> 자주 쓰는 학부모 안내문 보관함</h2>
-                                <p style="margin: 0; font-size: 14.5px; color: #64748B;">안내문을 저장해두고 언제든 꺼내서 단체 문자를 발송하세요. (모든 학교 공통 적용)</p>
+                    <!-- 📍 [특수 탭] 전체 자격증 학생 안내 및 전용 관리 화면 -->
+                    <div v-if="currentTab === 'certification'">
+                        <div class="template-panel">
+                            <!-- 🌟 불필요한 설명글 삭제 -->
+                            <div class="template-header">
+                                <div>
+                                    <h2 style="margin: 0; font-size: 18px; font-weight: 900; color: #0F172A;"><i class="fa-solid fa-medal" style="color: #8B5CF6;"></i> 전체 학교 자격증반 학부모 안내 문자 전송</h2>
+                                </div>
                             </div>
-                            <div class="template-tabs">
-                                <div class="t-tab" :class="{ active: activeTemplate === 'first' }" @click="activeTemplate = 'first'">첫 수업 안내</div>
-                                <div class="t-tab" :class="{ active: activeTemplate === 'register' }" @click="activeTemplate = 'register'">수강 등록 안내</div>
-                                <div class="t-tab" :class="{ active: activeTemplate === 'end' }" @click="activeTemplate = 'end'">종강 안내</div>
+
+                            <textarea v-model="certMessageTemplate" class="message-textarea" placeholder="자격증 안내 문구를 작성해주세요."></textarea>
+                            
+                            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 15px;">
+                                <button class="btn btn-outline" @click="saveData"><i class="fa-solid fa-floppy-disk"></i> 양식 저장하기</button>
+                                <button class="btn" style="background: #8B5CF6;" @click="openCertBulkMessageQR"><i class="fa-solid fa-paper-plane"></i> 모든 자격증반 학부모에게 발송 (QR)</button>
                             </div>
                         </div>
-                        
-                        <textarea v-model="messageTemplates[activeTemplate]" rows="6" class="note-textarea" style="font-size: 16px; padding: 18px; margin-bottom: 20px;" placeholder="여기에 안내문 양식을 작성해주세요. 저장 버튼을 누르면 클라우드에 영구 보관됩니다."></textarea>
-                        
-                        <div style="display: flex; justify-content: flex-end; gap: 12px;">
-                            <button class="btn btn-outline" @click="saveData"><i class="fa-solid fa-floppy-disk"></i> 양식 저장하기</button>
-                            <button class="btn" style="background: #3B82F6;" @click="openBulkMessageQR"><i class="fa-solid fa-paper-plane"></i> 전체 학부모에게 발송 (QR)</button>
+
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px;">
+                            <h2 style="margin: 0; font-size: 18px; font-weight: 900; color: #0F172A; display: flex; align-items: center;">
+                                <i class="fa-solid fa-users" style="color: #8B5CF6; margin-right: 6px;"></i>
+                                {{ quarter }} 전체 학교 자격증 수강생 통합 명단
+                                <span style="margin-left: 10px; padding: 2px 10px; background: #FEF2F2; color: #991B1B; border-radius: 20px; font-size: 13.5px; font-weight: 800; border: 1px solid #FCA5A5;">총 {{ allCertStudents.length }}명</span>
+                            </h2>
                         </div>
+
+                        <table class="main-table">
+                            <thead>
+                                <tr>
+                                    <th width="45">No</th>
+                                    <th width="110">출강 학교</th>
+                                    <th width="55">학년</th>
+                                    <th width="55">반</th>
+                                    <th width="55">번호</th>
+                                    <th width="95">성명</th>
+                                    <th width="125">학부모 연락처</th>
+                                    <th>🏅 자격증 시험 준비 및 상담 기록장</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(student, index) in allCertStudents" :key="student.id">
+                                    <td style="font-weight: 800; color: #64748B;">{{ index + 1 }}</td>
+                                    <td style="font-weight: 800; color: #3B82F6;">{{ getSchoolFullName(student.school) }}</td>
+                                    <td style="font-weight: 700; color: #334155;">{{ student.grade }}</td>
+                                    <td style="font-weight: 700; color: #334155;">{{ student.classNum }}</td>
+                                    <td style="font-weight: 700; color: #334155;">{{ student.num }}</td>
+                                    <td style="font-weight: 900; color: #0F172A; font-size: 14.5px;">{{ student.name }}</td>
+                                    <td style="font-weight: 700; color: #475569;">{{ student.phone || '-' }}</td>
+                                    <td style="padding: 4px 6px;">
+                                        <input type="text" v-model="student.certNote" class="note-input" placeholder="자격증반 특이사항 입력...">
+                                    </td>
+                                </tr>
+                                <tr v-if="allCertStudents.length === 0">
+                                    <td colspan="8" style="text-align: center; padding: 25px; color: #94A3B8; font-size: 14.5px; font-weight: 600;">
+                                        <i class="fa-solid fa-medal" style="font-size: 1.6rem; margin-bottom: 6px; color: #CBD5E1;"></i><br>
+                                        현재 등록된 자격증반 학생이 없습니다.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
 
-                    <!-- 📍 Zone 2: 학생 심층 상담 일지 -->
-                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 15px;">
-                        <h2 style="margin: 0; font-size: 22px; font-weight: 900; color: #0F172A; display: flex; align-items: center;">
-                            <i class="fa-solid fa-address-book" style="color: var(--theme-color, var(--primary)); margin-right: 8px;"></i>
-                            {{ getSchoolFullName(currentTab) }} {{ quarter }} 학생 심층 상담 일지
-                            <span style="margin-left: 15px; padding: 4px 15px; background: #F1F5F9; color: #334155; border-radius: 20px; font-size: 15px; font-weight: 800; border: 1px solid #E2E8F0;">총 {{ filteredStudents.length }}명</span>
-                        </h2>
-                        
-                        <div style="display: flex; gap: 10px;">
-                            <button @click="sortStudents" class="btn btn-outline" style="padding: 8px 16px; font-size: 14.5px; border-radius: 20px; color: #4F46E5; border-color: #A5B4FC;"><i class="fa-solid fa-arrow-down-1-9"></i> 학년·반·번호순 정렬</button>
-                        </div>
-                    </div>
-                    
-                    <div style="background: #FFFBEB; border-left: 4px solid #F59E0B; padding: 12px 18px; border-radius: 8px; margin-bottom: 20px; font-size: 14.5px; color: #92400E; font-weight: 600;">
-                        💡 <b>Tip:</b> 교구 대시보드에 등록된 명단이 자동으로 연동됩니다. (명단 추가/삭제는 교구 대시보드 탭을 이용해 주세요.)
-                    </div>
+                    <!-- 📍 일반 학교별 탭 화면 -->
+                    <div v-else>
+                        <!-- Zone 1: 메시지 템플릿 보관함 -->
+                        <div class="template-panel">
+                            <!-- 🌟 불필요한 설명글 삭제 -->
+                            <div class="template-header">
+                                <div>
+                                    <h2 style="margin: 0; font-size: 18px; font-weight: 900; color: #0F172A;"><i class="fa-solid fa-comment-dots" style="color: #3B82F6;"></i> {{ getSchoolFullName(currentTab) }} 전용 학부모 안내문 보관함</h2>
+                                </div>
+                            </div>
 
-                    <table class="main-table">
-                        <thead>
-                            <tr>
-                                <th width="50">No</th>
-                                <th width="70">학년</th>
-                                <th width="70">반</th>
-                                <th width="70">번호</th>
-                                <th width="110">성명</th>
-                                <th width="140">학부모 연락처</th>
-                                <th>📝 학부모 상담 및 학생 특이사항 (세부 기록장)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr v-for="(student, index) in filteredStudents" :key="student.id">
-                                <td style="font-weight: 800; color: #64748B;">{{ index + 1 }}</td>
-                                <td style="font-weight: 700; color: #334155;">{{ student.grade }}</td>
-                                <td style="font-weight: 700; color: #334155;">{{ student.classNum }}</td>
-                                <td style="font-weight: 700; color: #334155;">{{ student.num }}</td>
-                                <td style="font-weight: 900; color: #0F172A; font-size: 16px;">{{ student.name }}</td>
-                                <td style="font-weight: 700; color: #475569;">{{ student.phone || '-' }}</td>
-                                <td style="padding: 12px;">
-                                    <textarea v-model="student.consultationNote" class="note-textarea" placeholder="상담 날짜, 통화 내용, 수업 태도, 성취도 등 학생에 관한 기록을 남겨두세요. 엔터를 쳐서 여러 줄로 작성할 수 있습니다."></textarea>
-                                </td>
-                            </tr>
-                            <tr v-if="filteredStudents.length === 0">
-                                <td colspan="7" style="text-align: center; padding: 40px; color: #94A3B8; font-size: 16px; font-weight: 600;">
-                                    <i class="fa-solid fa-folder-open" style="font-size: 2rem; margin-bottom: 10px; color: #CBD5E1;"></i><br>
-                                    현재 등록된 학생 명단이 없습니다.<br>'교구 대시보드'에서 학생 명단을 먼저 추가해 주세요.
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                            <!-- 첫수업일자 입력 칸 -->
+                            <div class="var-input-group" v-if="activeTemplate === 'first'">
+                                <div class="var-input-item" style="max-width: 300px;">
+                                    <label><i class="fa-solid fa-calendar-days" style="color: #3B82F6;"></i> [첫수업일자] 입력</label>
+                                    <input type="text" v-model="commonVars[currentTab]" placeholder="예: 9월 5일 (화)">
+                                </div>
+                            </div>
+                            
+                            <!-- 템플릿 탭바 (삭제 버튼 포함) -->
+                            <div class="template-tabs" style="margin-bottom: 10px;">
+                                <div v-for="(content, key) in currentSchoolTemplates" :key="key" 
+                                     class="t-tab" :class="{ active: activeTemplate === key }" @click="activeTemplate = key">
+                                    {{ getTemplateTitle(key) }}
+                                    <!-- 🌟 어떤 템플릿이든 X 버튼을 누르면 삭제 가능하도록 변경 -->
+                                    <i class="fa-solid fa-xmark" @click.stop="removeTemplate(key)" title="양식 삭제" style="margin-left: 6px; opacity: 0.6; cursor: pointer;"></i>
+                                </div>
+                                <div class="t-tab t-tab-add" @click="addNewTemplate"><i class="fa-solid fa-plus"></i> 새 양식 추가</div>
+                            </div>
+
+                            <textarea v-if="activeTemplate && currentSchoolTemplates[activeTemplate] !== undefined" v-model="currentSchoolTemplates[activeTemplate]" class="message-textarea" placeholder="내용을 작성해주세요."></textarea>
+                            
+                            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 15px;">
+                                <button class="btn btn-outline" @click="saveData"><i class="fa-solid fa-floppy-disk"></i> 양식 저장하기</button>
+                                <button class="btn" style="background: #3B82F6;" @click="openBulkMessageQR"><i class="fa-solid fa-paper-plane"></i> 현재 학교 학부모에게 발송 (QR)</button>
+                            </div>
+                        </div>
+
+                        <!-- Zone 2: 학생 심층 상담 일지 -->
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px;">
+                            <h2 style="margin: 0; font-size: 18px; font-weight: 900; color: #0F172A; display: flex; align-items: center;">
+                                <i class="fa-solid fa-address-book" style="color: var(--theme-color, var(--primary)); margin-right: 6px;"></i>
+                                {{ getSchoolFullName(currentTab) }} {{ quarter }} 학생 심층 상담 일지
+                                <span style="margin-left: 10px; padding: 2px 10px; background: #F1F5F9; color: #334155; border-radius: 20px; font-size: 13.5px; font-weight: 800; border: 1px solid #E2E8F0;">총 {{ filteredStudents.length }}명</span>
+                            </h2>
+                            
+                            <div style="display: flex; gap: 6px;">
+                                <button @click="sortStudents" class="btn btn-outline" style="padding: 5px 12px; font-size: 13.5px; border-radius: 20px; color: #4F46E5; border-color: #A5B4FC;"><i class="fa-solid fa-arrow-down-1-9"></i> 학년·반·번호순 정렬</button>
+                                <button class="btn btn-outline" @click="exportToExcel" style="color: #059669; border-color: #6EE7B7; padding: 5px 12px; font-size: 13.5px; border-radius: 20px;">📊 엑셀 저장</button>
+                            </div>
+                        </div>
+                        
+                        <div style="background: #FFFBEB; border-left: 4px solid #F59E0B; padding: 8px 14px; border-radius: 6px; margin-bottom: 12px; font-size: 13.5px; color: #92400E; font-weight: 600;">
+                            💡 <b>Tip:</b> 교구 대시보드에 등록된 명단이 자동으로 연동됩니다. (명단 추가/삭제는 교구 대시보드 탭을 이용해 주세요.)
+                        </div>
+
+                        <table class="main-table">
+                            <thead>
+                                <tr>
+                                    <th width="45">No</th>
+                                    <th width="60">학년</th>
+                                    <th width="60">반</th>
+                                    <th width="60">번호</th>
+                                    <th width="100">성명</th>
+                                    <th width="125">학부모 연락처</th>
+                                    <th>📝 학부모 상담 및 학생 특이사항 (세부 기록장)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="(student, index) in filteredStudents" :key="student.id">
+                                    <td style="font-weight: 800; color: #64748B;">{{ index + 1 }}</td>
+                                    <td style="font-weight: 700; color: #334155;">{{ student.grade }}</td>
+                                    <td style="font-weight: 700; color: #334155;">{{ student.classNum }}</td>
+                                    <td style="font-weight: 700; color: #334155;">{{ student.num }}</td>
+                                    <td style="font-weight: 900; color: #0F172A; font-size: 14.5px;">{{ student.name }}</td>
+                                    <td style="font-weight: 700; color: #475569;">{{ student.phone || '-' }}</td>
+                                    <td style="padding: 4px 6px;">
+                                        <!-- 🌟 슬림형 한 줄 인풋 적용 -->
+                                        <input type="text" v-model="student.consultationNote" class="note-input" placeholder="상담 및 특이사항 입력...">
+                                    </td>
+                                </tr>
+                                <tr v-if="filteredStudents.length === 0">
+                                    <td colspan="7" style="text-align: center; padding: 25px; color: #94A3B8; font-size: 14.5px; font-weight: 600;">
+                                        <i class="fa-solid fa-folder-open" style="font-size: 1.6rem; margin-bottom: 6px; color: #CBD5E1;"></i><br>
+                                        현재 등록된 학생 명단이 없습니다.<br>'교구 대시보드'에서 학생 명단을 먼저 추가해 주세요.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
 
                 </div>
             </div>
@@ -396,19 +441,13 @@
     <script>
         const { createApp, ref, computed, watch, onMounted } = Vue;
 
-        // Firebase 연결 대기
         const waitForFirebase = () => {
             return new Promise((resolve, reject) => {
                 if (window.firebaseReady) return resolve();
                 if (window.firebaseInitError) return reject(new Error(window.firebaseInitError));
-
                 const onReady = () => { clearTimeout(timer); resolve(); };
                 window.addEventListener('firebase-ready', onReady, { once: true });
-
-                const timer = setTimeout(() => {
-                    window.removeEventListener('firebase-ready', onReady);
-                    reject(new Error('Firebase 연결 시간 초과 (네트워크 상태를 확인해주세요)'));
-                }, 8000);
+                const timer = setTimeout(() => { window.removeEventListener('firebase-ready', onReady); reject(new Error('Firebase 연결 시간 초과')); }, 8000);
             });
         };
 
@@ -416,32 +455,119 @@
             setup() {
                 const isLoggedIn = ref(false);
                 const landingQuarter = ref('3분기');
-
                 const currentTab = ref('hakdong');
                 const quarter = ref('3분기');
 
-                // 통합 데이터 모델
                 const students = ref([]);
-                
-                // 템플릿 모델 (모든 학교 공통 적용)
                 const activeTemplate = ref('first');
-                const messageTemplates = ref({
-                    first: '안녕하세요 학부모님! 코딩부 강사 김정이입니다.\n이번 분기에도 우리 아이들과 즐거운 코딩 수업을 함께하게 되었습니다.\n\n수업 관련 안내 사항을 전달해 드립니다.',
-                    register: '수강 등록 안내입니다. \n\n기한 내에 등록을 완료해주시기 바랍니다.',
-                    end: '이번 분기 종강 안내입니다. \n\n한 분기 동안 아이들이 즐겁게 수업에 참여해주어 감사드립니다.'
+                
+                const commonVars = ref({
+                    hakdong: '',
+                    bareun: '',
+                    banwol: '',
+                    sejeong: ''
                 });
 
-                // 모달 상태
+                const certMessageTemplate = ref(`💌 SW 코딩자격 시험 접수 안내\n\n안녕하세요, 학부모님!\n코딩부 강사 김정이입니다. 👩‍💻\n\n그동안 우리 아이들이 열심히 준비해 온 [SW 코딩자격 시험] 접수 기간이 다가와 안내해 드립니다.\n자신의 실력을 확인하고 성취감을 맛볼 좋은 기회가 될 것입니다.\n\n📌 시험 일정: O월 O일\n📌 접수 기간: O/O ~ O/O\n\n수업 시간에도 꼼꼼히 대비할 예정입니다. 학부모님들의 많은 응원 부탁드립니다! 🌷`);
+
+                const schoolNames = { 'hakdong': '학동초(화)', 'bareun': '바른초(수)', 'banwol': '반월초(목)', 'sejeong': '세정초(금)' };
+                const getSchoolFullName = (key) => ({ 'hakdong': '학동초등학교', 'bareun': '바른초등학교', 'banwol': '반월초등학교', 'sejeong': '세정초등학교' }[key]);
+
+                const getSchoolDetails = (key) => {
+                    if (key === 'hakdong') return { day: '화요일', time1: '1:45 ~ 2:55', time2: '3:00 ~ 4:10', room: '2층 컴퓨터1실', dept: '코딩로봇부' };
+                    if (key === 'bareun') return { day: '수요일', time1: '1:00 ~ 2:20', time2: '2:30 ~ 3:50', room: '3층 컴퓨터실', dept: '코딩부' };
+                    if (key === 'banwol') return { day: '목요일', time1: '1:40 ~ 3:00', time2: '3:10 ~ 4:30', room: '2층 컴퓨터실', dept: '코딩부' };
+                    if (key === 'sejeong') return { day: '금요일', time1: '1:10 ~ 2:20', time2: '2:30 ~ 3:40', room: '1층 컴퓨터실', dept: '코딩&마인크래프트부' };
+                    return { day: 'O요일', time1: 'O:OO ~ O:OO', time2: 'O:OO ~ O:OO', room: '컴퓨터실', dept: '코딩부' };
+                };
+
+                const getDefaultTemplates = (schoolKey) => {
+                    const sName = getSchoolFullName(schoolKey);
+                    const details = getSchoolDetails(schoolKey);
+                    
+                    let enrollTemplateText = '';
+                    if (schoolKey === 'hakdong') {
+                        enrollTemplateText = `💌 ${sName} ${details.dept} [분기] 재수강 안내\n\n안녕하세요, 학부모님\n${details.dept} 강사 김정이입니다.\n\n우리 아이들과 즐겁게 코딩 수업을 이어갈 [분기] 재수강 안내 드립니다. 🌸\n\n바쁘신 학부모님들의 번거로움을 덜어드리기 위해 이번에도 '자동 수강 신청'으로 진행되오니 참고 부탁드립니다!\n\n1️⃣ 수강을 계속하는 경우: 별도의 회신 없이 가만히 두시면 자동으로 신청이 완료됩니다! ✨\n2️⃣ 수강을 취소하는 경우: [학생이름 / 취소] 라고 적어서 문자로 회신해 주세요.\n3️⃣ 회신 기한: O월 O일(O) O시까지\n\n취소 의사가 없으시면 편하게 자동으로 신청이 완료되니 걱정하지 않으셔도 됩니다. 😉\n[분기]에도 유익한 시간 만들겠습니다. 늘 감사드립니다! 💕`;
+                    } else {
+                        enrollTemplateText = `💌 ${sName} ${details.dept} [분기] 수강 접수 안내\n\n안녕하세요, 학부모님\n${details.dept} 강사 김정이입니다. 🌸\n\n우리 아이들과 함께 알차고 즐거운 코딩 수업을 진행할 [분기] 수강 접수 안내해 드립니다!\n\n📍 안내\n- 수업 일시: 매주 ${details.day}\n  1반 (1~2학년) ${details.time1}\n  2반 (3~6학년) ${details.time2}\n- 수업 장소: ${details.room}\n\n📌 접수 기간 및 방법: 학교 방과후 접수 일정에 따라 신청해 주시기 바랍니다.\n\n[분기]에도 우리 아이들이 코딩의 즐거움을 느낄 수 있도록 다정하고 꼼꼼하게 지도하겠습니다. 많은 관심 부탁드립니다! 💕`;
+                    }
+
+                    return {
+                        first: `💌 ${sName} ${details.dept} [분기] 안내\n\n안녕하세요☺\n${sName} ${details.dept} 강사 김정이입니다. \n\n우리 아이들의 [분기] ${details.dept} 수강이 최종 확정되어 안내드립니다!!\n\n📍 안내\n- 첫 수업 일자: [첫수업일자]\n- 수업 일시: 매주 ${details.day}\n  1반 (1~2학년) ${details.time1}\n  2반 (3~6학년) ${details.time2}\n- 수업 장소: ${details.room}\n\n우리 아이들이 스스로 생각하고 만들어가는 코딩의 즐거움을 듬뿍 느낄 수 있도록, 이번 학기도 눈높이에 맞춰 다정하게 지도하겠습니다.\n확인하시고 궁금하신 점이 있으시면 언제든 편하게 연락해 주세요. 감사합니다! 💕`,
+                        reenroll_or_enroll: enrollTemplateText,
+                        end: `💌 ${sName} ${details.dept} 종강 안내\n\n안녕하세요 학부모님, 강사 김정이입니다. ☺️\n\n어느덧 한 분기가 마무리되어 종강 소식을 전해드립니다. \n처음엔 낯설어하던 아이들이 스스로 코드를 짜며 성장한 모습을 보니 대견합니다.\n\n가정에서 보내주신 따뜻한 격려에 깊이 감사드립니다. 🙇‍♀️\n다음 분기에도 재미있는 커리큘럼으로 아이들과 만나겠습니다. 감사합니다! 💖`
+                    };
+                };
+
+                const messageTemplates = ref({
+                    hakdong: getDefaultTemplates('hakdong'),
+                    bareun: getDefaultTemplates('bareun'),
+                    banwol: getDefaultTemplates('banwol'),
+                    sejeong: getDefaultTemplates('sejeong')
+                });
+
+                const currentSchoolTemplates = computed(() => {
+                    if (!messageTemplates.value[currentTab.value]) {
+                        messageTemplates.value[currentTab.value] = getDefaultTemplates(currentTab.value);
+                    }
+                    return messageTemplates.value[currentTab.value];
+                });
+
+                const getTemplateTitle = (key) => {
+                    if (key === 'first') return '첫 수업 안내';
+                    if (key === 'reenroll_or_enroll') return currentTab.value === 'hakdong' ? '재수강 안내' : '수강 접수 안내';
+                    if (key === 'end') return '종강 안내';
+                    if (key.startsWith('custom_title_')) return key.replace('custom_title_', '');
+                    return key; 
+                };
+
+                const addNewTemplate = async () => {
+                    const { value: title } = await Swal.fire({
+                        title: '새 메시지 양식 추가',
+                        text: '추가할 양식의 제목을 입력하세요 (예: 준비물 안내, 방학 안내 등)',
+                        input: 'text',
+                        showCancelButton: true,
+                        confirmButtonText: '추가',
+                        cancelButtonText: '취소',
+                        confirmButtonColor: '#3B82F6'
+                    });
+
+                    if (title && title.trim()) {
+                        const newKey = 'custom_' + Date.now();
+                        const titleKey = 'custom_title_' + newKey;
+                        // 제목 구분을 위해 템플릿 객체에 타이틀 저장용 키 부여
+                        currentSchoolTemplates.value[newKey] = `💌 [학교명] [분기] ${title.trim()} 안내\n\n안녕하세요, 학부모님!\n코딩부 강사 김정이입니다. ☺️\n\n[내용을 입력하세요]`;
+                        // 편의를 위해 키 이름에 직접 타이틀 반영
+                        delete currentSchoolTemplates.value[newKey];
+                        const finalKey = 'custom_title_' + title.trim();
+                        currentSchoolTemplates.value[finalKey] = `💌 [학교명] [분기] ${title.trim()} 안내\n\n안녕하세요, 학부모님!\n코딩부 강사 김정이입니다. ☺️\n\n[내용을 입력하세요]`;
+                        activeTemplate.value = finalKey;
+                    }
+                };
+
+                const removeTemplate = (key) => {
+                    Swal.fire({
+                        title: '양식 삭제',
+                        text: '이 메시지 양식을 삭제하시겠습니까?',
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonText: '삭제',
+                        cancelButtonText: '취소',
+                        confirmButtonColor: '#EF4444'
+                    }).then((res) => {
+                        if (res.isConfirmed) {
+                            delete currentSchoolTemplates.value[key];
+                            const keys = Object.keys(currentSchoolTemplates.value);
+                            activeTemplate.value = keys.length > 0 ? keys[0] : '';
+                        }
+                    });
+                };
+
                 const showQRModal = ref(false);
                 const qrPreviewText = ref('');
                 const copyBtnText = ref('텍스트 복사하기');
 
-                const selectSchoolAndEnter = (schoolKey) => {
-                    quarter.value = landingQuarter.value;
-                    currentTab.value = schoolKey;
-                    isLoggedIn.value = true;
-                };
-
+                const selectSchoolAndEnter = (schoolKey) => { quarter.value = landingQuarter.value; currentTab.value = schoolKey; isLoggedIn.value = true; };
                 const goHome = () => { isLoggedIn.value = false; };
                 const goToIndex = () => { window.location.href = 'index.html'; };
 
@@ -463,31 +589,22 @@
                     }
                 });
 
-                const schoolNames = { 'hakdong': '학동초(화)', 'bareun': '바른초(수)', 'banwol': '반월초(목)', 'sejeong': '세정초(금)' };
-                const getSchoolFullName = (key) => ({ 'hakdong': '학동초등학교', 'bareun': '바른초등학교', 'banwol': '반월초등학교', 'sejeong': '세정초등학교' }[key]);
+                const filteredStudents = computed(() => { return students.value.filter(s => s.school === currentTab.value && s.quarter === quarter.value && s.status !== '삭제'); });
 
-                // 명단 필터링 (삭제된 학생 제외)
-                const filteredStudents = computed(() => {
-                    return students.value.filter(s => 
-                        s.school === currentTab.value && 
-                        s.quarter === quarter.value && 
-                        s.status !== '삭제'
-                    );
+                const allCertStudents = computed(() => {
+                    return students.value.filter(s => s.quarter === quarter.value && s.status !== '삭제' && s.item === '자격증');
                 });
 
                 const sortStudents = () => {
                     students.value.sort((a, b) => {
                         if (a.quarter !== b.quarter) return a.quarter.localeCompare(b.quarter);
                         if (a.school !== b.school) return a.school.localeCompare(b.school);
-                        
                         let gA = parseInt((a.grade || '').toString().replace(/[^0-9]/g, ''), 10) || 0;
                         let gB = parseInt((b.grade || '').toString().replace(/[^0-9]/g, ''), 10) || 0;
                         if (gA !== gB) return gA - gB;
-
                         let cA = parseInt((a.classNum || '').toString().replace(/[^0-9]/g, ''), 10) || 0;
                         let cB = parseInt((b.classNum || '').toString().replace(/[^0-9]/g, ''), 10) || 0;
                         if (cA !== cB) return cA - cB;
-
                         let nA = parseInt((a.num || '').toString().replace(/[^0-9]/g, ''), 10) || 0;
                         let nB = parseInt((b.num || '').toString().replace(/[^0-9]/g, ''), 10) || 0;
                         return nA - nB;
@@ -504,13 +621,40 @@
                     }
 
                     const phoneNumbers = targetStudents.map(s => s.phone.replace(/[^0-9]/g, '')).join(',');
-                    let messageBody = messageTemplates.value[activeTemplate.value];
+                    let messageBody = currentSchoolTemplates.value[activeTemplate.value];
                     
                     if (!messageBody || !messageBody.trim()) {
                         Swal.fire({ title: '내용 없음', text: '발송할 메시지 내용을 입력해주세요.', icon: 'warning', confirmButtonColor: '#ff7675' });
                         return;
                     }
 
+                    messageBody = messageBody.replace(/\[분기\]/g, quarter.value);
+                    messageBody = messageBody.replace(/\[첫수업일자\]/g, commonVars.value[currentTab.value] || 'O월 O일');
+
+                    generateQRModal(phoneNumbers, messageBody);
+                };
+
+                const openCertBulkMessageQR = () => {
+                    const targetStudents = allCertStudents.value.filter(s => s.phone);
+                    if (targetStudents.length === 0) {
+                        Swal.fire({ title: '안내', text: '전체 학교 중 연락처가 있는 자격증반 학생이 없습니다.', icon: 'warning', confirmButtonColor: '#8B5CF6' });
+                        return;
+                    }
+
+                    const phoneNumbers = targetStudents.map(s => s.phone.replace(/[^0-9]/g, '')).join(',');
+                    let messageBody = certMessageTemplate.value;
+                    
+                    if (!messageBody || !messageBody.trim()) {
+                        Swal.fire({ title: '내용 없음', text: '발송할 메시지 내용을 입력해주세요.', icon: 'warning', confirmButtonColor: '#8B5CF6' });
+                        return;
+                    }
+
+                    messageBody = messageBody.replace(/\[분기\]/g, quarter.value);
+
+                    generateQRModal(phoneNumbers, messageBody);
+                };
+
+                const generateQRModal = (phoneNumbers, messageBody) => {
                     const smsUri = `sms:${phoneNumbers}?body=${encodeURIComponent(messageBody)}`;
                     
                     showQRModal.value = true;
@@ -520,10 +664,8 @@
                     setTimeout(() => {
                         document.getElementById('qr-code-box').innerHTML = '';
                         new QRCode(document.getElementById('qr-code-box'), {
-                            text: smsUri,
-                            width: 170, height: 170,
-                            colorDark : "#0F172A", colorLight : "#ffffff",
-                            correctLevel : QRCode.CorrectLevel.M
+                            text: smsUri, width: 170, height: 170,
+                            colorDark : "#0F172A", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.M
                         });
                     }, 100);
                 };
@@ -537,25 +679,46 @@
                     tempElem.select();
                     document.execCommand('copy');
                     document.body.removeChild(tempElem);
-                    
                     copyBtnText.value = '복사 완료!';
                     setTimeout(() => { copyBtnText.value = '텍스트 복사하기'; }, 2000);
                 };
 
-                // Firebase Save/Load
+                const exportToExcel = () => {
+                    const targetStudents = filteredStudents.value;
+                    if (targetStudents.length === 0) {
+                        Swal.fire({ title: '안내', text: '내보낼 명단이 없습니다.', icon: 'warning', confirmButtonColor: '#78649c' });
+                        return;
+                    }
+                    const excelData = targetStudents.map(s => ({
+                        '학년': s.grade, '반': s.classNum, '번호': s.num,
+                        '이름': s.name, '전화번호': s.phone, '특이사항': s.consultationNote || ''
+                    }));
+                    const worksheet = XLSX.utils.json_to_sheet(excelData);
+                    worksheet['!cols'] = [ { wpx: 50 }, { wpx: 50 }, { wpx: 50 }, { wpx: 100 }, { wpx: 150 }, { wpx: 300 } ];
+                    const workbook = XLSX.utils.book_new();
+                    XLSX.utils.book_append_sheet(workbook, worksheet, '학생관리기록');
+                    const fileName = `${getSchoolFullName(currentTab.value)}_${quarter.value}_학생관리.xlsx`;
+                    XLSX.writeFile(workbook, fileName);
+                    Swal.fire({ title: '완료!', text: '엑셀 파일이 다운로드되었습니다.', icon: 'success', timer: 1500, showConfirmButton: false });
+                };
+
                 const saveData = async () => {
                     try {
                         Swal.fire({ title: '저장 중...', text: '상담 일지와 템플릿을 저장하고 있습니다.', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
                         await waitForFirebase();
 
-                        // 기존 데이터를 불러온 뒤 students와 messageTemplates 덮어쓰기 (기존 주문서 등 유지용)
                         const docRef = window.firebaseDoc(window.db, "dashboardData", "mainData");
                         const docSnap = await window.firebaseGetDoc(docRef);
-                        let updatedData = { students: students.value, messageTemplates: messageTemplates.value };
+                        let updatedData = { 
+                            students: students.value, 
+                            messageTemplates: messageTemplates.value, 
+                            commonVars: commonVars.value,
+                            certMessageTemplate: certMessageTemplate.value 
+                        };
                         
                         if (docSnap.exists()) {
                             const oldData = docSnap.data();
-                            updatedData = { ...oldData, students: students.value, messageTemplates: messageTemplates.value };
+                            updatedData = { ...oldData, students: students.value, messageTemplates: messageTemplates.value, commonVars: commonVars.value, certMessageTemplate: certMessageTemplate.value };
                         }
 
                         await window.firebaseSetDoc(docRef, updatedData);
@@ -575,30 +738,36 @@
                         if (docSnap.exists()) {
                             const data = docSnap.data();
                             if (data.students) {
-                                students.value = data.students.map(s => ({
-                                    ...s,
-                                    consultationNote: s.consultationNote || '' // 상담기록 필드 초기화
+                                students.value = data.students.map(s => ({ 
+                                    ...s, 
+                                    consultationNote: s.consultationNote || '',
+                                    certNote: s.certNote || ''
                                 }));
                             }
                             if (data.messageTemplates) {
-                                messageTemplates.value = { ...messageTemplates.value, ...data.messageTemplates };
+                                if (data.messageTemplates.hakdong && typeof data.messageTemplates.hakdong === 'object') {
+                                    messageTemplates.value = { ...messageTemplates.value, ...data.messageTemplates };
+                                }
+                            }
+                            if (data.commonVars) {
+                                commonVars.value = { ...commonVars.value, ...data.commonVars };
+                            }
+                            if (data.certMessageTemplate) {
+                                certMessageTemplate.value = data.certMessageTemplate;
                             }
                         }
-                    } catch (e) {
-                        console.error('데이터 로드 실패:', e);
-                    }
+                    } catch (e) { console.error('데이터 로드 실패:', e); }
                 };
 
-                onMounted(() => {
-                    loadData();
-                });
+                onMounted(() => { loadData(); });
 
                 return { 
                     isLoggedIn, landingQuarter, selectSchoolAndEnter, goHome, goToIndex, 
-                    currentTab, quarter, students, filteredStudents, getSchoolFullName, sortStudents,
-                    activeTemplate, messageTemplates,
-                    showQRModal, qrPreviewText, copyBtnText, openBulkMessageQR, closeQRModal, copyQRText,
-                    saveData
+                    currentTab, quarter, students, filteredStudents, allCertStudents, getSchoolFullName, sortStudents,
+                    activeTemplate, messageTemplates, currentSchoolTemplates, commonVars, certMessageTemplate,
+                    getTemplateTitle, addNewTemplate, removeTemplate,
+                    showQRModal, qrPreviewText, copyBtnText, openBulkMessageQR, openCertBulkMessageQR, closeQRModal, copyQRText,
+                    saveData, exportToExcel
                 };
             }
         }).mount('#app');
