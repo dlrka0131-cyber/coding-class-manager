@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>방과후 코딩 학생 관리</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        const firebaseConfig = {
+            apiKey: "AIzaSyCDLTlbv0NPooUV_ErqpwJLX9ayQWqE8Y8",
+            authDomain: "dashboard-18022.firebaseapp.com",
+            projectId: "dashboard-18022",
+            storageBucket: "dashboard-18022.firebasestorage.app",
+            messagingSenderId: "342705436396",
+            appId: "1:342705436396:web:82fb1c31af93dc539857c9"
+        };
+        const app = initializeApp(firebaseConfig);
+        window.db = getFirestore(app);
+        window.firebaseDoc = doc; window.firebaseSetDoc = setDoc; window.firebaseGetDoc = getDoc;
+    </script>
+
+    <style>
+        body { font-family: 'Pretendard', sans-serif; background: #f1f5f9; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: 0 auto; background: white; padding: 20px; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; padding-bottom: 10px; }
+        .main-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        .main-table th { background: #f8fafc; padding: 8px; border: 1px solid #e2e8f0; }
+        .main-table td { padding: 4px; border: 1px solid #e2e8f0; text-align: center; }
+        .note-input { width: 100%; padding: 6px; border: 1px solid #cbd5e1; border-radius: 4px; box-sizing: border-box; }
+        .message-textarea { width: 100%; min-height: 350px; padding: 15px; border: 2px solid #cbd5e1; border-radius: 10px; font-size: 15px; box-sizing: border-box; }
+        .btn { padding: 8px 16px; border-radius: 6px; border: none; background: #3b82f6; color: white; cursor: pointer; font-weight: bold; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; align-items: center; justify-content: center; z-index: 9999; }
+        .modal-content { background: white; padding: 30px; border-radius: 16px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div v-if="showQRModal" class="modal-overlay" @click.self="showQRModal = false">
+            <div class="modal-content">
+                <h3>학부모님께 문자 발송</h3>
+                <div id="qr-code-box" style="width: 200px; height: 200px; margin: 20px auto;"></div>
+                <button class="btn" @click="showQRModal = false">닫기</button>
+            </div>
+        </div>
+
+        <div class="container">
+            <div class="header">
+                <h2>학생 관리 및 문자 발송</h2>
+                <button class="btn" @click="saveData">전체 저장</button>
+            </div>
+
+            <!-- 문자 템플릿 -->
+            <textarea v-model="activeTemplateText" class="message-textarea"></textarea>
+            <button class="btn" style="margin-top:10px;" @click="generateQR">QR 코드 생성</button>
+
+            <!-- 학생 목록 -->
+            <table class="main-table" style="margin-top:20px;">
+                <thead><tr><th>No</th><th>이름</th><th>연락처</th><th>특이사항</th></tr></thead>
+                <tbody>
+                    <tr v-for="(s, index) in students" :key="s.id">
+                        <td>{{ index + 1 }}</td>
+                        <td>{{ s.name }}</td>
+                        <td>{{ s.phone }}</td>
+                        <td><input type="text" v-model="s.consultationNote" class="note-input"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref, nextTick } = Vue;
+        createApp({
+            setup() {
+                const students = ref([{id: 1, name: '테스트', phone: '010-0000-0000', consultationNote: ''}]);
+                const showQRModal = ref(false);
+                const activeTemplateText = ref("테스트 안내문");
+
+                const generateQR = () => {
+                    showQRModal.value = true;
+                    // 모달이 그려진 직후 QR 생성
+                    setTimeout(() => {
+                        nextTick(() => {
+                            const box = document.getElementById('qr-code-box');
+                            if(box) {
+                                box.innerHTML = '';
+                                new QRCode(box, {
+                                    text: `sms:010-0000-0000?body=${encodeURIComponent(activeTemplateText.value)}`,
+                                    width: 200, height: 200
+                                });
+                            }
+                        });
+                    }, 100);
+                };
+
+                const saveData = () => Swal.fire('저장완료', '데이터가 저장되었습니다.', 'success');
+
+                return { students, showQRModal, activeTemplateText, generateQR, saveData };
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
