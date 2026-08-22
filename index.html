@@ -88,7 +88,8 @@
         .theme-seating .app-icon-wrapper { background: linear-gradient(135deg, #6c5ce7, #a29bfe); }
         .theme-supplies .app-icon-wrapper { background: linear-gradient(135deg, #00b894, #55efc4); }
         .theme-calendar .app-icon-wrapper { background: linear-gradient(135deg, #fdcb6e, #ffeaa7); color: #d35400; }
-        .theme-contacts .app-icon-wrapper { background: linear-gradient(135deg, #ff7675, #fab1a0); }
+        /* 🌟 학생관리 카드 아이콘 스타일 추가 완료 🌟 */
+        .theme-student .app-icon-wrapper { background: linear-gradient(135deg, #ff7675, #fab1a0); }
 
         .app-name { font-size: 1.6rem; font-weight: 900; color: #2d3436; margin-bottom: 12px; letter-spacing: -0.5px; }
         .app-desc { font-size: 0.95rem; font-weight: 600; color: #636e72; line-height: 1.4; word-break: keep-all; }
@@ -188,10 +189,8 @@
     </div>
 
     <script>
-        // 비밀번호 설정
         const correctPassword = "0131";
 
-        // 페이지 로드 시 로그인 상태 체크
         window.onload = function() {
             if (sessionStorage.getItem("isLoggedIn") === "true") {
                 document.getElementById("password-modal").style.display = "none";
@@ -204,7 +203,6 @@
             const modal = document.getElementById("password-modal");
 
             if (inputVal === correctPassword) {
-                // 로그인 성공 시 상태 저장
                 sessionStorage.setItem("isLoggedIn", "true");
                 modal.style.display = "none";
             } else {
@@ -213,7 +211,6 @@
             }
         }
 
-        // 엔터키 입력 처리
         document.getElementById("pw-input").addEventListener("keyup", function(event) {
             if (event.key === "Enter") {
                 checkPassword();
