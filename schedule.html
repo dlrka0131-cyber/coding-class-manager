@@ -8,6 +8,39 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <!-- 🎨 FontAwesome 아이콘 추가 -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- 🌟 SweetAlert2 추가 -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<!-- 🔥 Firebase SDK 추가 -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+      apiKey: "AIzaSyCDLTlbv0NPooUV_ErqpwJLX9ayQWqE8Y8",
+      authDomain: "dashboard-18022.firebaseapp.com",
+      projectId: "dashboard-18022",
+      storageBucket: "dashboard-18022.firebasestorage.app",
+      messagingSenderId: "342705436396",
+      appId: "1:342705436396:web:82fb1c31af93dc539857c9"
+  };
+
+  try {
+      const app = initializeApp(firebaseConfig);
+      const db = getFirestore(app);
+
+      window.db = db;
+      window.firebaseDoc = doc;
+      window.firebaseSetDoc = setDoc;
+      window.firebaseGetDoc = getDoc;
+      window.firebaseReady = true;
+      window.dispatchEvent(new Event('firebase-ready'));
+  } catch (err) {
+      console.error('Firebase 초기화 실패:', err);
+      window.firebaseInitError = err.message;
+  }
+</script>
+
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700&display=swap');
   
@@ -16,7 +49,7 @@
     --primary-hover: #4338ca;
     --bg: #f8fafc;
     --sidebar-bg: #ffffff;
-    --border: #94a3b8; /* 테두리를 조금 더 진하게 수정 */
+    --border: #94a3b8; 
     --text-main: #0f172a;
     --text-sub: #475569;
   }
@@ -40,7 +73,6 @@
   input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   input[type="number"] { -moz-appearance: textfield; }
   
-  /* 1단: 좌측 사이드바 (패딩 및 마진 축소하여 스크롤 방지) */
   .sidebar {
     width: 340px; background-color: var(--sidebar-bg); border-right: 1px solid var(--border);
     padding: 12px 16px; display: flex; flex-direction: column; box-shadow: 2px 0 10px rgba(0,0,0,0.03);
@@ -56,7 +88,6 @@
 
   .sidebar h2 { font-size: 17px; margin: 0; color: var(--text-main); font-weight: 700; }
   
-  /* ✨ 예쁜 핑크색 둥근 홈 버튼 스타일 */
   .home-btn {
     width: 34px;
     height: 34px;
@@ -118,7 +149,6 @@
   }
   .days-checkboxes input { width: 16px; height: 16px; accent-color: var(--primary); cursor: pointer; }
 
-  /* 🎨 컬러 픽커 스타일 (더 진한 톤으로 가독성 향상) */
   .color-picker-container { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; padding: 4px 0; }
   .color-swatch {
     width: 30px; height: 30px; border-radius: 50%; cursor: pointer;
@@ -139,7 +169,6 @@
   .add-btn:hover { background-color: var(--primary-hover); }
   .add-btn:active { transform: scale(0.98); }
 
-  /* 배정 기록 (로그) */
   #logArea { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
   .log-item {
     background: #ffffff; padding: 10px 12px; border-radius: 6px; font-size: 13px; 
@@ -156,7 +185,6 @@
   }
   .log-delete-btn:hover { background: #f87171; color: white; }
 
-  /* 2단: 우측 메인 캘린더 영역 */
   .main-content {
     flex: 1; display: flex; flex-direction: column; padding: 16px 20px; 
     height: 100vh; box-sizing: border-box; overflow: hidden; background-color: var(--bg);
@@ -202,7 +230,6 @@
   .tab:hover { background: #e2e8f0; color: #1e293b; }
   .tab.active { background: #334155; color: white; border-color: #334155; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
 
-  /* 테이블 비율 고정 및 진한 테두리 적용 */
   .table-container { 
     flex: 1; overflow: hidden; background: white; border-radius: 8px; 
     box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); 
@@ -223,7 +250,6 @@
   }
   .schedule-cell.drag-over, .storage-box.drag-over { background-color: #e2e8f0 !important; }
   
-  /* 날짜 헤더 크기 확대 */
   .date-header {
     padding: 6px 8px; font-size: 14px; font-weight: 700; color: #334155;
     border-bottom: 1px solid var(--border); background: #f8fafc;
@@ -234,7 +260,6 @@
   .holiday-bg { background-color: #fef2f2 !important; }
   .holiday-label { font-size: 12px; font-weight: 600; color: #ef4444; letter-spacing: -0.5px; }
 
-  /* 직접 텍스트 입력 영역 폰트 확대 및 상단 여백 확보(헤더 가림 방지) */
   .cell-content {
     position: absolute; top: 32px; left: 0; right: 0; bottom: 0; 
     padding: 8px; padding-bottom: 30px; 
@@ -247,7 +272,6 @@
   .cell-content::-webkit-scrollbar { display: none; }
   .cell-content:focus { background-color: #fcfcfc; box-shadow: inset 0 0 0 1px #cbd5e1; }
 
-  /* 스케줄 블록 크기 확대 */
   .schedule-block {
     padding: 6px 10px; 
     border-radius: 4px; 
@@ -267,7 +291,6 @@
   }
   .schedule-block:active { cursor: grabbing; }
 
-  /* 3단: 우측 메모장 및 임시 보관함 사이드바 (너비 확대) */
   .memo-sidebar {
     width: 290px; background-color: var(--sidebar-bg); border-left: 1px solid var(--border);
     padding: 20px; display: flex; flex-direction: column; box-shadow: -2px 0 10px rgba(0,0,0,0.02); z-index: 10;
@@ -352,7 +375,7 @@
   <div class="header">
     <h1 id="calTitle">🗓️ 2026년 3월 방과후 스케줄</h1>
     <div class="btn-group">
-      <button class="save-btn" id="saveBtn" onclick="saveData()">💾 저장 (기록 없음)</button>
+      <button class="save-btn" id="saveBtn" onclick="saveData(false)">💾 저장 (기록 없음)</button>
       <button class="export-btn" onclick="exportToJsonFile()">📤 데이터 백업</button>
       <button class="import-btn" onclick="triggerJsonImport()">📥 파일 불러오기</button>
       <input type="file" id="jsonFileInput" style="display: none;" accept=".json" onchange="importFromJsonFile(event)">
@@ -375,13 +398,27 @@
 </aside>
 
 <script>
-// 2026년 3월 ~ 2027년 2월 (8월 포함 전체 월 설정)
+// Firebase 연결 대기 헬퍼 함수
+const waitForFirebase = () => {
+    return new Promise((resolve, reject) => {
+        if (window.firebaseReady) return resolve();
+        if (window.firebaseInitError) return reject(new Error(window.firebaseInitError));
+
+        const onReady = () => { clearTimeout(timer); resolve(); };
+        window.addEventListener('firebase-ready', onReady, { once: true });
+
+        const timer = setTimeout(() => {
+            window.removeEventListener('firebase-ready', onReady);
+            reject(new Error('Firebase 연결 시간 초과'));
+        }, 8000);
+    });
+};
+
 const months = [3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 1, 2];
 let currentMonth = 3;
 
 const getYear = (m) => (m <= 2 ? 2027 : 2026);
 
-// 공휴일 데이터
 const holidays = {
   "3-1": "삼일절", "5-1": "근로자의날", "5-4": "재량휴업일", "5-5": "어린이날", "5-25": "부처님오신날 대체", 
   "6-3": "2026 지방선거", "6-6": "현충일", "8-15": "광복절", "8-17": "광복절 대체", "9-24": "추석 연휴", "9-25": "추석", 
@@ -393,7 +430,6 @@ let scheduleData = {};
 months.forEach(m => scheduleData[m] = {});
 let storageBlocksHTML = "";
 
-// 🎨 표시 색상 톤을 더 선명하고 진하게 수정
 const themes = [
   { bg: "#fee2e2", border: "#ef4444", text: "#b91c1c" }, 
   { bg: "#ffedd5", border: "#f97316", text: "#c2410c" }, 
@@ -423,7 +459,7 @@ function renderColorPicker() {
 
 const memoPad = document.getElementById('memoPad');
 memoPad.addEventListener('input', function() {
-  localStorage.setItem('afterSchoolMemo', this.value);
+  saveData(true); // 입력 시 조용히 저장
 });
 
 function dragStart(ev) {
@@ -435,9 +471,7 @@ function dragOver(ev) {
   ev.preventDefault();
   ev.dataTransfer.dropEffect = "move";
   const target = ev.target.closest('.schedule-cell, .storage-box');
-  if (target) {
-    target.classList.add('drag-over');
-  }
+  if (target) target.classList.add('drag-over');
 }
 
 function dragLeave(ev) {
@@ -467,7 +501,7 @@ function drop(ev) {
     syncScheduleData(); 
     updateSessionNumbers();
     renderCalendar();
-    saveData(); 
+    saveData(true); // 조용히 클라우드 저장
   }
 }
 
@@ -485,7 +519,7 @@ function dropToStorage(ev) {
     syncScheduleData();
     updateSessionNumbers();
     renderCalendar();
-    saveData();
+    saveData(true); // 조용히 클라우드 저장
   }
 }
 
@@ -607,7 +641,6 @@ function executeAutoFill() {
   if(!startDateStr) return;
 
   const targetSessions = isNaN(totalSessionsInput) || totalSessionsInput < 1 ? Infinity : totalSessionsInput;
-
   const startDate = new Date(startDateStr);
   startDate.setHours(0,0,0,0);
 
@@ -624,9 +657,7 @@ function executeAutoFill() {
   const title = term ? `${school} ${term}` : school;
 
   while(blocksPlaced < targetSessions) {
-    if (d.getFullYear() > 2027 || (d.getFullYear() === 2027 && d.getMonth() >= 2)) {
-       break;
-    }
+    if (d.getFullYear() > 2027 || (d.getFullYear() === 2027 && d.getMonth() >= 2)) break;
 
     let dayOfWeek = d.getDay(); 
     const m = d.getMonth() + 1;
@@ -696,7 +727,7 @@ function confirmPlacement() {
   document.getElementById("autoSchool").value = "";
   document.getElementById("autoTerm").value = "";
   pendingPlacementData = null;
-  saveData();
+  saveData(true); // 조용히 클라우드 저장
 }
 
 function deleteSchedule(groupId, btnElement) {
@@ -724,9 +755,7 @@ function deleteSchedule(groupId, btnElement) {
   if (storageBlocksHTML.includes(groupClass)) {
     let tempDiv = document.createElement('div');
     tempDiv.innerHTML = storageBlocksHTML;
-    
     tempDiv.querySelectorAll(`.${groupClass}`).forEach(b => b.remove());
-    
     if (!tempDiv.querySelector('.schedule-block')) {
       storageBlocksHTML = '';
     } else {
@@ -740,7 +769,7 @@ function deleteSchedule(groupId, btnElement) {
   btnElement.closest('.log-item').remove();
   updateSessionNumbers();
   renderCalendar();
-  saveData();
+  saveData(true); // 조용히 클라우드 저장
 }
 
 function generateWeeksForMonth(monthIndex) {
@@ -775,7 +804,7 @@ function renderTabs() {
       currentMonth = m;
       renderTabs();
       renderCalendar();
-      saveData();
+      saveData(true);
     };
     tabsContainer.appendChild(btn);
   });
@@ -830,6 +859,7 @@ function renderCalendar() {
         const contentDiv = td.querySelector('.cell-content');
         contentDiv.addEventListener("input", function() {
           scheduleData[currentMonth][`${date}`] = this.innerHTML;
+          saveData(true); // 입력 시 조용히 클라우드 저장
         });
 
       } else {
@@ -843,23 +873,58 @@ function renderCalendar() {
   table.appendChild(tbody);
 }
 
-function saveData() {
+// 🔥 클라우드 및 로컬스토리지 저장 로직 (silent 파라미터로 알림 조절)
+async function saveData(silent = true) {
   syncStorageBox();
   syncScheduleData(); 
   const now = new Date();
   const timeString = `${now.getMonth()+1}/${now.getDate()} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   
+  const dataToSave = {
+      scheduleData: scheduleData,
+      storageBlocksHTML: storageBlocksHTML,
+      logAreaHTML: document.getElementById("logArea").innerHTML,
+      memo: document.getElementById('memoPad').value,
+      colorIndex: selectedColorIndex,
+      currentMonth: currentMonth,
+      lastSaved: timeString
+  };
+
+  // 1. 로컬 백업 (빠른 응답 및 오프라인 대비)
   localStorage.setItem("afterSchoolData2026", JSON.stringify(scheduleData));
   localStorage.setItem("afterSchoolStorage", storageBlocksHTML);
-  localStorage.setItem("afterSchoolLog", document.getElementById("logArea").innerHTML);
+  localStorage.setItem("afterSchoolLog", dataToSave.logAreaHTML);
   localStorage.setItem("afterSchoolLastSaved", timeString);
   localStorage.setItem("afterSchoolColorIndex", selectedColorIndex.toString()); 
   localStorage.setItem("afterSchoolCurrentMonth", currentMonth.toString());
-  
-  updateSaveButton(timeString);
+  localStorage.setItem("afterSchoolMemo", dataToSave.memo);
+
+  // 2. 파이어베이스 저장
+  try {
+      if (!silent && window.Swal) {
+          Swal.fire({ title: '저장 중...', text: '클라우드에 동기화하고 있습니다.', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      }
+
+      await waitForFirebase();
+      const docRef = window.firebaseDoc(window.db, "calendarData", "mainSchedule");
+      await window.firebaseSetDoc(docRef, dataToSave);
+      
+      updateSaveButton(timeString);
+
+      if (!silent && window.Swal) {
+          Swal.fire({ title: '저장 완료!', text: '일정이 파이어베이스에 안전하게 저장되었습니다.', icon: 'success', timer: 1200, showConfirmButton: false });
+      }
+  } catch(e) {
+      console.error("Firebase 저장 실패:", e);
+      if (!silent && window.Swal) {
+          Swal.fire({ title: '저장 실패', text: '인터넷 연결을 확인해주세요.', icon: 'error' });
+      }
+  }
 }
 
-function loadData() {
+// 📦 데이터 불러오기 (로컬 -> 클라우드 순차 적용)
+async function loadData() {
+  // 1. 로컬 스토리지로 화면을 빠르게 먼저 그림
   const savedSchedule = localStorage.getItem("afterSchoolData2026");
   const savedStorage = localStorage.getItem("afterSchoolStorage");
   const savedLog = localStorage.getItem("afterSchoolLog");
@@ -873,13 +938,9 @@ function loadData() {
       const parsed = JSON.parse(savedSchedule);
       months.forEach(m => {
         const monthData = parsed[m] || parsed[String(m)] || parsed[Number(m)];
-        if (monthData) {
-          scheduleData[m] = monthData;
-        }
+        if (monthData) scheduleData[m] = monthData;
       });
-    } catch (e) {
-      console.error("데이터 로딩 중 오류 발생:", e);
-    }
+    } catch (e) { console.error(e); }
   }
 
   if (savedStorage) {
@@ -889,10 +950,49 @@ function loadData() {
   if (savedLog) document.getElementById("logArea").innerHTML = savedLog;
   if (savedMemo) document.getElementById('memoPad').value = savedMemo;
   if (savedColor) selectedColorIndex = parseInt(savedColor);
-  if (savedMonth && months.includes(parseInt(savedMonth))) {
-    currentMonth = parseInt(savedMonth);
-  }
+  if (savedMonth && months.includes(parseInt(savedMonth))) currentMonth = parseInt(savedMonth);
   if (lastSaved) updateSaveButton(lastSaved);
+
+  renderColorPicker(); 
+  renderTabs();
+  renderCalendar();
+
+  // 2. 백그라운드에서 파이어베이스 최신 데이터 로딩
+  try {
+      await waitForFirebase();
+      const docRef = window.firebaseDoc(window.db, "calendarData", "mainSchedule");
+      const docSnap = await window.firebaseGetDoc(docRef);
+      
+      if (docSnap.exists()) {
+          const imported = docSnap.data();
+          if (imported.scheduleData) {
+              months.forEach(m => {
+                  scheduleData[m] = {}; 
+                  const monthData = imported.scheduleData[m] || imported.scheduleData[String(m)] || imported.scheduleData[Number(m)];
+                  if (monthData) scheduleData[m] = monthData;
+              });
+          }
+          if (imported.storageBlocksHTML !== undefined) {
+              storageBlocksHTML = imported.storageBlocksHTML;
+              document.getElementById('storageBox').innerHTML = storageBlocksHTML;
+          }
+          if (imported.logAreaHTML !== undefined) document.getElementById("logArea").innerHTML = imported.logAreaHTML;
+          if (imported.memo !== undefined) document.getElementById('memoPad').value = imported.memo;
+          if (imported.colorIndex !== undefined) {
+              selectedColorIndex = imported.colorIndex;
+              renderColorPicker();
+          }
+          if (imported.currentMonth !== undefined && months.includes(imported.currentMonth)) currentMonth = imported.currentMonth;
+          if (imported.lastSaved) updateSaveButton(imported.lastSaved);
+
+          // 파이어베이스 데이터로 최종 렌더링 확정
+          renderTabs();
+          renderCalendar();
+          updateSessionNumbers();
+      }
+  } catch (e) {
+      console.error("Firebase 로딩 실패 (로컬 데이터 유지):", e);
+  }
 }
 
 function updateSaveButton(timeString) {
@@ -923,12 +1023,10 @@ function exportToJsonFile() {
   downloadAnchor.remove();
 }
 
-// 📥 파일 불러오기 버튼 클릭 연결
 function triggerJsonImport() {
   document.getElementById('jsonFileInput').click();
 }
 
-// 📥 JSON 파일 불러오기 (가져오기 및 적용)
 function importFromJsonFile(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -938,10 +1036,9 @@ function importFromJsonFile(event) {
     try {
       const imported = JSON.parse(e.target.result);
       
-      // 1. 전체 scheduleData 초기화 후 문자열/숫자 키 모두 대응하여 안전하게 복원
       if (imported.scheduleData) {
         months.forEach(m => {
-          scheduleData[m] = {}; // 기존 잔류 데이터 방지를 위해 초기화
+          scheduleData[m] = {}; 
           const monthData = imported.scheduleData[m] || imported.scheduleData[String(m)] || imported.scheduleData[Number(m)];
           if (monthData) {
             scheduleData[m] = JSON.parse(JSON.stringify(monthData));
@@ -949,7 +1046,6 @@ function importFromJsonFile(event) {
         });
       }
 
-      // 2. 임시 보관함 데이터 동기화
       if (imported.storageBlocksHTML !== undefined) {
         storageBlocksHTML = imported.storageBlocksHTML;
         document.getElementById('storageBox').innerHTML = storageBlocksHTML;
@@ -958,20 +1054,13 @@ function importFromJsonFile(event) {
         document.getElementById('storageBox').innerHTML = '';
       }
 
-      // 3. 로그 영역 동기화
-      if (imported.logAreaHTML !== undefined) {
-        document.getElementById("logArea").innerHTML = imported.logAreaHTML;
-      } else {
-        document.getElementById("logArea").innerHTML = '';
-      }
+      if (imported.logAreaHTML !== undefined) document.getElementById("logArea").innerHTML = imported.logAreaHTML;
+      else document.getElementById("logArea").innerHTML = '';
 
-      // 4. 메모장 동기화
       if (imported.memo !== undefined) {
         document.getElementById('memoPad').value = imported.memo;
-        localStorage.setItem('afterSchoolMemo', imported.memo);
       }
 
-      // 5. 색상 및 현재 월 설정 동기화
       if (imported.colorIndex !== undefined) {
         selectedColorIndex = imported.colorIndex;
         renderColorPicker();
@@ -981,17 +1070,13 @@ function importFromJsonFile(event) {
         currentMonth = imported.currentMonth;
       }
 
-      // ✨ [수정 완료] 6. 화면 렌더링을 먼저 수행하여 DOM을 새 데이터 상태로 맞춤
       renderTabs();
       renderCalendar();
-
-      // 7. 그 후 차시 번호 재계산 및 저장 수행
       updateSessionNumbers();
-      saveData();
+      saveData(false); // 파일을 불러왔을때는 확실하게 팝업 띄우고 저장
       
-      alert("성공적으로 백업 파일을 불러왔습니다!");
     } catch (err) {
-      alert("유효하지 않은 백업 파일입니다.");
+      Swal.fire({ title: '오류', text: '유효하지 않은 백업 파일입니다.', icon: 'error' });
       console.error(err);
     }
   };
@@ -1022,9 +1107,6 @@ function captureScreen() {
 
 window.onload = () => {
   loadData();
-  renderColorPicker(); 
-  renderTabs();
-  renderCalendar();
 };
 </script>
 </body>
