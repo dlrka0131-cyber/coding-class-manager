@@ -490,9 +490,9 @@
                                 <h2 style="margin: 0 0 14px 0; font-size: 22px; font-weight: 900; color: #0F172A; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; word-break: keep-all;">
                                     {{ getSchoolFullName(currentTab) }} {{ quarter }} 학생 명단
                                     <span style="padding: 6px 18px; background: var(--theme-color, var(--primary)); color: white; border-radius: 24px; font-size: 16px; font-weight: 800; box-shadow: 0 4px 10px rgba(0,0,0,0.15); display: inline-flex; align-items: center; gap: 8px;">
-                                        <span>총 {{ filteredStudents.filter(s => s.status !== '삭제').length }}명</span>
+                                        <span>총 {{ class1Students.length + class2Students.length }}명</span>
                                         <span style="font-size: 14px; font-weight: 700; opacity: 0.95; background: rgba(0,0,0,0.15); padding: 2px 10px; border-radius: 12px;">
-                                            (1반: {{ getClassHeadCount(1) }}명 / 2반: {{ getClassHeadCount(2) }}명)
+                                            (1반: {{ class1Students.length }}명 / 2반: {{ class2Students.length }}명)
                                         </span>
                                     </span>
                                     <span v-if="selectedLevelFilter" style="color: #EF4444; font-size: 15px; font-weight: 700;">(🔍 '{{ selectedLevelFilter }}' 필터링)</span>
@@ -594,6 +594,7 @@
                             </div>
                         </div>
 
+                        <!-- 🌟 메인 명단 테이블 (1반, 2반 자동 분리) -->
                         <table class="main-table">
                             <thead>
                                 <tr>
@@ -612,7 +613,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr v-for="(student, index) in filteredStudents" :key="student.id" :class="getRowClass(student.item)">
+                                <!-- 1반 학생들 (1~2학년) -->
+                                <tr v-for="(student, index) in class1Students" :key="student.id" :class="getRowClass(student.item)">
                                     <td><input type="checkbox" v-model="selectedStudentIds" :value="student.id"></td>
                                     <td style="font-weight: 800; color: #64748B;">{{ index + 1 }}</td>
                                     <td><input type="text" v-model="student.grade"></td>
@@ -621,7 +623,6 @@
                                     <td><input type="text" v-model="student.name" style="font-weight: 700;"></td>
                                     <td><input type="text" v-model="student.phone"></td>
                                     <td>
-                                        <!-- 상태가 '신규'일 때만 글씨를 빨간색으로 변경 -->
                                         <select v-model="student.status" :style="{ fontWeight: '700', color: student.status === '신규' ? '#EF4444' : 'inherit' }">
                                             <option value="기존" style="color: initial;">기존</option>
                                             <option value="신규" style="color: #EF4444;">신규</option>
@@ -629,7 +630,6 @@
                                         </select>
                                     </td>
                                     <td>
-                                        <!-- 현재 단계 드롭다운에 '신규' 옵션 추가 -->
                                         <select v-model="student.currentLevel" style="font-weight: 700;">
                                             <option value="">선택</option>
                                             <option value="신규">신규</option>
@@ -645,11 +645,110 @@
                                     <td><input type="text" v-model="student.note"></td>
                                     <td><button class="btn btn-danger" style="padding: 4px 6px; border-radius: 6px; display:flex; margin: 0 auto; font-size: 13px;" @click="removeStudent(student.id)">✖</button></td>
                                 </tr>
-                                <tr v-if="filteredStudents.length === 0">
-                                    <td colspan="12" style="text-align: center; padding: 30px; color: #64748B; font-size: 16px; font-weight: 600;">조건에 맞는 학생이 없습니다.</td>
+
+                                <!-- 🌟 2반 (3~6학년) 구분선 🌟 -->
+                                <tr v-if="class2Students.length > 0">
+                                    <td colspan="12" style="background-color: #475569 !important; color: #FFFFFF !important; font-weight: 900; font-size: 16px; letter-spacing: 2px; text-align: center; border-right: none; padding: 10px;">
+                                        ━━━ 2반 (3~6학년) ━━━
+                                    </td>
+                                </tr>
+
+                                <!-- 2반 학생들 (3~6학년) -->
+                                <tr v-for="(student, index) in class2Students" :key="student.id" :class="getRowClass(student.item)">
+                                    <td><input type="checkbox" v-model="selectedStudentIds" :value="student.id"></td>
+                                    <td style="font-weight: 800; color: #64748B;">{{ class1Students.length + index + 1 }}</td>
+                                    <td><input type="text" v-model="student.grade"></td>
+                                    <td><input type="text" v-model="student.classNum"></td>
+                                    <td><input type="text" v-model="student.num"></td>
+                                    <td><input type="text" v-model="student.name" style="font-weight: 700;"></td>
+                                    <td><input type="text" v-model="student.phone"></td>
+                                    <td>
+                                        <select v-model="student.status" :style="{ fontWeight: '700', color: student.status === '신규' ? '#EF4444' : 'inherit' }">
+                                            <option value="기존" style="color: initial;">기존</option>
+                                            <option value="신규" style="color: #EF4444;">신규</option>
+                                            <option value="삭제" style="color: initial;">삭제</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select v-model="student.currentLevel" style="font-weight: 700;">
+                                            <option value="">선택</option>
+                                            <option value="신규">신규</option>
+                                            <option v-for="item in items" :value="item">{{ item }}</option>
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <select v-model="student.item" style="font-weight: 700;">
+                                            <option value="">선택(주문안함)</option>
+                                            <option v-for="item in items" :value="item">{{ item }}</option>
+                                        </select>
+                                    </td>
+                                    <td><input type="text" v-model="student.note"></td>
+                                    <td><button class="btn btn-danger" style="padding: 4px 6px; border-radius: 6px; display:flex; margin: 0 auto; font-size: 13px;" @click="removeStudent(student.id)">✖</button></td>
+                                </tr>
+
+                                <tr v-if="class1Students.length === 0 && class2Students.length === 0">
+                                    <td colspan="12" style="text-align: center; padding: 30px; color: #64748B; font-size: 16px; font-weight: 600;">조건에 맞는 수강 학생이 없습니다.</td>
                                 </tr>
                             </tbody>
                         </table>
+
+                        <!-- 🌟 [하단 분리] 취소/환불 학생 명단 🌟 -->
+                        <div v-if="cancelledStudents.length > 0" style="margin-top: 40px;">
+                            <h3 style="margin: 0 0 14px 0; font-size: 20px; font-weight: 900; color: #EF4444; display: flex; align-items: center; gap: 8px;">
+                                ❌ 취소 및 환불 학생 명단 <span style="font-size: 15px; color: #64748B; font-weight: 600;">(재고 정산에 자동 반영됨)</span>
+                            </h3>
+                            <table class="main-table cancelled-table" style="opacity: 0.85; filter: grayscale(20%); margin-bottom: 0;">
+                                <thead>
+                                    <tr>
+                                        <th width="40"></th>
+                                        <th width="45">No</th>
+                                        <th width="65">학년</th>
+                                        <th width="65">반</th>
+                                        <th width="65">번호</th>
+                                        <th width="130">성명</th>
+                                        <th width="160">연락처</th>
+                                        <th width="110">상태</th>
+                                        <th width="130">현재 단계</th>
+                                        <th width="160">교구 주문</th>
+                                        <th width="150">비고</th>
+                                        <th width="50">삭제</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="(student, index) in cancelledStudents" :key="student.id" style="background-color: #FEF2F2;">
+                                        <td><input type="checkbox" v-model="selectedStudentIds" :value="student.id"></td>
+                                        <td style="font-weight: 800; color: #EF4444;">취소</td>
+                                        <td><input type="text" v-model="student.grade" disabled style="color:#94A3B8;"></td>
+                                        <td><input type="text" v-model="student.classNum" disabled style="color:#94A3B8;"></td>
+                                        <td><input type="text" v-model="student.num" disabled style="color:#94A3B8;"></td>
+                                        <td><input type="text" v-model="student.name" style="font-weight: 700; color:#94A3B8; text-decoration: line-through;"></td>
+                                        <td><input type="text" v-model="student.phone" disabled style="color:#94A3B8;"></td>
+                                        <td>
+                                            <select v-model="student.status" style="font-weight: 700; color: #EF4444;">
+                                                <option value="기존" style="color: initial;">기존</option>
+                                                <option value="신규" style="color: #22C55E;">신규</option>
+                                                <option value="삭제" style="color: #EF4444;">삭제</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select v-model="student.currentLevel" style="font-weight: 700; color:#94A3B8;">
+                                                <option value="">선택</option>
+                                                <option value="신규">신규</option>
+                                                <option v-for="item in items" :value="item">{{ item }}</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <select v-model="student.item" style="font-weight: 700; color:#94A3B8;">
+                                                <option value="">선택(주문안함)</option>
+                                                <option v-for="item in items" :value="item">{{ item }}</option>
+                                            </select>
+                                        </td>
+                                        <td><input type="text" v-model="student.note"></td>
+                                        <td><button class="btn btn-danger" style="padding: 4px 6px; border-radius: 6px; display:flex; margin: 0 auto; font-size: 13px;" @click="removeStudent(student.id)" title="영구 삭제">✖</button></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
 
                         <div style="height: 1px; background: #CBD5E1; margin: 50px 0;"></div>
 
@@ -1099,6 +1198,7 @@
                 ]);
                 const savedOrders = ref([]);
 
+                // 베이스 필터: 현재 학교, 분기, 레벨 검색어 등
                 const filteredStudents = computed(() => {
                     let list = students.value.filter(s => s.school === currentTab.value && s.quarter === quarter.value);
                     if (selectedLevelFilter.value) list = list.filter(s => s.item === selectedLevelFilter.value);
@@ -1109,10 +1209,32 @@
                     return list;
                 });
 
+                // 🌟 [핵심 변경] 1반(1~2학년) 분리
+                const class1Students = computed(() => {
+                    return filteredStudents.value.filter(s => {
+                        if (s.status === '삭제') return false; // 삭제는 제외
+                        const g = parseInt((s.grade || '').toString().replace(/[^0-9]/g, ''), 10);
+                        return !g || g <= 2; // 학년 정보가 없거나 1, 2학년
+                    });
+                });
+
+                // 🌟 [핵심 변경] 2반(3~6학년) 분리
+                const class2Students = computed(() => {
+                    return filteredStudents.value.filter(s => {
+                        if (s.status === '삭제') return false; // 삭제는 제외
+                        const g = parseInt((s.grade || '').toString().replace(/[^0-9]/g, ''), 10);
+                        return g >= 3; // 3학년 이상
+                    });
+                });
+
+                // 🌟 [핵심 변경] 취소/환불 학생 별도 분리
+                const cancelledStudents = computed(() => {
+                    return filteredStudents.value.filter(s => s.status === '삭제');
+                });
+
                 // 학년/반/번호순 정렬 함수
                 const sortStudents = () => {
                     students.value.sort((a, b) => {
-                        // 다른 학교/분기는 섞이지 않도록 우선 정렬 보호
                         if (a.quarter !== b.quarter) return a.quarter.localeCompare(b.quarter);
                         if (a.school !== b.school) return a.school.localeCompare(b.school);
                         
@@ -1132,27 +1254,11 @@
                 };
 
                 const getClassHeadCount = (classType) => {
-                    const list = students.value.filter(s => s.school === currentTab.value && s.quarter === quarter.value && s.status !== '삭제');
-                    let count = 0;
-                    list.forEach(s => {
-                        if (s.grade) {
-                            const g = parseInt(s.grade.toString().replace(/[^0-9]/g, ''), 10);
-                            if (classType === 1 && (g === 1 || g === 2)) count++;
-                            else if (classType === 2 && g >= 3 && g <= 6) count++;
-                        }
-                    });
-                    return count;
+                    return classType === 1 ? class1Students.value.length : class2Students.value.length;
                 };
 
                 const selectAfterSchoolClass = (classType) => {
-                    const ids = [];
-                    filteredStudents.value.forEach(s => {
-                        if (s.grade) {
-                            const g = parseInt(s.grade.toString().replace(/[^0-9]/g, ''), 10);
-                            if (classType === 1 && (g === 1 || g === 2)) ids.push(s.id);
-                            else if (classType === 2 && g >= 3 && g <= 6) ids.push(s.id);
-                        }
-                    });
+                    const ids = classType === 1 ? class1Students.value.map(s => s.id) : class2Students.value.map(s => s.id);
                     if (ids.length === 0) {
                         Swal.fire({ title: '알림', text: classType === 1 ? '1~2학년 학생이 없습니다.' : '3~6학년 학생이 없습니다.', icon: 'info', confirmButtonColor: '#78649c' });
                         return;
@@ -1160,8 +1266,16 @@
                     selectedStudentIds.value = ids; 
                 };
 
-                const isAllSelected = computed(() => filteredStudents.value.length > 0 && selectedStudentIds.value.length === filteredStudents.value.length);
-                const toggleAll = (e) => { selectedStudentIds.value = e.target.checked ? filteredStudents.value.map(s => s.id) : []; };
+                // 전체 선택은 활성화된 학생(1반, 2반)만 잡히도록 수정
+                const isAllSelected = computed(() => {
+                    const active = [...class1Students.value, ...class2Students.value];
+                    return active.length > 0 && selectedStudentIds.value.length === active.length;
+                });
+                
+                const toggleAll = (e) => { 
+                    const active = [...class1Students.value, ...class2Students.value];
+                    selectedStudentIds.value = e.target.checked ? active.map(s => s.id) : []; 
+                };
 
                 const applyBatchItem = () => {
                     if (!batchItemValue.value || batchItemValue.value === 'DEFAULT') {
@@ -1260,7 +1374,7 @@
                 };
 
                 const removeStudent = (id) => {
-                    Swal.fire({ title: '삭제', text: '삭제하시겠습니까?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#EF4444', cancelButtonColor: '#94A3B8', confirmButtonText: '삭제' }).then((result) => {
+                    Swal.fire({ title: '영구 삭제', text: '명단에서 완전히 삭제하시겠습니까? (재고 정산에서도 빠집니다)', icon: 'warning', showCancelButton: true, confirmButtonColor: '#EF4444', cancelButtonColor: '#94A3B8', confirmButtonText: '완전 삭제' }).then((result) => {
                         if (result.isConfirmed) { students.value = students.value.filter(s => s.id !== id); selectedStudentIds.value = selectedStudentIds.value.filter(sid => sid !== id); }
                     });
                 };
@@ -1420,7 +1534,7 @@
                 };
 
                 const exportToExcel = () => {
-                    const targetStudents = filteredStudents.value.filter(s => s.status !== '삭제');
+                    const targetStudents = [...class1Students.value, ...class2Students.value];
                     if (targetStudents.length === 0) {
                         Swal.fire({ title: '안내', text: '내보낼 명단이 없습니다.', icon: 'warning', confirmButtonColor: '#78649c' });
                         return;
@@ -1433,13 +1547,7 @@
                         '전화번호': s.phone
                     }));
                     const worksheet = XLSX.utils.json_to_sheet(excelData);
-                    worksheet['!cols'] = [
-                        { wpx: 50 },
-                        { wpx: 50 },
-                        { wpx: 50 },
-                        { wpx: 100 },
-                        { wpx: 150 }
-                    ];
+                    worksheet['!cols'] = [ { wpx: 50 }, { wpx: 50 }, { wpx: 50 }, { wpx: 100 }, { wpx: 150 } ];
                     const workbook = XLSX.utils.book_new();
                     XLSX.utils.book_append_sheet(workbook, worksheet, '학생명단');
                     const fileName = `${getSchoolFullName(currentTab.value)}_${quarter.value}_명단.xlsx`;
@@ -1448,25 +1556,16 @@
                 };
 
                 const exportContactCSV = async () => {
-                    const targetStudents = filteredStudents.value.filter(s => s.status !== '삭제');
+                    const targetStudents = [...class1Students.value, ...class2Students.value];
                     
                     if (targetStudents.length === 0) {
                         Swal.fire({ title: '안내', text: '내보낼 학생 명단이 없습니다.', icon: 'warning', confirmButtonColor: '#78649c' });
                         return;
                     }
 
-                    // 다운로드 시작 안내 팝업 (번호는 묻지 않고 1.5초 후 자동 닫힘)
-                    Swal.fire({ 
-                        title: '다운로드 시작', 
-                        text: '연락처 CSV 파일 다운로드를 시작합니다.', 
-                        icon: 'success', 
-                        timer: 1500, 
-                        showConfirmButton: false 
-                    });
+                    Swal.fire({ title: '다운로드 시작', text: '연락처 CSV 파일 다운로드를 시작합니다.', icon: 'success', timer: 1500, showConfirmButton: false });
 
-                    // 시작 번호를 무조건 1로 고정
                     const startNoInput = 1;
-
                     const shortSchoolNames = { 'hakdong': '학동초', 'bareun': '바른초', 'banwol': '반월초', 'sejeong': '세정초' };
                     const shortSchoolName = shortSchoolNames[currentTab.value] || '학교명';
 
@@ -1477,9 +1576,7 @@
                         let currentNo = startNoInput + index;
                         let formattedNo = String(currentNo).padStart(2, '0');
                         let cleanName = s.name.replace(/\s+/g, '');
-                        
                         let autoCombined = `#${formattedNo}${shortSchoolName}${s.grade}학년${cleanName}`;
-                        
                         csvContent += `"${autoCombined}","${s.phone}"\n`;
                     });
 
@@ -1508,7 +1605,8 @@
                     isLoggedIn, landingQuarter, selectSchoolAndEnter, goHome, goToIndex, currentTab, showBulkInput, bulkText, 
                     quarter, searchQuery, selectedStudentIds, isAllSelected, toggleAll, selectAfterSchoolClass, batchItemValue, batchStatusValue,
                     applyBatchItem, applyBatchStatus, schoolNames, getSchoolFullName, getDeptName, items, 
-                    orderItems, itemMapping, price, students, filteredStudents, orderFormsByQuarter, savedOrders, selectedImage, 
+                    orderItems, itemMapping, price, students, filteredStudents, class1Students, class2Students, cancelledStudents,
+                    orderFormsByQuarter, savedOrders, selectedImage, 
                     isSaving, isCapturing, selectedLevelFilter, toggleLevelFilter, addStudent, processBulkInput, removeStudent, 
                     resetCurrentStudents, getRowClass, formatMoney, importFromPrevQuarter, getCount, getTotalCount, 
                     getSchoolTotal, getGrandTotal, getSchoolTotalByStatus, getSchoolOrderQty, getAdditionalOrderQty, getClassHeadCount, 
