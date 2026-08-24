@@ -289,6 +289,86 @@
     transition: background 0.2s;
   }
   .storage-box .schedule-block { width: 100%; box-sizing: border-box; }
+
+  /* 📱 모바일 최적화 (스마트폰 화면 크기 768px 이하일 때 적용) */
+  @media (max-width: 768px) {
+    /* 1. 양쪽 사이드바(입력창 및 메모장) 완전 숨기기 */
+    .sidebar, 
+    .memo-sidebar {
+      display: none !important;
+    }
+
+    /* 2. 메인 캘린더 영역을 화면 100%로 꽉 채우기 */
+    .main-content {
+      width: 100% !important;
+      padding: 10px !important;
+    }
+
+    .header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .header h1 {
+      font-size: 17px;
+    }
+    .btn-group {
+      width: 100%;
+      justify-content: flex-end;
+    }
+    .save-btn {
+      font-size: 12px;
+      padding: 6px 12px;
+    }
+/* 5. 모바일에서 휴일 이름이 길어 두 줄로 꺾이는 현상 방지 */
+    .date-header {
+      flex-direction: row !important; /* 가로로 나란히 배치 */
+      justify-content: space-between !important;
+      align-items: center !important;
+    }
+    .holiday-label {
+      font-size: 9px !important; /* 글자 크기를 살짝 줄여서 한 줄에 들어가게 조정 */
+      white-space: nowrap;      /* 줄바꿈 방지 */
+    }
+    .month-tabs {
+      gap: 4px;
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      padding-bottom: 4px;
+    }
+    .tab {
+      font-size: 13px;
+      padding: 6px 10px;
+      flex-shrink: 0;
+    }
+
+    /* 4. 달력 내부 셀 조정 (글자 짤림 방지 및 터치 최적화) */
+    .day-header-row th {
+      font-size: 13px;
+      padding: 6px 0;
+    }
+    .date-header {
+      font-size: 12px;
+      padding: 4px;
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    .holiday-label {
+      font-size: 10px;
+      margin-top: 2px;
+    }
+    .cell-content {
+      padding: 4px;
+      font-size: 12px;
+    }
+    .schedule-block {
+      font-size: 11px;
+      padding: 4px 6px;
+      margin-bottom: 4px;
+      border-left-width: 3px;
+    }
+  }
 </style>
 </head>
 <body>
@@ -393,9 +473,9 @@ let currentMonth = 3;
 const getYear = (m) => (m <= 2 ? 2027 : 2026);
 
 const holidays = {
-  "3-1": "삼일절", "5-1": "근로자의날", "5-4": "재량휴업일", "5-5": "어린이날", "5-25": "부처님오신날 대체", 
-  "6-3": "2026 지방선거", "6-6": "현충일", "8-15": "광복절", "8-17": "광복절 대체", "9-24": "추석 연휴", "9-25": "추석", 
-  "10-3": "개천절", "10-5": "개천절 대체", "10-9": "한글날", "12-25": "크리스마스",
+  "3-1": "삼일절", "5-1": "근로자", "5-4": "재량일", "5-5": "어린이날", "5-25": "부처님", 
+  "6-3": "선거", "6-6": "현충일", "8-15": "광복절", "8-17": "광복절", "9-24": "추석 연휴", "9-25": "추석", 
+  "10-3": "개천절", "10-5": "개천절", "10-9": "한글날", "12-25": "X-Mas",
   "1-1": "신정", "2-8": "설연휴", "2-9": "설대체" 
 };
 
