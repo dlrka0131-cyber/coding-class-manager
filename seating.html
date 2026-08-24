@@ -384,6 +384,7 @@
 
     <!-- 우클릭 메뉴 및 모달들 -->
     <div id="context-menu">
+        <div class="cm-item" id="cm-add" onclick="handleAddStudentModal()"><i class="fa-solid fa-user-plus"></i> 학생 추가</div>
         <div class="cm-item" id="cm-edit" onclick="handleEditStudentModal()"><i class="fa-solid fa-pen"></i> 이름 수정</div>
         <div class="cm-item delete" id="cm-delete" onclick="handleDeleteStudent()"><i class="fa-solid fa-trash"></i> 학생 삭제</div>
     </div>
@@ -1059,14 +1060,33 @@
             e.preventDefault(); contextTargetIdx = idx;
             const menu = document.getElementById('context-menu');
             const student = classData[currentClassType].students[idx];
+            
+            // 학생이 있는 자리와 없는 자리(빈자리) 구분하여 메뉴 표시
             if (student) {
+                document.getElementById('cm-add').style.display = 'none';
                 document.getElementById('cm-edit').style.display = 'flex';
                 document.getElementById('cm-delete').style.display = 'flex';
             } else {
+                document.getElementById('cm-add').style.display = 'flex';
                 document.getElementById('cm-edit').style.display = 'none';
                 document.getElementById('cm-delete').style.display = 'none';
             }
             menu.style.display = 'block'; menu.style.left = e.pageX + 'px'; menu.style.top = e.pageY + 'px';
+        }
+
+        // 🔥 새롭게 추가되는 학생 추가 기능 🔥
+        function handleAddStudentModal() {
+            if (contextTargetIdx === null) return;
+            openStudentModal("신규 학생 추가", '<i class="fa-solid fa-user-plus" style="color: #986ebb;"></i>', '', function(name) {
+                // 빈 자리에 새로운 학생 객체 생성
+                classData[currentClassType].students[contextTargetIdx] = {
+                    name: name,
+                    status: 'normal', // 기본 출석 상태
+                    level: 0,         // 기본 레벨 (-)
+                    note: ''          // 빈 메모
+                };
+                renderClassroom();
+            });
         }
 
         document.addEventListener('click', function(e) { if (e.button !== 2) document.getElementById('context-menu').style.display = 'none'; });
