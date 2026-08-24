@@ -136,9 +136,20 @@
         
         .main-table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); font-size: 14px; }
         .main-table th { background-color: #F1F5F9; font-weight: 800; color: #334155; padding: 8px 6px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); text-align: center; font-size: 14px; }
-        .main-table td { padding: 4px 6px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); text-align: center; vertical-align: middle; background: #fff; }
-        .main-table tbody tr:hover td { background-color: #F8FAFC; }
+        .main-table td { padding: 4px 6px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); text-align: center; vertical-align: middle; background: inherit; } /* inherit으로 변경하여 tr 배경색 적용 */
+        .main-table tbody tr:hover td { filter: brightness(0.97); } /* hover 시 밝기 조절로 변경 */
         
+        /* 🎨 자격증반 전용 표 색상 클래스 */
+        .cert-row-hakdong td { background-color: #FEF2F2 !important; }
+        .cert-row-bareun td { background-color: #FFFBEB !important; }
+        .cert-row-banwol td { background-color: #ECFDF5 !important; }
+        .cert-row-sejeong td { background-color: #EFF6FF !important; }
+        
+        .text-hakdong { color: #EF4444; font-weight: 800; }
+        .text-bareun { color: #F59E0B; font-weight: 800; }
+        .text-banwol { color: #10B981; font-weight: 800; }
+        .text-sejeong { color: #3B82F6; font-weight: 800; }
+
         .message-textarea {
             width: 100%; min-height: 350px; border: 2px solid #CBD5E1; border-radius: 12px; 
             padding: 16px 18px; font-family: inherit; font-size: 15px; resize: vertical; 
@@ -149,10 +160,10 @@
         .note-input {
             width: 100%; border: 1px solid #CBD5E1; border-radius: 6px; 
             padding: 6px 10px; font-family: inherit; font-size: 13.5px; 
-            outline: none; color: #334155; background: #F8FAFC; transition: all 0.2s;
+            outline: none; color: #334155; background: #FFFFFF; transition: all 0.2s; /* 배경색을 흰색 고정으로 하여 컬러 배경 위에서 잘 보이게 함 */
             box-sizing: border-box;
         }
-        .note-input:focus { border-color: var(--theme-color, var(--primary)); background: #FFFFFF; box-shadow: 0 0 0 2px rgba(120, 100, 156, 0.1); }
+        .note-input:focus { border-color: var(--theme-color, var(--primary)); box-shadow: 0 0 0 2px rgba(120, 100, 156, 0.1); }
 
         .btn { font-family: inherit; background: var(--theme-color, var(--primary)); color: white; border: none; padding: 10px 18px; border-radius: 8px; cursor: pointer; font-weight: 700; font-size: 14px; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 4px rgba(0,0,0,0.08); }
         .btn:hover { filter: brightness(1.1); transform: translateY(-1px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -166,12 +177,8 @@
         .t-tab.active { background: #3B82F6; color: white; border-color: #2563EB; box-shadow: 0 3px 8px rgba(59, 130, 246, 0.3); }
         .t-tab-add { background: #10B981; color: white; border-color: #059669; }
         .t-tab-add:hover { background: #059669; }
-
-        .var-input-group { background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 12px 18px; margin-bottom: 12px; display: flex; gap: 15px; flex-wrap: wrap; align-items: center; }
-        .var-input-item { flex: 1; min-width: 200px; }
-        .var-input-item label { display: block; font-size: 12.5px; font-weight: 800; color: #475569; margin-bottom: 4px; }
-        .var-input-item input { width: 100%; padding: 7px 10px; border: 1px solid #CBD5E1; border-radius: 6px; font-family: inherit; font-size: 14px; box-sizing: border-box; }
-        .var-input-item input:focus { border-color: #3B82F6; outline: none; }
+        
+        .count-badge { padding: 3px 10px; border-radius: 20px; font-size: 12.5px; font-weight: 800; border: 1px solid; }
     </style>
 </head>
 <body>
@@ -254,27 +261,16 @@
 
                 <div class="content-area">
                     
-                    <!-- 📍 공통 템플릿 패널 (일반 학교 및 자격증 모두 동일한 UI 사용) -->
-                    <div class="template-panel">
+                    <!-- 📍 자격증반 전용 템플릿 패널 -->
+                    <div class="template-panel" v-if="currentTab === 'certification'">
                         <div class="template-header">
                             <div>
-                                <h2 v-if="currentTab !== 'certification'" style="margin: 0; font-size: 18px; font-weight: 900; color: #0F172A;">
-                                    <i class="fa-solid fa-comment-dots" style="color: #3B82F6;"></i> {{ getSchoolFullName(currentTab) }} 전용 학부모 안내문 보관함
-                                </h2>
-                                <h2 v-else style="margin: 0; font-size: 18px; font-weight: 900; color: #0F172A;">
+                                <h2 style="margin: 0; font-size: 18px; font-weight: 900; color: #0F172A;">
                                     <i class="fa-solid fa-medal" style="color: #8B5CF6;"></i> 전체 학교 자격증반 학부모 안내문 보관함
                                 </h2>
                             </div>
                         </div>
 
-                        <!-- 첫수업일자 입력 칸 (일반 학교의 첫 수업 탭에서만 보임) -->
-                        <div class="var-input-group" v-if="currentTab !== 'certification' && activeTemplate === 'first'">
-                            <div class="var-input-item" style="max-width: 300px;">
-                                <label><i class="fa-solid fa-calendar-days" style="color: #3B82F6;"></i> [첫수업일자] 입력</label>
-                                <input type="text" v-model="commonVars[currentTab]" placeholder="예: 9월 5일 (화)">
-                            </div>
-                        </div>
-                        
                         <!-- 템플릿 탭바 -->
                         <div class="template-tabs" style="margin-bottom: 10px;">
                             <div v-for="(content, key) in currentSchoolTemplates" :key="key" 
@@ -290,27 +286,44 @@
                         <!-- 저장 및 복사 버튼 -->
                         <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 15px;">
                             <button class="btn btn-outline" @click="saveData"><i class="fa-solid fa-floppy-disk"></i> 양식 저장하기</button>
-                            <button class="btn" :style="{ background: currentTab === 'certification' ? '#8B5CF6' : '#3B82F6' }" @click="copyCurrentTemplate">
+                            <button class="btn" style="background: #8B5CF6;" @click="copyCurrentTemplate">
                                 <i class="fa-solid fa-copy"></i> 텍스트 복사하기
                             </button>
                         </div>
                     </div>
 
                     <!-- 📍 명단 테이블 영역 -->
-                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px;">
-                        <h2 style="margin: 0; font-size: 18px; font-weight: 900; color: #0F172A; display: flex; align-items: center;">
-                            <i v-if="currentTab === 'certification'" class="fa-solid fa-users" style="color: #8B5CF6; margin-right: 6px;"></i>
-                            <i v-else class="fa-solid fa-address-book" style="color: var(--theme-color, var(--primary)); margin-right: 6px;"></i>
-                            
-                            {{ currentTab === 'certification' ? quarter + ' 전체 학교 자격증 수강생 통합 명단' : getSchoolFullName(currentTab) + ' ' + quarter + ' 학생 심층 상담 일지' }}
-                            
-                            <span v-if="currentTab === 'certification'" style="margin-left: 10px; padding: 2px 10px; background: #FEF2F2; color: #991B1B; border-radius: 20px; font-size: 13.5px; font-weight: 800; border: 1px solid #FCA5A5;">총 {{ allCertStudents.length }}명</span>
-                            <span v-else style="margin-left: 10px; padding: 2px 10px; background: #F1F5F9; color: #334155; border-radius: 20px; font-size: 13.5px; font-weight: 800; border: 1px solid #E2E8F0;">총 {{ filteredStudents.length }}명</span>
-                        </h2>
+                    <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px;">
                         
-                        <div style="display: flex; gap: 6px;" v-if="currentTab !== 'certification'">
-                            <button @click="sortStudents" class="btn btn-outline" style="padding: 5px 12px; font-size: 13.5px; border-radius: 20px; color: #4F46E5; border-color: #A5B4FC;"><i class="fa-solid fa-arrow-down-1-9"></i> 학년·반·번호순 정렬</button>
-                            <button class="btn btn-outline" @click="exportToExcel" style="color: #059669; border-color: #6EE7B7; padding: 5px 12px; font-size: 13.5px; border-radius: 20px;">📊 엑셀 저장</button>
+                        <!-- 상단 타이틀 및 정렬/복사 버튼 -->
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                            <h2 style="margin: 0; font-size: 18px; font-weight: 900; color: #0F172A; display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
+                                <i v-if="currentTab === 'certification'" class="fa-solid fa-users" style="color: #8B5CF6;"></i>
+                                <i v-else class="fa-solid fa-address-book" style="color: var(--theme-color, var(--primary));"></i>
+                                
+                                {{ currentTab === 'certification' ? quarter + ' 전체 학교 자격증 수강생 통합 명단' : getSchoolFullName(currentTab) + ' ' + quarter + ' 학생 심층 상담 일지' }}
+                                
+                                <span v-if="currentTab === 'certification'" class="count-badge" style="background: #F8FAFC; color: #1E293B; border-color: #CBD5E1;">총 {{ allCertStudents.length }}명</span>
+                                <span v-else class="count-badge" style="background: #F1F5F9; color: #334155; border-color: #E2E8F0;">총 {{ filteredStudents.length }}명</span>
+                            </h2>
+                            
+                            <div style="display: flex; gap: 6px;">
+                                <template v-if="currentTab !== 'certification'">
+                                    <button @click="sortStudents" class="btn btn-outline" style="padding: 5px 12px; font-size: 13.5px; border-radius: 20px; color: #4F46E5; border-color: #A5B4FC;"><i class="fa-solid fa-arrow-down-1-9"></i> 학년·반·번호순 정렬</button>
+                                    <button class="btn btn-outline" @click="exportToExcel" style="color: #059669; border-color: #6EE7B7; padding: 5px 12px; font-size: 13.5px; border-radius: 20px;">📊 엑셀 저장</button>
+                                </template>
+                                <template v-else>
+                                    <button @click="copyCertPhoneNumbers" class="btn btn-outline" style="color: #8B5CF6; border-color: #C4B5FD; padding: 5px 12px; font-size: 13.5px; border-radius: 20px;"><i class="fa-solid fa-copy"></i> 학부모 전화번호 전체 복사</button>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- 자격증반 전용 학교별 인원 카운트 영역 -->
+                        <div v-if="currentTab === 'certification'" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <span class="count-badge" style="background: #FEF2F2; color: #EF4444; border-color: #FCA5A5;">학동초 {{ certSchoolCounts.hakdong }}명</span>
+                            <span class="count-badge" style="background: #FFFBEB; color: #F59E0B; border-color: #FCD34D;">바른초 {{ certSchoolCounts.bareun }}명</span>
+                            <span class="count-badge" style="background: #ECFDF5; color: #10B981; border-color: #6EE7B7;">반월초 {{ certSchoolCounts.banwol }}명</span>
+                            <span class="count-badge" style="background: #EFF6FF; color: #3B82F6; border-color: #93C5FD;">세정초 {{ certSchoolCounts.sejeong }}명</span>
                         </div>
                     </div>
                     
@@ -322,7 +335,7 @@
                         <thead>
                             <tr v-if="currentTab === 'certification'">
                                 <th width="45">No</th>
-                                <th width="110">출강 학교</th>
+                                <th width="115">출강 학교</th>
                                 <th width="55">학년</th>
                                 <th width="55">반</th>
                                 <th width="55">번호</th>
@@ -341,11 +354,13 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- 자격증반 렌더링 -->
+                            <!-- 자격증반 렌더링 (행 색상 적용) -->
                             <template v-if="currentTab === 'certification'">
-                                <tr v-for="(student, index) in allCertStudents" :key="student.id">
+                                <tr v-for="(student, index) in allCertStudents" :key="student.id" :class="'cert-row-' + student.school">
                                     <td style="font-weight: 800; color: #64748B;">{{ index + 1 }}</td>
-                                    <td style="font-weight: 800; color: #3B82F6;">{{ getSchoolFullName(student.school) }}</td>
+                                    <td :class="'text-' + student.school">
+                                        {{ getSchoolFullName(student.school) }}
+                                    </td>
                                     <td style="font-weight: 700; color: #334155;">{{ student.grade }}</td>
                                     <td style="font-weight: 700; color: #334155;">{{ student.classNum }}</td>
                                     <td style="font-weight: 700; color: #334155;">{{ student.num }}</td>
@@ -356,16 +371,16 @@
                                     </td>
                                 </tr>
                                 <tr v-if="allCertStudents.length === 0">
-                                    <td colspan="8" style="text-align: center; padding: 25px; color: #94A3B8; font-size: 14.5px; font-weight: 600;">
+                                    <td colspan="8" style="text-align: center; padding: 25px; color: #94A3B8; font-size: 14.5px; font-weight: 600; background-color: #fff;">
                                         <i class="fa-solid fa-medal" style="font-size: 1.6rem; margin-bottom: 6px; color: #CBD5E1;"></i><br>
                                         현재 등록된 자격증반 학생이 없습니다.
                                     </td>
                                 </tr>
                             </template>
                             
-                            <!-- 일반 학교 렌더링 -->
+                            <!-- 일반 학교 렌더링 (기본 하얀색 배경) -->
                             <template v-else>
-                                <tr v-for="(student, index) in filteredStudents" :key="student.id">
+                                <tr v-for="(student, index) in filteredStudents" :key="student.id" style="background-color: #fff;">
                                     <td style="font-weight: 800; color: #64748B;">{{ index + 1 }}</td>
                                     <td style="font-weight: 700; color: #334155;">{{ student.grade }}</td>
                                     <td style="font-weight: 700; color: #334155;">{{ student.classNum }}</td>
@@ -376,7 +391,7 @@
                                         <input type="text" v-model="student.consultationNote" class="note-input" placeholder="상담 및 특이사항 입력...">
                                     </td>
                                 </tr>
-                                <tr v-if="filteredStudents.length === 0">
+                                <tr v-if="filteredStudents.length === 0" style="background-color: #fff;">
                                     <td colspan="7" style="text-align: center; padding: 25px; color: #94A3B8; font-size: 14.5px; font-weight: 600;">
                                         <i class="fa-solid fa-folder-open" style="font-size: 1.6rem; margin-bottom: 6px; color: #CBD5E1;"></i><br>
                                         현재 등록된 학생 명단이 없습니다.<br>'교구 대시보드'에서 학생 명단을 먼저 추가해 주세요.
@@ -412,7 +427,7 @@
                 const quarter = ref('3분기');
 
                 const students = ref([]);
-                const activeTemplate = ref('first');
+                const activeTemplate = ref('exam_reg');
                 
                 const commonVars = ref({
                     hakdong: '', bareun: '', banwol: '', sejeong: ''
@@ -420,14 +435,6 @@
 
                 const schoolNames = { 'hakdong': '학동초(화)', 'bareun': '바른초(수)', 'banwol': '반월초(목)', 'sejeong': '세정초(금)' };
                 const getSchoolFullName = (key) => ({ 'hakdong': '학동초등학교', 'bareun': '바른초등학교', 'banwol': '반월초등학교', 'sejeong': '세정초등학교' }[key]);
-
-                const getSchoolDetails = (key) => {
-                    if (key === 'hakdong') return { day: '화요일', time1: '1:45 ~ 2:55', time2: '3:00 ~ 4:10', room: '2층 컴퓨터1실', dept: '코딩로봇부' };
-                    if (key === 'bareun') return { day: '수요일', time1: '1:00 ~ 2:20', time2: '2:30 ~ 3:50', room: '3층 컴퓨터실', dept: '코딩부' };
-                    if (key === 'banwol') return { day: '목요일', time1: '1:40 ~ 3:00', time2: '3:10 ~ 4:30', room: '2층 컴퓨터실', dept: '코딩부' };
-                    if (key === 'sejeong') return { day: '금요일', time1: '1:10 ~ 2:20', time2: '2:30 ~ 3:40', room: '1층 컴퓨터실', dept: '코딩&마인크래프트부' };
-                    return { day: 'O요일', time1: 'O:OO ~ O:OO', time2: 'O:OO ~ O:OO', room: '컴퓨터실', dept: '코딩부' };
-                };
 
                 const getDefaultTemplates = (schoolKey) => {
                     if (schoolKey === 'certification') {
@@ -437,49 +444,27 @@
                             exam_prep: `💌 자격증 시험 준비 및 유의사항 안내\n\n안녕하세요 학부모님, 강사 김정이입니다.\n\n자격증 시험이 얼마 남지 않았습니다!\n남은 기간 동안 아이들이 가정에서도 복습할 수 있도록 격려 부탁드립니다.\n\n📌 준비물: 수험표, 신분증(학생증 등), 필기도구\n📌 입실 시간: 시험 당일 오전 O시 O분까지\n\n좋은 결과가 있도록 최선을 다해 지도하겠습니다. 🌷`
                         };
                     }
-
-                    const sName = getSchoolFullName(schoolKey);
-                    const details = getSchoolDetails(schoolKey);
-                    
-                    let enrollTemplateText = '';
-                    if (schoolKey === 'hakdong') {
-                        enrollTemplateText = `💌 ${sName} ${details.dept} [분기] 재수강 안내\n\n안녕하세요, 학부모님\n${details.dept} 강사 김정이입니다.\n\n우리 아이들과 즐겁게 코딩 수업을 이어갈 [분기] 재수강 안내 드립니다. 🌸\n\n바쁘신 학부모님들의 번거로움을 덜어드리기 위해 이번에도 '자동 수강 신청'으로 진행되오니 참고 부탁드립니다!\n\n1️⃣ 수강을 계속하는 경우: 별도의 회신 없이 가만히 두시면 자동으로 신청이 완료됩니다! ✨\n2️⃣ 수강을 취소하는 경우: [학생이름 / 취소] 라고 적어서 문자로 회신해 주세요.\n3️⃣ 회신 기한: O월 O일(O) O시까지\n\n취소 의사가 없으시면 편하게 자동으로 신청이 완료되니 걱정하지 않으셔도 됩니다. 😉\n[분기]에도 유익한 시간 만들겠습니다. 늘 감사드립니다! 💕`;
-                    } else {
-                        enrollTemplateText = `💌 ${sName} ${details.dept} [분기] 수강 접수 안내\n\n안녕하세요, 학부모님\n${details.dept} 강사 김정이입니다. 🌸\n\n우리 아이들과 함께 알차고 즐거운 코딩 수업을 진행할 [분기] 수강 접수 안내해 드립니다!\n\n📍 안내\n- 수업 일시: 매주 ${details.day}\n  1반 (1~2학년) ${details.time1}\n  2반 (3~6학년) ${details.time2}\n- 수업 장소: ${details.room}\n\n📌 접수 기간 및 방법: 학교 방과후 접수 일정에 따라 신청해 주시기 바랍니다.\n\n[분기]에도 우리 아이들이 코딩의 즐거움을 느낄 수 있도록 다정하고 꼼꼼하게 지도하겠습니다. 많은 관심 부탁드립니다! 💕`;
-                    }
-
-                    return {
-                        first: `💌 ${sName} ${details.dept} [분기] 안내\n\n안녕하세요☺\n${sName} ${details.dept} 강사 김정이입니다. \n\n우리 아이들의 [분기] ${details.dept} 수강이 최종 확정되어 안내드립니다!!\n\n📍 안내\n- 첫 수업 일자: [첫수업일자]\n- 수업 일시: 매주 ${details.day}\n  1반 (1~2학년) ${details.time1}\n  2반 (3~6학년) ${details.time2}\n- 수업 장소: ${details.room}\n\n우리 아이들이 스스로 생각하고 만들어가는 코딩의 즐거움을 듬뿍 느낄 수 있도록, 이번 학기도 눈높이에 맞춰 다정하게 지도하겠습니다.\n확인하시고 궁금하신 점이 있으시면 언제든 편하게 연락해 주세요. 감사합니다! 💕`,
-                        reenroll_or_enroll: enrollTemplateText,
-                        end: `💌 ${sName} ${details.dept} 종강 안내\n\n안녕하세요 학부모님, 강사 김정이입니다. ☺️\n\n어느덧 한 분기가 마무리되어 종강 소식을 전해드립니다. \n처음엔 낯설어하던 아이들이 스스로 코드를 짜며 성장한 모습을 보니 대견합니다.\n\n가정에서 보내주신 따뜻한 격려에 깊이 감사드립니다. 🙇‍♀️\n다음 분기에도 재미있는 커리큘럼으로 아이들과 만나겠습니다. 감사합니다! 💖`
-                    };
+                    return {};
                 };
 
                 const messageTemplates = ref({
-                    hakdong: getDefaultTemplates('hakdong'),
-                    bareun: getDefaultTemplates('bareun'),
-                    banwol: getDefaultTemplates('banwol'),
-                    sejeong: getDefaultTemplates('sejeong'),
                     certification: getDefaultTemplates('certification')
                 });
 
                 const currentSchoolTemplates = computed(() => {
-                    if (!messageTemplates.value[currentTab.value]) {
-                        messageTemplates.value[currentTab.value] = getDefaultTemplates(currentTab.value);
+                    if (currentTab.value === 'certification') {
+                        if (!messageTemplates.value.certification) {
+                            messageTemplates.value.certification = getDefaultTemplates('certification');
+                        }
+                        return messageTemplates.value.certification;
                     }
-                    return messageTemplates.value[currentTab.value];
+                    return {};
                 });
 
                 const getTemplateTitle = (key) => {
-                    if (key === 'first') return '첫 수업 안내';
-                    if (key === 'reenroll_or_enroll') return currentTab.value === 'hakdong' ? '재수강 안내' : '수강 접수 안내';
-                    if (key === 'end') return '종강 안내';
-                    
-                    // 자격증반 탭 전용 이름
                     if (key === 'exam_reg') return '시험 접수 안내';
                     if (key === 'book_buy') return '교재 구매 안내';
                     if (key === 'exam_prep') return '시험 준비 안내';
-                    
                     if (key.startsWith('custom_title_')) return key.replace('custom_title_', '');
                     return key; 
                 };
@@ -496,15 +481,7 @@
                     });
 
                     if (title && title.trim()) {
-                        const newKey = 'custom_' + Date.now();
-                        let defaultText = '';
-                        
-                        if(currentTab.value === 'certification') {
-                            defaultText = `💌 자격증반 [분기] ${title.trim()} 안내\n\n안녕하세요, 학부모님!\n강사 김정이입니다. ☺️\n\n[내용을 입력하세요]`;
-                        } else {
-                            defaultText = `💌 [학교명] [분기] ${title.trim()} 안내\n\n안녕하세요, 학부모님!\n코딩부 강사 김정이입니다. ☺️\n\n[내용을 입력하세요]`;
-                        }
-                        
+                        let defaultText = `💌 자격증반 [분기] ${title.trim()} 안내\n\n안녕하세요, 학부모님!\n강사 김정이입니다. ☺️\n\n[내용을 입력하세요]`;
                         const finalKey = 'custom_title_' + title.trim();
                         currentSchoolTemplates.value[finalKey] = defaultText;
                         activeTemplate.value = finalKey;
@@ -529,11 +506,12 @@
                     });
                 };
 
-                // 탭 변경 시 템플릿의 첫 번째 탭이 활성화되도록 함
                 watch(currentTab, (newTab) => {
-                    const keys = Object.keys(messageTemplates.value[newTab] || {});
-                    if (keys.length > 0) {
-                        activeTemplate.value = keys[0];
+                    if (newTab === 'certification') {
+                        const keys = Object.keys(messageTemplates.value.certification || {});
+                        if (keys.length > 0) {
+                            activeTemplate.value = keys[0];
+                        }
                     }
                 });
 
@@ -565,6 +543,17 @@
                     return students.value.filter(s => s.quarter === quarter.value && s.status !== '삭제' && s.item === '자격증');
                 });
 
+                // 📊 자격증반 학교별 인원수 계산기
+                const certSchoolCounts = computed(() => {
+                    const counts = { hakdong: 0, bareun: 0, banwol: 0, sejeong: 0 };
+                    allCertStudents.value.forEach(s => {
+                        if (counts[s.school] !== undefined) {
+                            counts[s.school]++;
+                        }
+                    });
+                    return counts;
+                });
+
                 const sortStudents = () => {
                     students.value.sort((a, b) => {
                         if (a.quarter !== b.quarter) return a.quarter.localeCompare(b.quarter);
@@ -582,7 +571,38 @@
                     Swal.fire({ title: '정렬 완료', text: '학년·반·번호 순으로 정렬되었습니다.', icon: 'success', timer: 1000, showConfirmButton: false });
                 };
 
-                // 공통 복사 기능
+                const copyCertPhoneNumbers = () => {
+                    if (allCertStudents.value.length === 0) {
+                        Swal.fire({ title: '안내', text: '등록된 자격증반 학생이 없습니다.', icon: 'warning', confirmButtonColor: '#8B5CF6' });
+                        return;
+                    }
+
+                    const phones = allCertStudents.value
+                        .map(s => s.phone)
+                        .filter(phone => phone && phone.trim() !== '')
+                        .join(',');
+
+                    if (!phones) {
+                        Swal.fire({ title: '안내', text: '등록된 전화번호가 없습니다.', icon: 'warning', confirmButtonColor: '#8B5CF6' });
+                        return;
+                    }
+
+                    const tempElem = document.createElement('textarea');
+                    tempElem.value = phones;
+                    document.body.appendChild(tempElem);
+                    tempElem.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempElem);
+
+                    Swal.fire({
+                        title: '전화번호 복사 완료!',
+                        text: '복사되었습니다. 채팅플러스 수신자 입력창에 붙여넣기 하세요.',
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                };
+
                 const copyCurrentTemplate = () => {
                     const textToCopy = currentSchoolTemplates.value[activeTemplate.value];
                     if (!textToCopy || !textToCopy.trim()) {
@@ -591,11 +611,7 @@
                     }
 
                     let finalText = textToCopy.replace(/\[분기\]/g, quarter.value);
-                    if(currentTab.value !== 'certification') {
-                         finalText = finalText.replace(/\[첫수업일자\]/g, commonVars.value[currentTab.value] || 'O월 O일');
-                    }
 
-                    // DOM을 활용한 클립보드 복사 (모든 브라우저 호환)
                     const tempElem = document.createElement('textarea');
                     tempElem.value = finalText;
                     document.body.appendChild(tempElem);
@@ -676,8 +692,10 @@
                                 messageTemplates.value = { ...messageTemplates.value, ...data.messageTemplates };
                             }
                             
-                            // 과거 버전에서 쓰던 자격증 단일 템플릿 데이터가 남아있다면 첫 탭에 복원
                             if (data.certMessageTemplate && !data.messageTemplates?.certification?.migrated) {
+                                if(!messageTemplates.value.certification) {
+                                    messageTemplates.value.certification = getDefaultTemplates('certification');
+                                }
                                 messageTemplates.value.certification.exam_reg = data.certMessageTemplate;
                                 messageTemplates.value.certification.migrated = true;
                             }
@@ -694,8 +712,9 @@
                 return { 
                     isLoggedIn, landingQuarter, selectSchoolAndEnter, goHome, goToIndex, 
                     currentTab, quarter, students, filteredStudents, allCertStudents, getSchoolFullName, sortStudents,
+                    certSchoolCounts, // 📊 카운트 추가 반환
                     activeTemplate, messageTemplates, currentSchoolTemplates, commonVars,
-                    getTemplateTitle, addNewTemplate, removeTemplate, copyCurrentTemplate,
+                    getTemplateTitle, addNewTemplate, removeTemplate, copyCurrentTemplate, copyCertPhoneNumbers,
                     saveData, exportToExcel
                 };
             }
