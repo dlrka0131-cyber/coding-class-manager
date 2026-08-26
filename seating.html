@@ -100,20 +100,41 @@
         .btn-export { background: #8e44ad; color: #fff; }
         .btn-import { background: #9b59b6; color: #fff; }
 
-        /* 🔥 12차시 진도 체크 (작은 글씨 & 네모 칸 분리 디자인) 🔥 */
-        .progress-container { background: #2c3e50; padding: 14px; border-radius: 10px; margin-top: 5px; border: 1px solid #34495e; }
-        .progress-title { color: #ecf0f1; font-size: 0.8rem; font-weight: bold; margin-bottom: 12px; }
-        .prog-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; } 
-        .prog-label { color: #bdc3c7; font-size: 0.75rem; font-weight: bold; cursor: pointer; width: 40px; text-align: left; flex-shrink: 0; transition: color 0.2s;}
-        .prog-label:hover { color: #fff; }
-        .prog-input { 
-            flex: 1; background: #34495e; border: 1px solid #455a64; color: #ecf0f1; 
-            font-size: 0.75rem; outline: none; padding: 5px 8px; border-radius: 4px;
-            transition: border-color 0.2s, background 0.2s; 
+        /* 🔥 12차시 진도 체크 (날짜 박스 분리 & 미니 완료 버튼 디자인) 🔥 */
+        .progress-container { background: #243342; padding: 12px; border-radius: 10px; margin-top: 5px; border: 1px solid #34495e; }
+        .progress-title { color: #ecf0f1; font-size: 0.8rem; font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+        .prog-row { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; } 
+        .prog-label { color: #bdc3c7; font-size: 0.72rem; font-weight: bold; width: 34px; text-align: left; flex-shrink: 0; }
+        
+        /* 날짜 입력용 작은 네모 박스 */
+        .prog-date-input { 
+            width: 48px; background: #34495e; border: 1px solid #475d73; color: #f1c40f; 
+            font-size: 0.72rem; outline: none; padding: 3px 2px; border-radius: 4px; text-align: center;
+            font-weight: bold; transition: border-color 0.2s; flex-shrink: 0;
         }
-        .prog-input:focus { border-color: #3498db; background: #3b536b; }
+        .prog-date-input:focus { border-color: #f39c12; background: #3d566e; }
+
+        /* 진도 내용 입력용 박스 */
+        .prog-text-input { 
+            flex: 1; min-width: 0; background: #34495e; border: 1px solid #475d73; color: #ecf0f1; 
+            font-size: 0.72rem; outline: none; padding: 3px 6px; border-radius: 4px;
+            transition: border-color 0.2s;
+        }
+        .prog-text-input:focus { border-color: #3498db; background: #3d566e; }
+
+        /* 미니 완료 버튼 */
+        .btn-prog-toggle {
+            width: auto; padding: 3px 6px; font-size: 0.68rem; border-radius: 4px; border: 1px solid #475d73;
+            background: #34495e; color: #bdc3c7; cursor: pointer; flex-shrink: 0; font-weight: normal;
+            transition: all 0.2s;
+        }
+        .btn-prog-toggle:hover { background: #3d566e; color: #fff; }
+        .btn-prog-toggle.active { background: #27ae60; color: #fff; border-color: #2ecc71; font-weight: bold; }
+
+        /* 완료 시 취소선 스타일 */
         .prog-done .prog-label { color: #7f8c8d; text-decoration: line-through; }
-        .prog-done .prog-input { color: #7f8c8d; text-decoration: line-through; opacity: 0.5; border-color: transparent; background: transparent; }
+        .prog-done .prog-date-input { color: #7f8c8d; text-decoration: line-through; opacity: 0.6; }
+        .prog-done .prog-text-input { color: #7f8c8d; text-decoration: line-through; opacity: 0.6; }
 
         /* 메인 컨테이너 비율 수정 */
         #main-container { flex: 1; display: flex; flex-direction: column; width: 100%; min-width: 0; }
@@ -138,7 +159,7 @@
         .title-card {
             background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); padding: 12px 25px; border-radius: 50px;
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06); border: 1px solid rgba(255, 255, 255, 0.8);
-            display: flex; align-items: center; gap: 12px; white-space: nowrap;
+            display: flex align-items: center; gap: 12px; white-space: nowrap;
         }
         .school-title-text { font-size: 1.7rem; font-weight: 900; color: #2c3e50; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
         .class-title-badge { padding: 3px 14px; border-radius: 20px; font-size: 1.4rem; font-weight: 900; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1); display: inline-block; }
@@ -187,9 +208,8 @@
         .desk-memo-input { width: 125px; font-size: 11px; border: 1px solid #cbd5e0; background: #ffffff; border-radius: 4px; text-align: center; outline: none; color: #555; padding: 2px 4px; font-family: inherit; }
         .desk-memo-input:focus { border-color: #3498db; box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.15); }
 
-        /* 🔥 출석(초록색) 테마 강화 🔥 */
+        /* 출석 테마 */
         .desk.present { background-color: #bbf2d5; border: 2px solid #20bf6b; color: #0b7a42; }
-        
         .desk.has-student { cursor: grab; }
         .desk.has-student:active { cursor: grabbing; }
         .desk.has-student:hover { transform: scale(1.05); border-color: #3498db; }
@@ -237,7 +257,6 @@
         }
         .memo-board:focus { border-color: #e74c3c; background: rgba(254, 249, 231, 1); }
 
-        /* 🔥 학동초(4-4) 전용 레이아웃 분리 🔥 */
         .layout-4-4 #left-pane { flex: 4; } 
         .layout-4-4 #right-pane { flex: 0.8; min-width: 260px; padding: 20px; }
         .layout-4-4 .announcement-board { font-size: 2.2rem; } 
@@ -273,7 +292,6 @@
         .btn-modal-cancel { background: #e2e8f0; color: #4a5568; }
         .btn-modal-danger { background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; }
 
-        /* QR 모달 전용 스타일 */
         #qr-code-box { display: flex; justify-content: center; margin: 15px 0; padding: 15px; background: white; border-radius: 10px; border: 1px solid #ecf0f1; }
         .qr-preview-text { font-size: 0.9rem; color: #555; text-align: left; background: #f8f9fa; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-bottom: 5px; white-space: pre-wrap; line-height: 1.5;}
         .btn-copy-text { background: #3498db; color: white; }
@@ -338,8 +356,11 @@
         <button class="btn-save-pos" onclick="manualSaveData()"><i class="fa-solid fa-floppy-disk"></i> 저장</button>
         <button class="btn-print" onclick="window.print()"><i class="fa-solid fa-print"></i> 인쇄</button>
 
+        <!-- 🔥 12차시 진도 관리 컨테이너 🔥 -->
         <div class="progress-container">
-            <div class="progress-title"><i class="fa-solid fa-list-check"></i> 12차시 진도 (글자 클릭=완료)</div>
+            <div class="progress-title">
+                <i class="fa-solid fa-list-check"></i> 12차시 진도표
+            </div>
             <div id="progress-list"></div>
         </div>
 
@@ -449,10 +470,8 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        // 대시보드의 학생 명단을 저장할 변수
         let dashboardStudents = [];
 
-        // 🏫 2. 학교 기본 설정
         const SCHOOLS = {
             'hakdong': { id: 'hakdong', name: '학동초 (화)', layout: '4-4', maxDesks: 32 },
             'bareun': { id: 'bareun', name: '바른초 (수)', layout: '2-2-2', maxDesks: 30 },
@@ -475,7 +494,7 @@
             return {
                 students: Array.from({length: max}, () => null),
                 announcement: "", memo: "",
-                progress: Array.from({length: 12}, () => ({text: '', done: false}))
+                progress: Array.from({length: 12}, () => ({date: '', text: '', done: false}))
             };
         }
 
@@ -518,13 +537,11 @@
             if (memoArea && classData[currentClassType]) classData[currentClassType].memo = memoArea.value;
         }
 
-        // 🔥 파이어베이스에 수동 저장하는 기능 🔥
         async function manualSaveData(silent = false) {
             try {
                 updateCurrentState();
                 localStorage.setItem('seatingApp_global_settings', JSON.stringify({ school: currentSchool, quarter: currentQuarter, classType: currentClassType }));
                 
-                // Firestore 클라우드 저장
                 await db.collection('seatingData').doc(currentSchool + '_' + currentQuarter).set(classData);
                 
                 if(!silent) showCustomAlert("저장 완료", `[${SCHOOLS[currentSchool].name}] 배치가 안전하게 저장되었습니다!`, '<i class="fa-solid fa-floppy-disk" style="color: #2ecc71;"></i>');
@@ -534,7 +551,6 @@
             }
         }
 
-        // 🌟 교구 대시보드 명단 불러오기 🌟
         async function loadDashboardData() {
             try {
                 const docSnap = await db.collection("dashboardData").doc("mainData").get();
@@ -549,20 +565,17 @@
             }
         }
 
-        // 🌟 신규 기능: 대시보드 명단 동기화 및 자동 반 배정 🌟
         async function syncDashboardRoster() {
             showCustomAlert("동기화 중...", "대시보드 명단을 가져와 반을 배정하고 있습니다.", '<i class="fa-solid fa-spinner fa-spin" style="color:#986ebb;"></i>');
             
             try {
-                // 항상 최신 대시보드 데이터 로드
                 await loadDashboardData();
                 
                 const currentQText = qTextMap[currentQuarter];
                 const maxDesks = SCHOOLS[currentSchool].maxDesks;
 
-                // 1. 대시보드에서 현재 학교, 현재 분기, 삭제되지 않은 학생 필터링
                 const targetStudents = dashboardStudents.filter(s => 
-                    s.school === currentSchool && 
+                    s && s.school === currentSchool && 
                     s.quarter === currentQText && 
                     s.status !== '삭제'
                 );
@@ -574,40 +587,31 @@
 
                 let addedCount = 0;
 
-                // 2. 학생들을 돌면서 알아서 1반/2반에 꽂아 넣기
                 targetStudents.forEach(dashStudent => {
-                    // 학년 추출해서 숫자만 남기기
                     const gradeStr = (dashStudent.grade || '').toString().replace(/[^0-9]/g, '');
                     const gradeNum = parseInt(gradeStr, 10);
                     
-                    // 반 결정 (1~2학년 -> class1, 3~6학년 -> class2)
                     let targetClass = 'class1';
                     if (gradeNum >= 3 && gradeNum <= 6) {
                         targetClass = 'class2';
                     }
 
-                    // 이름 공백 무시하고 이미 그 반에 존재하는지 확인
-                    const cleanName = dashStudent.name.replace(/\s+/g, '');
-                    const existingIdx = classData[targetClass].students.findIndex(s => s && s.name.replace(/\s+/g, '') === cleanName);
+                    const cleanName = (dashStudent.name || '').replace(/\s+/g, '');
+                    const existingIdx = classData[targetClass].students.findIndex(s => s && (s.name || '').replace(/\s+/g, '') === cleanName);
 
-                    // 그 반에 해당 학생이 없으면 추가!
                     if (existingIdx === -1) {
-                        // 가장 빠른 빈 자리(null) 찾기
                         const emptyIdx = classData[targetClass].students.findIndex(s => s === null);
                         if (emptyIdx !== -1) {
-                            
-                            // 🔥 명단 대시보드의 '현재 단계(currentLevel)' -> 자리배치도 컬러 뱃지 연동 🔥
                             let lvl = 0;
-                            const cLevel = dashStudent.currentLevel || ''; // 명단에서 설정한 '현재 단계'를 직접 참조
+                            const cLevel = dashStudent.currentLevel || '';
 
                             if (cLevel === '자격증') lvl = 6;
                             else if (cLevel === '말랑4') lvl = 5;
                             else if (cLevel === '말랑3') lvl = 4;
                             else if (cLevel === '말랑2') lvl = 3;
                             else if (cLevel === '말랑1') lvl = 2;
-                            else if (cLevel === '신규' || dashStudent.status === '신규') lvl = 1; // 명단에서 현재단계가 '신규'이거나 상태가 '신규'면 N(1) 부여
+                            else if (cLevel === '신규' || dashStudent.status === '신규') lvl = 1;
 
-                            // 빈자리에 착석
                             classData[targetClass].students[emptyIdx] = {
                                 name: dashStudent.name,
                                 status: 'normal',
@@ -630,7 +634,6 @@
             }
         }
 
-        // 🔥 앱 시작 시 클라우드에서 데이터 불러오기 🔥
         async function initApp() {
             try {
                 const settingsStr = localStorage.getItem('seatingApp_global_settings');
@@ -642,9 +645,7 @@
                 }
             } catch(e) { console.error(e); }
             
-            // 대시보드 전화번호 먼저 쫙 읽어오기
             await loadDashboardData();
-            
             await loadData();
         }
 
@@ -661,7 +662,6 @@
             const maxDesks = SCHOOLS[currentSchool].maxDesks;
 
             try {
-                // 파이어베이스에서 문서 가져오기
                 const docRef = db.collection('seatingData').doc(currentSchool + '_' + currentQuarter);
                 const docSnap = await docRef.get();
 
@@ -682,7 +682,23 @@
                     if (student && student.note === undefined) student.note = '';
                     return student;
                 });
-                if(!classData[c].progress) classData[c].progress = Array.from({length: 12}, () => ({text: '', done: false}));
+                
+                // 진도 데이터 구조 호환성 처리 (기존 text에 날짜가 포함되어 있던 경우 분리)
+                if(!classData[c].progress) {
+                    classData[c].progress = Array.from({length: 12}, () => ({date: '', text: '', done: false}));
+                } else {
+                    classData[c].progress = classData[c].progress.map(p => {
+                        if (typeof p === 'object') {
+                            if (p.date === undefined) {
+                                const m = (p.text || '').match(/^(\d{1,2}\.\d{1,2})\s*(.*)$/);
+                                if (m) return { date: m[1], text: m[2], done: !!p.done };
+                                return { date: '', text: p.text || '', done: !!p.done };
+                            }
+                            return p;
+                        }
+                        return { date: '', text: '', done: false };
+                    });
+                }
                 if(classData[c].memo === undefined) classData[c].memo = "";
             }
             
@@ -738,7 +754,6 @@
             });
         }
 
-        // 🔥 USB 백업 시스템 (클라우드에서 다운로드)
         async function exportDataToFile() {
             await manualSaveData(true); 
             showCustomAlert("백업 중...", "클라우드에서 데이터를 모으고 있습니다. 잠시만 기다려주세요.", '<i class="fa-solid fa-spinner fa-spin" style="color: #986ebb;"></i>');
@@ -774,7 +789,6 @@
             }
         }
 
-        // 🔥 USB 복구 시스템 (클라우드에 덮어쓰기)
         async function importDataFromFile(event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -842,7 +856,6 @@
             const absentees = currentStudents.filter(s => s.status === 'absent');
             const absentCount = absentees.length;
 
-            // 🌟 버튼 텍스트를 '결석 전송'으로 축소 (가로 길이 확보) 🌟
             document.getElementById('attendance-stats').innerHTML = `
                 <span class="stat-total"><i class="fa-solid fa-user-graduate"></i> 총원: ${total}명</span> &nbsp;|&nbsp; 
                 <span class="stat-present">🟢 출석: ${presentCount}명</span> &nbsp;|&nbsp; 
@@ -851,7 +864,6 @@
             `;
         }
 
-        // 📱 결석생 명단 통합 전송 모달 (연락처 자동 검색 탑재) 📱
         function openBulkQRModal() {
             const absentees = classData[currentClassType].students.filter(s => s !== null && s.status === 'absent');
             
@@ -862,26 +874,21 @@
                 return;
             } 
             
-            // 결석생 이름 취합
             const absentNames = absentees.map(s => s.name);
-            
-            // 🌟 교구 대시보드 데이터에서 전화번호 검색 추출 🌟
             const phoneNumbers = [];
             let missingPhoneNames = [];
             const quarterStr = qTextMap[currentQuarter];
             
             absentees.forEach(student => {
-                const cleanName = student.name.replace(/\s+/g, '');
-                
-                // 대시보드 명단에서 동일한 학교, 분기, 이름 검색
+                const cleanName = (student.name || '').replace(/\s+/g, '');
                 const matched = dashboardStudents.find(ds => 
-                    ds.school === currentSchool && 
+                    ds && ds.school === currentSchool && 
                     ds.quarter === quarterStr && 
-                    ds.name.replace(/\s+/g, '') === cleanName
+                    (ds.name || '').replace(/\s+/g, '') === cleanName
                 );
                 
                 if (matched && matched.phone) {
-                    phoneNumbers.push(matched.phone.replace(/[^0-9]/g, '')); // 숫자만 추출하여 저장
+                    phoneNumbers.push(matched.phone.replace(/[^0-9]/g, ''));
                 } else {
                     missingPhoneNames.push(student.name);
                 }
@@ -889,14 +896,9 @@
             
             const phonesStr = phoneNumbers.join(',');
             const namesStr = absentNames.join(', ');
-            
-            // 선생님이 요청하신 정확한 포맷
             const message = `${namesStr}\n\n안녕하세요 학부모님 학생이 입실하지 않아 연락드립니다.\n결석시 메세지 남겨주세요.`;
-            
-            // 받는 사람 번호와 메시지 내용 결합!
             const smsUri = `sms:${phonesStr}?body=${encodeURIComponent(message)}`;
             
-            // 이전 QR 코드 삭제 후 재생성
             document.getElementById('qr-code-box').innerHTML = '';
             new QRCode(document.getElementById('qr-code-box'), {
                 text: smsUri,
@@ -907,16 +909,12 @@
                 correctLevel : QRCode.CorrectLevel.M
             });
             
-            // 전화번호를 못 찾은 학생이 있다면 친절하게 안내 문구 추가
             let missingWarning = "";
             if (missingPhoneNames.length > 0) {
                 missingWarning = `\n\n<span style="color:#e74c3c; font-size:0.8rem;">※ 주의: 교구 대시보드에서 [${missingPhoneNames.join(', ')}] 학생의 전화번호를 찾지 못했습니다. 대시보드에 이름이 똑같이 등록되어 있는지 확인해 주세요!</span>`;
             }
             
-            // 화면에 보여줄 미리보기 텍스트 세팅
             document.getElementById('qr-text-preview').innerHTML = message.replace(/\n/g, '<br>') + missingWarning;
-            
-            // 모달 열기
             document.getElementById('qr-modal-overlay').style.display = 'flex';
         }
 
@@ -924,7 +922,6 @@
             document.getElementById('qr-modal-overlay').style.display = 'none';
         }
 
-        // 📋 텍스트 복사 기능
         function copyBulkText() {
             const text = document.getElementById('qr-text-preview').innerText;
             if(text === "결석생이 없습니다.") return;
@@ -1063,7 +1060,6 @@
             const menu = document.getElementById('context-menu');
             const student = classData[currentClassType].students[idx];
             
-            // 학생이 있는 자리와 없는 자리(빈자리) 구분하여 메뉴 표시
             if (student) {
                 document.getElementById('cm-add').style.display = 'none';
                 document.getElementById('cm-edit').style.display = 'flex';
@@ -1076,16 +1072,14 @@
             menu.style.display = 'block'; menu.style.left = e.pageX + 'px'; menu.style.top = e.pageY + 'px';
         }
 
-        // 🔥 새롭게 추가되는 학생 추가 기능 🔥
         function handleAddStudentModal() {
             if (contextTargetIdx === null) return;
             openStudentModal("신규 학생 추가", '<i class="fa-solid fa-user-plus" style="color: #986ebb;"></i>', '', function(name) {
-                // 빈 자리에 새로운 학생 객체 생성
                 classData[currentClassType].students[contextTargetIdx] = {
                     name: name,
-                    status: 'normal', // 기본 출석 상태
-                    level: 0,         // 기본 레벨 (-)
-                    note: ''          // 빈 메모
+                    status: 'normal',
+                    level: 0,
+                    note: ''
                 };
                 renderClassroom();
             });
@@ -1101,58 +1095,72 @@
             });
         }
 
-        // 🔥 수정됨: 1차시에 날짜 입력 시 2~12차시 날짜가 자동으로 계산되어 채워집니다! 🔥
+        // 🔥 날짜 박스 분리 & 미니 완료 버튼 & 자동 날짜 계산 렌더링 🔥
         function renderProgress() {
-            const list = document.getElementById('progress-list'); list.innerHTML = '';
+            const list = document.getElementById('progress-list'); 
+            list.innerHTML = '';
             const progData = classData[currentClassType].progress;
             
             for(let i=0; i<12; i++) {
                 const item = progData[i];
-                const row = document.createElement('div'); row.className = 'prog-row' + (item.done ? ' prog-done' : '');
-                const label = document.createElement('div'); label.className = 'prog-label'; label.innerText = `${i+1}차시`;
-                label.onclick = () => { progData[i].done = !progData[i].done; renderProgress(); };
+                const row = document.createElement('div'); 
+                row.className = 'prog-row' + (item.done ? ' prog-done' : '');
                 
-                const input = document.createElement('input'); 
-                input.className = 'prog-input'; 
-                input.type = 'text';
-                input.value = item.text; 
-                input.placeholder = '예: 8.26';
+                // 차시 레이블
+                const label = document.createElement('div'); 
+                label.className = 'prog-label'; 
+                label.innerText = `${i+1}차시`;
                 
-                input.onchange = (e) => { 
-                    const newVal = e.target.value;
-                    progData[i].text = newVal; 
-                    
-                    // 1차시(i === 0)에 날짜 형태(예: 8.26)를 입력한 경우 자동 계산 로직 실행
-                    if (i === 0) {
-                        const match = newVal.match(/^(\d{1,2})\.(\d{1,2})/);
+                // 📅 날짜 네모 박스
+                const dateInput = document.createElement('input');
+                dateInput.className = 'prog-date-input';
+                dateInput.type = 'text';
+                dateInput.value = item.date || '';
+                dateInput.placeholder = '8.26';
+                
+                dateInput.onchange = (e) => {
+                    const newDateVal = e.target.value.trim();
+                    progData[i].date = newDateVal;
+
+                    // 1차시 날짜 변경 시 2~12차시 날짜 자동 계산
+                    if (i === 0 && newDateVal) {
+                        const match = newDateVal.match(/^(\d{1,2})\.(\d{1,2})/);
                         if (match) {
                             const m = parseInt(match[1], 10);
                             const d = parseInt(match[2], 10);
-                            
-                            // 올해 년도를 기준으로 날짜 객체 생성 (월은 0부터 시작하므로 -1)
                             let curDate = new Date(new Date().getFullYear(), m - 1, d);
-                            
+
                             for (let j = 1; j < 12; j++) {
-                                // 7일 더하기
                                 curDate.setDate(curDate.getDate() + 7);
-                                const nextDateStr = `${curDate.getMonth() + 1}.${curDate.getDate()}`;
-                                
-                                const existingText = progData[j].text || "";
-                                // 기존 텍스트에 이미 날짜가 있으면 날짜 부분만 새 날짜로 교체, 없으면 맨 앞에 날짜 추가
-                                if (/^\d{1,2}\.\d{1,2}/.test(existingText)) {
-                                    progData[j].text = existingText.replace(/^\d{1,2}\.\d{1,2}/, nextDateStr);
-                                } else {
-                                    progData[j].text = existingText ? `${nextDateStr} ${existingText}` : nextDateStr;
-                                }
+                                progData[j].date = `${curDate.getMonth() + 1}.${curDate.getDate()}`;
                             }
-                            // 날짜가 계산되었으므로 즉시 화면 다시 그리기
                             renderProgress();
                         }
                     }
                 };
+
+                // 📝 수업 내용 입력 박스
+                const textInput = document.createElement('input'); 
+                textInput.className = 'prog-text-input'; 
+                textInput.type = 'text';
+                textInput.value = item.text || ''; 
+                textInput.placeholder = '진도 내용 입력...';
+                textInput.onchange = (e) => { progData[i].text = e.target.value; };
+
+                // ✅ 미니 완료 버튼
+                const toggleBtn = document.createElement('button');
+                toggleBtn.className = 'btn-prog-toggle' + (item.done ? ' active' : '');
+                toggleBtn.type = 'button';
+                toggleBtn.innerText = item.done ? '완료' : '대기';
+                toggleBtn.onclick = () => {
+                    progData[i].done = !progData[i].done;
+                    renderProgress();
+                };
                 
                 row.appendChild(label); 
-                row.appendChild(input); 
+                row.appendChild(dateInput);
+                row.appendChild(textInput); 
+                row.appendChild(toggleBtn);
                 list.appendChild(row);
             }
         }
@@ -1179,7 +1187,6 @@
             });
         }
 
-        // 앱 구동
         window.onload = function() { initApp(); };
     </script>
 </body>
