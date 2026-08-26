@@ -1099,18 +1099,59 @@
             });
         }
 
+        // 🔥 수정됨: 1차시에 날짜 입력 시 2~12차시 날짜가 자동으로 계산되어 채워집니다! 🔥
         function renderProgress() {
             const list = document.getElementById('progress-list'); list.innerHTML = '';
             const progData = classData[currentClassType].progress;
+            
             for(let i=0; i<12; i++) {
                 const item = progData[i];
                 const row = document.createElement('div'); row.className = 'prog-row' + (item.done ? ' prog-done' : '');
                 const label = document.createElement('div'); label.className = 'prog-label'; label.innerText = `${i+1}차시`;
                 label.onclick = () => { progData[i].done = !progData[i].done; renderProgress(); };
-                const input = document.createElement('input'); input.className = 'prog-input'; input.type = 'text';
-                input.value = item.text; input.placeholder = '내용 입력...';
-                input.onchange = (e) => { progData[i].text = e.target.value; };
-                row.appendChild(label); row.appendChild(input); list.appendChild(row);
+                
+                const input = document.createElement('input'); 
+                input.className = 'prog-input'; 
+                input.type = 'text';
+                input.value = item.text; 
+                input.placeholder = '내용 입력... (예: 8.26)';
+                
+                input.onchange = (e) => { 
+                    const newVal = e.target.value;
+                    progData[i].text = newVal; 
+                    
+                    // 1차시(i === 0)에 날짜 형태(예: 8.26)를 입력한 경우 자동 계산 로직 실행
+                    if (i === 0) {
+                        const match = newVal.match(/^(\d{1,2})\.(\d{1,2})/);
+                        if (match) {
+                            const m = parseInt(match[1], 10);
+                            const d = parseInt(match[2], 10);
+                            
+                            // 올해 년도를 기준으로 날짜 객체 생성 (월은 0부터 시작하므로 -1)
+                            let curDate = new Date(new Date().getFullYear(), m - 1, d);
+                            
+                            for (let j = 1; j < 12; j++) {
+                                // 7일 더하기
+                                curDate.setDate(curDate.getDate() + 7);
+                                const nextDateStr = `${curDate.getMonth() + 1}.${curDate.getDate()}`;
+                                
+                                const existingText = progData[j].text || "";
+                                // 기존 텍스트에 이미 날짜가 있으면 날짜 부분만 새 날짜로 교체, 없으면 맨 앞에 날짜 추가
+                                if (/^\d{1,2}\.\d{1,2}/.test(existingText)) {
+                                    progData[j].text = existingText.replace(/^\d{1,2}\.\d{1,2}/, nextDateStr);
+                                } else {
+                                    progData[j].text = existingText ? `${nextDateStr} ${existingText}` : nextDateStr;
+                                }
+                            }
+                            // 날짜가 계산되었으므로 즉시 화면 다시 그리기
+                            renderProgress();
+                        }
+                    }
+                };
+                
+                row.appendChild(label); 
+                row.appendChild(input); 
+                list.appendChild(row);
             }
         }
 
