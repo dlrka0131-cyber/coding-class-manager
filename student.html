@@ -309,9 +309,9 @@
                             
                             <div style="display: flex; gap: 6px;">
                                 <template v-if="currentTab !== 'certification'">
-                                    <!-- 🔥 새로 추가된 반별 번호 복사 버튼 -->
-                                    <button v-for="cNum in availableClasses" :key="cNum" @click="copyClassPhoneNumbers(cNum)" class="btn btn-outline" style="color: #EC4899; border-color: #F9A8D4; padding: 5px 12px; font-size: 13.5px; border-radius: 20px;">
-                                        <i class="fa-solid fa-copy"></i> {{ String(cNum).includes('반') ? cNum : cNum + '반' }} 번호 복사
+                                    <!-- 🔥 학년 기반 방과후 1반/2반 복사 버튼 -->
+                                    <button v-for="cName in availableClasses" :key="cName" @click="copyClassPhoneNumbers(cName)" class="btn btn-outline" style="color: #EC4899; border-color: #F9A8D4; padding: 5px 12px; font-size: 13.5px; border-radius: 20px;">
+                                        <i class="fa-solid fa-copy"></i> {{ cName === '1반' ? '1반(1~2학년)' : '2반(3~6학년)' }} 번호 복사
                                     </button>
                                     
                                     <button @click="sortStudents" class="btn btn-outline" style="padding: 5px 12px; font-size: 13.5px; border-radius: 20px; color: #4F46E5; border-color: #A5B4FC;"><i class="fa-solid fa-arrow-down-1-9"></i> 학년·반·번호순 정렬</button>
@@ -559,34 +559,45 @@
                     return counts;
                 });
 
-                // 📊 현재 선택된 학교의 존재하는 '반' 목록 추출 (중복 제거 및 오름차순 정렬)
+                // 🔥 1~2학년은 1반, 3~6학년은 2반으로 묶어서 버튼 생성
                 const availableClasses = computed(() => {
                     if (currentTab.value === 'certification') return [];
                     const classes = new Set();
                     filteredStudents.value.forEach(s => {
-                        if (s.classNum !== undefined && s.classNum !== null && s.classNum !== '') {
-                            classes.add(s.classNum);
+                        const gradeStr = (s.grade || '').toString().replace(/[^0-9]/g, '');
+                        const gradeNum = parseInt(gradeStr, 10);
+                        if (gradeNum >= 1 && gradeNum <= 2) {
+                            classes.add('1반');
+                        } else if (gradeNum >= 3 && gradeNum <= 6) {
+                            classes.add('2반');
                         }
                     });
-                    return Array.from(classes).sort((a, b) => {
-                        let numA = parseInt(a.toString().replace(/[^0-9]/g, ''), 10) || 0;
-                        let numB = parseInt(b.toString().replace(/[^0-9]/g, ''), 10) || 0;
-                        return numA - numB;
-                    });
+                    return Array.from(classes).sort(); // '1반', '2반' 순서대로 정렬
                 });
 
-                // 📋 특정 반의 학부모 전화번호만 복사하는 함수
-                const copyClassPhoneNumbers = (classNum) => {
-                    const targetStudents = filteredStudents.value.filter(s => s.classNum === classNum);
+                // 📋 해당 그룹(1반 혹은 2반)의 학부모 전화번호만 복사하는 함수
+                const copyClassPhoneNumbers = (className) => {
+                    const targetStudents = filteredStudents.value.filter(s => {
+                        const gradeStr = (s.grade || '').toString().replace(/[^0-9]/g, '');
+                        const gradeNum = parseInt(gradeStr, 10);
+                        
+                        // 1반 버튼을 눌렀을 땐 1, 2학년만 추출
+                        if (className === '1반' && gradeNum >= 1 && gradeNum <= 2) return true;
+                        // 2반 버튼을 눌렀을 땐 3, 4, 5, 6학년만 추출
+                        if (className === '2반' && gradeNum >= 3 && gradeNum <= 6) return true;
+                        
+                        return false;
+                    });
+
                     const phones = targetStudents
                         .map(s => s.phone)
                         .filter(phone => phone && phone.trim() !== '')
                         .join(',');
 
-                    const className = String(classNum).includes('반') ? classNum : classNum + '반';
+                    const displayClassName = className === '1반' ? '1반(1~2학년)' : '2반(3~6학년)';
 
                     if (!phones) {
-                        Swal.fire({ title: '안내', text: `${className}에 등록된 전화번호가 없습니다.`, icon: 'warning', confirmButtonColor: '#EC4899' });
+                        Swal.fire({ title: '안내', text: `${displayClassName}에 등록된 전화번호가 없습니다.`, icon: 'warning', confirmButtonColor: '#EC4899' });
                         return;
                     }
 
@@ -599,7 +610,7 @@
 
                     Swal.fire({
                         title: '복사 완료!',
-                        text: `${className} 학부모 전화번호가 복사되었습니다. (문자 발송창에 붙여넣기 하세요)`,
+                        text: `${displayClassName} 학부모 전화번호가 복사되었습니다. (문자 발송창에 붙여넣기 하세요)`,
                         icon: 'success',
                         timer: 2000,
                         showConfirmButton: false
