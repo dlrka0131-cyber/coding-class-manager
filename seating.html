@@ -100,11 +100,12 @@
         .btn-export { background: #8e44ad; color: #fff; }
         .btn-import { background: #9b59b6; color: #fff; }
 
-        /* 🔥 12차시 진도 체크 (날짜 박스 분리 & 미니 완료 버튼 디자인) 🔥 */
+        /* 🔥 13차시 진도 체크 (날짜 박스 분리 & 미니 완료 버튼 & 너비 조정) 🔥 */
         .progress-container { background: #243342; padding: 12px; border-radius: 10px; margin-top: 5px; border: 1px solid #34495e; }
         .progress-title { color: #ecf0f1; font-size: 0.8rem; font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
         .prog-row { display: flex; align-items: center; gap: 5px; margin-bottom: 5px; } 
-        .prog-label { color: #bdc3c7; font-size: 0.7rem; font-weight: bold; width: 42px; text-align: left; flex-shrink: 0; }
+        /* 10차시, 11차시 등 두 줄 깨짐 방지를 위해 width 늘림 */
+        .prog-label { color: #bdc3c7; font-size: 0.7rem; font-weight: bold; width: 42px; text-align: left; flex-shrink: 0; transition: color 0.2s;}
         
         /* 날짜 입력용 작은 네모 박스 */
         .prog-date-input { 
@@ -159,7 +160,7 @@
         .title-card {
             background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); padding: 12px 25px; border-radius: 50px;
             box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06); border: 1px solid rgba(255, 255, 255, 0.8);
-            display: flex align-items: center; gap: 12px; white-space: nowrap;
+            display: flex; align-items: center; gap: 12px; white-space: nowrap;
         }
         .school-title-text { font-size: 1.7rem; font-weight: 900; color: #2c3e50; letter-spacing: -0.5px; display: flex; align-items: center; gap: 8px; }
         .class-title-badge { padding: 3px 14px; border-radius: 20px; font-size: 1.4rem; font-weight: 900; box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1); display: inline-block; }
@@ -356,10 +357,10 @@
         <button class="btn-save-pos" onclick="manualSaveData()"><i class="fa-solid fa-floppy-disk"></i> 저장</button>
         <button class="btn-print" onclick="window.print()"><i class="fa-solid fa-print"></i> 인쇄</button>
 
-        <!-- 🔥 12차시 진도 관리 컨테이너 🔥 -->
+        <!-- 🔥 13차시 진도 관리 컨테이너 🔥 -->
         <div class="progress-container">
             <div class="progress-title">
-                <i class="fa-solid fa-list-check"></i> 12차시 진도표
+                <i class="fa-solid fa-list-check"></i> 13차시 진도표
             </div>
             <div id="progress-list"></div>
         </div>
@@ -490,11 +491,12 @@
         const qTextMap = { q1: '1분기', q2: '2분기', q3: '3분기', q4: '4분기' };
         const classTextMap = { class1: '1반', class2: '2반' };
 
+        // 🔥 기존 12차시에서 13차시로 기본값 변경 🔥
         function getEmptySingleClass(max) {
             return {
                 students: Array.from({length: max}, () => null),
                 announcement: "", memo: "",
-                progress: Array.from({length: 12}, () => ({date: '', text: '', done: false}))
+                progress: Array.from({length: 13}, () => ({date: '', text: '', done: false}))
             };
         }
 
@@ -683,11 +685,11 @@
                     return student;
                 });
                 
-                // 진도 데이터 구조 호환성 처리 (기존 text에 날짜가 포함되어 있던 경우 분리)
+                // 기존 데이터 배열 길이를 13으로 안전하게 맞춰주기
                 if(!classData[c].progress) {
-                    classData[c].progress = Array.from({length: 12}, () => ({date: '', text: '', done: false}));
+                    classData[c].progress = Array.from({length: 13}, () => ({date: '', text: '', done: false}));
                 } else {
-                    classData[c].progress = classData[c].progress.map(p => {
+                    let oldProg = classData[c].progress.map(p => {
                         if (typeof p === 'object') {
                             if (p.date === undefined) {
                                 const m = (p.text || '').match(/^(\d{1,2}\.\d{1,2})\s*(.*)$/);
@@ -698,6 +700,11 @@
                         }
                         return { date: '', text: '', done: false };
                     });
+                    
+                    while (oldProg.length < 13) {
+                        oldProg.push({ date: '', text: '', done: false });
+                    }
+                    classData[c].progress = oldProg.slice(0, 13);
                 }
                 if(classData[c].memo === undefined) classData[c].memo = "";
             }
@@ -1095,23 +1102,21 @@
             });
         }
 
-        // 🔥 날짜 박스 분리 & 미니 완료 버튼 & 자동 날짜 계산 렌더링 🔥
+        // 🔥 스마트 날짜 연쇄 계산 + 13차시 렌더링 🔥
         function renderProgress() {
             const list = document.getElementById('progress-list'); 
             list.innerHTML = '';
             const progData = classData[currentClassType].progress;
             
-            for(let i=0; i<12; i++) {
+            for(let i=0; i<13; i++) {
                 const item = progData[i];
                 const row = document.createElement('div'); 
                 row.className = 'prog-row' + (item.done ? ' prog-done' : '');
                 
-                // 차시 레이블
                 const label = document.createElement('div'); 
                 label.className = 'prog-label'; 
                 label.innerText = `${i+1}차시`;
                 
-                // 📅 날짜 네모 박스
                 const dateInput = document.createElement('input');
                 dateInput.className = 'prog-date-input';
                 dateInput.type = 'text';
@@ -1122,15 +1127,15 @@
                     const newDateVal = e.target.value.trim();
                     progData[i].date = newDateVal;
 
-                    // 1차시 날짜 변경 시 2~12차시 날짜 자동 계산
-                    if (i === 0 && newDateVal) {
+                    // 🔥 핵심: 어떤 차시에서든 날짜를 수정하면, 그 밑의 차시들은 7일 간격으로 알아서 다시 계산됩니다!
+                    if (newDateVal) {
                         const match = newDateVal.match(/^(\d{1,2})\.(\d{1,2})/);
                         if (match) {
                             const m = parseInt(match[1], 10);
                             const d = parseInt(match[2], 10);
                             let curDate = new Date(new Date().getFullYear(), m - 1, d);
 
-                            for (let j = 1; j < 12; j++) {
+                            for (let j = i + 1; j < 13; j++) {
                                 curDate.setDate(curDate.getDate() + 7);
                                 progData[j].date = `${curDate.getMonth() + 1}.${curDate.getDate()}`;
                             }
@@ -1139,7 +1144,6 @@
                     }
                 };
 
-                // 📝 수업 내용 입력 박스
                 const textInput = document.createElement('input'); 
                 textInput.className = 'prog-text-input'; 
                 textInput.type = 'text';
@@ -1147,7 +1151,6 @@
                 textInput.placeholder = '진도 내용 입력...';
                 textInput.onchange = (e) => { progData[i].text = e.target.value; };
 
-                // ✅ 미니 완료 버튼
                 const toggleBtn = document.createElement('button');
                 toggleBtn.className = 'btn-prog-toggle' + (item.done ? ' active' : '');
                 toggleBtn.type = 'button';
