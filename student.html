@@ -361,7 +361,7 @@
                         <tbody>
                             <!-- 자격증반 렌더링 (행 색상 적용) -->
                             <template v-if="currentTab === 'certification'">
-                                <tr v-for="(student, index) in allCertStudents" :key="student.id" :class="'cert-row-' + student.school">
+                                <tr v-for="(student, index) in allCertStudents" :key="student.id || index" :class="'cert-row-' + student.school">
                                     <td style="font-weight: 800; color: #64748B;">{{ index + 1 }}</td>
                                     <td :class="'text-' + student.school">
                                         {{ getSchoolFullName(student.school) }}
@@ -385,7 +385,7 @@
                             
                             <!-- 일반 학교 렌더링 (기본 하얀색 배경) -->
                             <template v-else>
-                                <tr v-for="(student, index) in filteredStudents" :key="student.id" style="background-color: #fff;">
+                                <tr v-for="(student, index) in filteredStudents" :key="student.id || index" style="background-color: #fff;">
                                     <td style="font-weight: 800; color: #64748B;">{{ index + 1 }}</td>
                                     <td style="font-weight: 700; color: #334155;">{{ student.grade }}</td>
                                     <td style="font-weight: 700; color: #334155;">{{ student.classNum }}</td>
@@ -542,28 +542,30 @@
                     }
                 });
 
-                const filteredStudents = computed(() => { return students.value.filter(s => s.school === currentTab.value && s.quarter === quarter.value && s.status !== '삭제'); });
-
-                const allCertStudents = computed(() => {
-                    return students.value.filter(s => s.quarter === quarter.value && s.status !== '삭제' && s.item === '자격증');
+                // 🔥 널(null) 데이터 방어 코드 추가 (혹시 모를 오류 원천 차단)
+                const filteredStudents = computed(() => { 
+                    return students.value.filter(s => s && s.school === currentTab.value && s.quarter === quarter.value && s.status !== '삭제'); 
                 });
 
-                // 📊 자격증반 학교별 인원수 계산기
+                const allCertStudents = computed(() => {
+                    return students.value.filter(s => s && s.quarter === quarter.value && s.status !== '삭제' && s.item === '자격증');
+                });
+
                 const certSchoolCounts = computed(() => {
                     const counts = { hakdong: 0, bareun: 0, banwol: 0, sejeong: 0 };
                     allCertStudents.value.forEach(s => {
-                        if (counts[s.school] !== undefined) {
+                        if (s && counts[s.school] !== undefined) {
                             counts[s.school]++;
                         }
                     });
                     return counts;
                 });
 
-                // 🔥 1~2학년은 1반, 3~6학년은 2반으로 묶어서 버튼 생성
                 const availableClasses = computed(() => {
                     if (currentTab.value === 'certification') return [];
                     const classes = new Set();
                     filteredStudents.value.forEach(s => {
+                        if (!s) return; // 빈 데이터 안전하게 패스
                         const gradeStr = (s.grade || '').toString().replace(/[^0-9]/g, '');
                         const gradeNum = parseInt(gradeStr, 10);
                         if (gradeNum >= 1 && gradeNum <= 2) {
@@ -572,18 +574,16 @@
                             classes.add('2반');
                         }
                     });
-                    return Array.from(classes).sort(); // '1반', '2반' 순서대로 정렬
+                    return Array.from(classes).sort(); 
                 });
 
-                // 📋 해당 그룹(1반 혹은 2반)의 학부모 전화번호만 복사하는 함수
                 const copyClassPhoneNumbers = (className) => {
                     const targetStudents = filteredStudents.value.filter(s => {
+                        if (!s) return false;
                         const gradeStr = (s.grade || '').toString().replace(/[^0-9]/g, '');
                         const gradeNum = parseInt(gradeStr, 10);
                         
-                        // 1반 버튼을 눌렀을 땐 1, 2학년만 추출
                         if (className === '1반' && gradeNum >= 1 && gradeNum <= 2) return true;
-                        // 2반 버튼을 눌렀을 땐 3, 4, 5, 6학년만 추출
                         if (className === '2반' && gradeNum >= 3 && gradeNum <= 6) return true;
                         
                         return false;
@@ -610,7 +610,7 @@
 
                     Swal.fire({
                         title: '복사 완료!',
-                        text: `${displayClassName} 학부모 전화번호가 복사되었습니다. (문자 발송창에 붙여넣기 하세요)`,
+                        text: `${displayClassName} 학부모 전화번호가 복사되었습니다.`,
                         icon: 'success',
                         timer: 2000,
                         showConfirmButton: false
@@ -619,8 +619,10 @@
 
                 const sortStudents = () => {
                     students.value.sort((a, b) => {
-                        if (a.quarter !== b.quarter) return a.quarter.localeCompare(b.quarter);
-                        if (a.school !== b.school) return a.school.localeCompare(b.school);
+                        if (!a) return 1;
+                        if (!b) return -1;
+                        if (a.quarter !== b.quarter) return (a.quarter || '').localeCompare(b.quarter || '');
+                        if (a.school !== b.school) return (a.school || '').localeCompare(b.school || '');
                         let gA = parseInt((a.grade || '').toString().replace(/[^0-9]/g, ''), 10) || 0;
                         let gB = parseInt((b.grade || '').toString().replace(/[^0-9]/g, ''), 10) || 0;
                         if (gA !== gB) return gA - gB;
@@ -641,7 +643,7 @@
                     }
 
                     const phones = allCertStudents.value
-                        .map(s => s.phone)
+                        .map(s => s && s.phone)
                         .filter(phone => phone && phone.trim() !== '')
                         .join(',');
 
@@ -747,8 +749,8 @@
                             if (data.students) {
                                 students.value = data.students.map(s => ({ 
                                     ...s, 
-                                    consultationNote: s.consultationNote || '',
-                                    certNote: s.certNote || ''
+                                    consultationNote: s?.consultationNote || '',
+                                    certNote: s?.certNote || ''
                                 }));
                             }
                             if (data.messageTemplates) {
