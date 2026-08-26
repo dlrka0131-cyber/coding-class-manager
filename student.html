@@ -136,8 +136,8 @@
         
         .main-table { width: 100%; border-collapse: separate; border-spacing: 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,0.02); font-size: 14px; }
         .main-table th { background-color: #F1F5F9; font-weight: 800; color: #334155; padding: 8px 6px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); text-align: center; font-size: 14px; }
-        .main-table td { padding: 4px 6px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); text-align: center; vertical-align: middle; background: inherit; } /* inherit으로 변경하여 tr 배경색 적용 */
-        .main-table tbody tr:hover td { filter: brightness(0.97); } /* hover 시 밝기 조절로 변경 */
+        .main-table td { padding: 4px 6px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border); text-align: center; vertical-align: middle; background: inherit; }
+        .main-table tbody tr:hover td { filter: brightness(0.97); }
         
         /* 🎨 자격증반 전용 표 색상 클래스 */
         .cert-row-hakdong td { background-color: #FEF2F2 !important; }
@@ -160,7 +160,7 @@
         .note-input {
             width: 100%; border: 1px solid #CBD5E1; border-radius: 6px; 
             padding: 6px 10px; font-family: inherit; font-size: 13.5px; 
-            outline: none; color: #334155; background: #FFFFFF; transition: all 0.2s; /* 배경색을 흰색 고정으로 하여 컬러 배경 위에서 잘 보이게 함 */
+            outline: none; color: #334155; background: #FFFFFF; transition: all 0.2s;
             box-sizing: border-box;
         }
         .note-input:focus { border-color: var(--theme-color, var(--primary)); box-shadow: 0 0 0 2px rgba(120, 100, 156, 0.1); }
@@ -309,6 +309,11 @@
                             
                             <div style="display: flex; gap: 6px;">
                                 <template v-if="currentTab !== 'certification'">
+                                    <!-- 🔥 새로 추가된 반별 번호 복사 버튼 -->
+                                    <button v-for="cNum in availableClasses" :key="cNum" @click="copyClassPhoneNumbers(cNum)" class="btn btn-outline" style="color: #EC4899; border-color: #F9A8D4; padding: 5px 12px; font-size: 13.5px; border-radius: 20px;">
+                                        <i class="fa-solid fa-copy"></i> {{ String(cNum).includes('반') ? cNum : cNum + '반' }} 번호 복사
+                                    </button>
+                                    
                                     <button @click="sortStudents" class="btn btn-outline" style="padding: 5px 12px; font-size: 13.5px; border-radius: 20px; color: #4F46E5; border-color: #A5B4FC;"><i class="fa-solid fa-arrow-down-1-9"></i> 학년·반·번호순 정렬</button>
                                     <button class="btn btn-outline" @click="exportToExcel" style="color: #059669; border-color: #6EE7B7; padding: 5px 12px; font-size: 13.5px; border-radius: 20px;">📊 엑셀 저장</button>
                                 </template>
@@ -554,6 +559,53 @@
                     return counts;
                 });
 
+                // 📊 현재 선택된 학교의 존재하는 '반' 목록 추출 (중복 제거 및 오름차순 정렬)
+                const availableClasses = computed(() => {
+                    if (currentTab.value === 'certification') return [];
+                    const classes = new Set();
+                    filteredStudents.value.forEach(s => {
+                        if (s.classNum !== undefined && s.classNum !== null && s.classNum !== '') {
+                            classes.add(s.classNum);
+                        }
+                    });
+                    return Array.from(classes).sort((a, b) => {
+                        let numA = parseInt(a.toString().replace(/[^0-9]/g, ''), 10) || 0;
+                        let numB = parseInt(b.toString().replace(/[^0-9]/g, ''), 10) || 0;
+                        return numA - numB;
+                    });
+                });
+
+                // 📋 특정 반의 학부모 전화번호만 복사하는 함수
+                const copyClassPhoneNumbers = (classNum) => {
+                    const targetStudents = filteredStudents.value.filter(s => s.classNum === classNum);
+                    const phones = targetStudents
+                        .map(s => s.phone)
+                        .filter(phone => phone && phone.trim() !== '')
+                        .join(',');
+
+                    const className = String(classNum).includes('반') ? classNum : classNum + '반';
+
+                    if (!phones) {
+                        Swal.fire({ title: '안내', text: `${className}에 등록된 전화번호가 없습니다.`, icon: 'warning', confirmButtonColor: '#EC4899' });
+                        return;
+                    }
+
+                    const tempElem = document.createElement('textarea');
+                    tempElem.value = phones;
+                    document.body.appendChild(tempElem);
+                    tempElem.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempElem);
+
+                    Swal.fire({
+                        title: '복사 완료!',
+                        text: `${className} 학부모 전화번호가 복사되었습니다. (문자 발송창에 붙여넣기 하세요)`,
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    });
+                };
+
                 const sortStudents = () => {
                     students.value.sort((a, b) => {
                         if (a.quarter !== b.quarter) return a.quarter.localeCompare(b.quarter);
@@ -712,10 +764,11 @@
                 return { 
                     isLoggedIn, landingQuarter, selectSchoolAndEnter, goHome, goToIndex, 
                     currentTab, quarter, students, filteredStudents, allCertStudents, getSchoolFullName, sortStudents,
-                    certSchoolCounts, // 📊 카운트 추가 반환
+                    certSchoolCounts, 
                     activeTemplate, messageTemplates, currentSchoolTemplates, commonVars,
                     getTemplateTitle, addNewTemplate, removeTemplate, copyCurrentTemplate, copyCertPhoneNumbers,
-                    saveData, exportToExcel
+                    saveData, exportToExcel,
+                    availableClasses, copyClassPhoneNumbers
                 };
             }
         }).mount('#app');
