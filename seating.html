@@ -139,20 +139,43 @@
 
         /* 메인 컨테이너 비율 수정 */
         #main-container { flex: 1; display: flex; flex-direction: column; width: 100%; min-width: 0; }
-        #workspace { flex: 1; display: flex; gap: 20px; padding: 20px; overflow: hidden; transition: background-color 0.4s ease; width: 100%; }
+        #workspace { flex: 1; display: flex; gap: 10px; padding: 20px; overflow: hidden; transition: background-color 0.4s ease; width: 100%; }
 
         .workspace-class1 { background: linear-gradient(135deg, #fff5f5 0%, #ffe3e3 100%) !important; }
         .workspace-class2 { background: linear-gradient(135deg, #f0f7ff 0%, #dbeafe 100%) !important; }
 
-        /* 🔥 수정된 부분: 왼쪽 자리배치도 가로 너비 조절 기능 추가 */
+        /* 🔥 수정된 부분: 왼쪽 창의 너비를 조절할 수 있도록 flex: 3 해제, 가로 크기를 %로 설정 */
         #left-pane { 
-            flex: 3; border-radius: 16px; padding: 25px; display: flex; flex-direction: column; 
+            width: 75%; flex-shrink: 0; border-radius: 16px; padding: 25px; display: flex; flex-direction: column; 
             transition: background-color 0.4s ease, border-color 0.4s ease; box-shadow: 0 4px 20px rgba(0,0,0,0.03); 
-            min-width: 50%; max-width: 85%; overflow: hidden; resize: horizontal;
+            min-width: 50%; max-width: 85%; overflow: hidden; 
         }
         .pane-class1 { background: #fff0f3; border: 2px solid #ffccd5; }
         .pane-class2 { background: #f0f6ff; border: 2px solid #bfdbfe; }
         
+        /* 🔥 새로 추가된 부분: 창과 창 사이의 크기 조절 손잡이(스플리터) */
+        #drag-resizer {
+            width: 14px;
+            cursor: col-resize;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 -5px; /* 넓은 클릭 영역 확보 */
+            z-index: 10;
+        }
+        #drag-resizer::after {
+            content: "";
+            width: 6px;
+            height: 60px;
+            background-color: #cbd5e0;
+            border-radius: 6px;
+            transition: background-color 0.2s, height 0.2s;
+        }
+        #drag-resizer:hover::after, #drag-resizer.dragging::after {
+            background-color: #3498db;
+            height: 90px;
+        }
+
         .board-header { 
             display: flex; flex-wrap: nowrap; justify-content: center; align-items: center; 
             margin-bottom: 25px; gap: 15px; white-space: nowrap; 
@@ -235,11 +258,13 @@
         .lvl-5 { background-color: #9b59b6; }
         .lvl-6 { background-color: transparent; box-shadow: none; font-size: 1.5rem; top: -10px; right: -10px; } 
 
-        /* 🔥 수정된 부분: 오른쪽 창의 최소 너비(min-width) 축소 */
+        /* 🔥 수정된 부분: 오른쪽 창 너비 유연하게 적용 */
         #right-pane { 
             flex: 1; min-width: 200px; background: #fdf2e9; border-radius: 12px; padding: 25px; 
             border: 2px solid #fadbd8; display: flex; flex-direction: column; gap: 15px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.03); transition: all 0.4s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.03); 
+            /* 드래그 렉 방지를 위해 width 관련 애니메이션 제거 */
+            transition: background-color 0.4s ease, border-color 0.4s ease;
         }
         .board-section { display: flex; flex-direction: column; flex: 1.5; gap: 8px; }
         .board-section h2 { margin: 0; color: #2c3e50; font-size: 1.4rem; text-align: center; }
@@ -258,9 +283,9 @@
         }
         .memo-board:focus { border-color: #e74c3c; background: rgba(254, 249, 231, 1); }
 
-        /* 🔥 수정된 부분: 4-4 배열일 때 오른쪽 창의 최소 너비(min-width) 축소 */
-        .layout-4-4 #left-pane { flex: 4; } 
-        .layout-4-4 #right-pane { flex: 0.8; min-width: 200px; padding: 20px; }
+        /* 🔥 수정된 부분: 4-4 배열일 때 flex 강제 고정 해제 */
+        .layout-4-4 #left-pane { width: 80%; flex-shrink: 0; } 
+        .layout-4-4 #right-pane { min-width: 200px; padding: 20px; }
         .layout-4-4 .announcement-board { font-size: 2.2rem; } 
         .layout-4-4 .row { gap: 20px; } 
 
@@ -307,6 +332,7 @@
             body { background: white; overflow: visible; display: block;}
             #main-container { display: block; }
             #workspace { padding: 0; gap: 15px; border: none; overflow: visible; display: flex; }
+            #drag-resizer { display: none; } /* 인쇄 시 조절바 숨김 */
             #left-pane, #right-pane { box-shadow: none; border: 2px solid #000; border-radius: 0; background: white; min-width: auto; }
             .group { background: transparent; padding: 0; border: none; box-shadow: none; }
             .desk { border: 2px solid #000; box-shadow: none; }
@@ -394,6 +420,9 @@
                 </div>
             </div>
 
+            <!-- 🔥 창과 창 사이를 조절할 수 있는 드래그 막대 추가 🔥 -->
+            <div id="drag-resizer" title="좌우 너비 조절"></div>
+
             <div id="right-pane">
                 <div class="board-section">
                     <h2>오늘의 코딩 수업 안내</h2>
@@ -453,13 +482,52 @@
             <div class="qr-preview-text" id="qr-text-preview"></div>
             
             <div class="custom-modal-btns" style="flex-direction: column; gap: 8px;">
-                <button class="btn-copy-text" onclick="copyBulkText()"><i class="fa-solid fa-copy"></i> 텍스트 복 복사하기</button>
+                <button class="btn-copy-text" onclick="copyBulkText()"><i class="fa-solid fa-copy"></i> 텍스트 복사하기</button>
                 <button class="btn-modal-cancel" onclick="closeBulkQRModal()"><i class="fa-solid fa-xmark"></i> 닫기</button>
             </div>
         </div>
     </div>
 
     <script>
+        // 🔥 창 크기 조절을 위한 자바스크립트 스크립트 추가 🔥
+        const resizer = document.getElementById('drag-resizer');
+        const leftPane = document.getElementById('left-pane');
+        let isResizing = false;
+
+        resizer.addEventListener('mousedown', (e) => {
+            isResizing = true;
+            document.body.style.cursor = 'col-resize';
+            // 텍스트 선택 방지
+            document.body.style.userSelect = 'none'; 
+            resizer.classList.add('dragging');
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!isResizing) return;
+            
+            const workspace = document.getElementById('workspace');
+            const workspaceRect = workspace.getBoundingClientRect();
+            
+            // 마우스 위치에 따라 왼쪽 패널의 넓이 계산 (좌측 패딩 20px 감안)
+            let newWidth = e.clientX - workspaceRect.left - 20; 
+            
+            // 화면 비율을 망치지 않는 선에서만 조절 가능하게 한계치 설정
+            if (newWidth < workspaceRect.width * 0.4) newWidth = workspaceRect.width * 0.4;
+            if (newWidth > workspaceRect.width * 0.8) newWidth = workspaceRect.width * 0.8;
+            
+            leftPane.style.width = `${newWidth}px`;
+            leftPane.style.flex = 'none'; // flex 고정 완전히 무효화
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (isResizing) {
+                isResizing = false;
+                document.body.style.cursor = 'default';
+                document.body.style.userSelect = '';
+                resizer.classList.remove('dragging');
+            }
+        });
+
         // 🔥 1. 파이어베이스 클라우드 연결 설정 🔥
         const firebaseConfig = {
             apiKey: "AIzaSyCDLTlbv0NPooUV_ErqpwJLX9ayQWqE8Y8",
@@ -492,7 +560,6 @@
         const qTextMap = { q1: '1분기', q2: '2분기', q3: '3분기', q4: '4분기' };
         const classTextMap = { class1: '1반', class2: '2반' };
 
-        // 🔥 기존 12차시에서 13차시로 기본값 변경 🔥
         function getEmptySingleClass(max) {
             return {
                 students: Array.from({length: max}, () => null),
@@ -686,7 +753,6 @@
                     return student;
                 });
                 
-                // 기존 데이터 배열 길이를 13으로 안전하게 맞춰주기
                 if(!classData[c].progress) {
                     classData[c].progress = Array.from({length: 13}, () => ({date: '', text: '', done: false}));
                 } else {
