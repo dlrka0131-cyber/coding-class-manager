@@ -1374,7 +1374,9 @@
                 };
 
                 const removeStudent = (id) => {
-                    Swal.fire({ title: '영구 삭제', text: '명단에서 완전히 삭제하시겠습니까? (재고 정산에서도 빠집니다)', icon: 'warning', showCancelButton: true, confirmButtonColor: '#EF4444', cancelButtonColor: '#94A3B8', confirmButtonText: '완전 삭제' }).then((result) => {
+                    const target = students.value.find(s => s.id === id);
+                    const displayName = target && target.name ? target.name : '해당 학생';
+                    Swal.fire({ title: '영구 삭제', html: `<b>"${displayName}"</b> 학생을 명단에서 완전히 삭제하시겠습니까?<br>(재고 정산에서도 빠집니다)`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#EF4444', cancelButtonColor: '#94A3B8', confirmButtonText: '완전 삭제' }).then((result) => {
                         if (result.isConfirmed) { students.value = students.value.filter(s => s.id !== id); selectedStudentIds.value = selectedStudentIds.value.filter(sid => sid !== id); }
                     });
                 };
