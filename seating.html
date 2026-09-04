@@ -90,6 +90,7 @@
         
         .btn-sync { background: linear-gradient(135deg, #fbc5eb 0%, #e8a5df 100%); color: #4a235a; }
         .btn-save-pos { background: linear-gradient(135deg, #df98d7 0%, #cc88d0 100%); color: #fff; }
+        .btn-reset-attendance { background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%); color: #fff; }
         .btn-print { background: linear-gradient(135deg, #7457ad 0%, #b19cd9 100%); color: #fff; }
         
         /* 맨 아래 미니 버튼 그룹 */
@@ -397,6 +398,7 @@
 
         <button class="btn-sync" onclick="syncDashboardRoster()"><i class="fa-solid fa-rotate"></i> 대시보드 명단 동기화</button>
         <button class="btn-save-pos" onclick="manualSaveData()"><i class="fa-solid fa-floppy-disk"></i> 저장</button>
+        <button class="btn-reset-attendance" onclick="resetAttendanceOnly()"><i class="fa-solid fa-broom"></i> 오늘 출석 초기화</button>
         <button class="btn-print" onclick="window.print()"><i class="fa-solid fa-print"></i> 인쇄</button>
 
         <!-- 🔥 13차시 진도 관리 컨테이너 🔥 -->
@@ -828,6 +830,29 @@
                 updateTitleAndRender();
                 showCustomAlert("초기화 완료", "데이터가 초기화되었습니다.");
             });
+        }
+
+        function resetAttendanceOnly() {
+            const students = classData[currentClassType].students;
+            const hasAnyChecked = students.some(s => s && s.status && s.status !== 'normal');
+
+            if (!hasAnyChecked) {
+                showCustomAlert("초기화할 내용 없음", "이미 모든 학생의 출결 상태가 초기화되어 있습니다.", '<i class="fa-solid fa-circle-info" style="color: #f39c12;"></i>');
+                return;
+            }
+
+            showCustomAlert(
+                "오늘 출석 초기화",
+                `[${SCHOOLS[currentSchool].name} - ${classTextMap[currentClassType]}] 학생들의 출결 상태를 모두 초기화할까요?\n(자리 배치, 이름, 레벨, 메모는 그대로 유지됩니다.)`,
+                '<i class="fa-solid fa-broom" style="color: #44a08d;"></i>',
+                true,
+                async function() {
+                    students.forEach(s => { if (s) s.status = 'normal'; });
+                    renderClassroom();
+                    await manualSaveData(true);
+                    showCustomAlert("초기화 완료", "출결 상태가 초기화되었습니다. 오늘 출석 체크를 시작해주세요!", '<i class="fa-solid fa-check" style="color: #27ae60;"></i>');
+                }
+            );
         }
 
         function resetAllData() {
