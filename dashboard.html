@@ -19,6 +19,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCDLTlbv0NPooUV_ErqpwJLX9ayQWqE8Y8",
@@ -29,21 +30,67 @@
             appId: "1:342705436396:web:82fb1c31af93dc539857c9"
         };
 
+        const ALLOWED_EMAIL = 'dlrka0131@gmail.com';
+
         try {
             const app = initializeApp(firebaseConfig);
             const db = getFirestore(app);
+            const auth = getAuth(app);
 
             window.db = db;
             window.firebaseDoc = doc;
             window.firebaseSetDoc = setDoc;
             window.firebaseGetDoc = getDoc;
-            window.firebaseReady = true;
-            window.dispatchEvent(new Event('firebase-ready'));
+
+            onAuthStateChanged(auth, (user) => {
+                const overlay = document.getElementById('authGateOverlay');
+                const denied = document.getElementById('authGateDenied');
+                if (user && user.email === ALLOWED_EMAIL) {
+                    if (overlay) overlay.style.display = 'none';
+                    window.firebaseReady = true;
+                    window.dispatchEvent(new Event('firebase-ready'));
+                } else {
+                    if (user) {
+                        if (denied) denied.style.display = 'block';
+                        signOut(auth);
+                    }
+                    if (overlay) overlay.style.display = 'flex';
+                }
+            });
+
+            const btn = document.getElementById('authGateBtn');
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    signInWithPopup(auth, new GoogleAuthProvider()).catch((err) => {
+                        console.error('로그인 실패:', err);
+                        alert('로그인에 실패했습니다: ' + err.message);
+                    });
+                });
+            }
         } catch (err) {
             console.error('Firebase 초기화 실패:', err);
             window.firebaseInitError = err.message;
         }
     </script>
+    <style>
+        #authGateOverlay {
+            position: fixed; inset: 0; background: rgba(15,23,42,0.92);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 999999; color: #fff; font-family: 'Pretendard', 'Malgun Gothic', sans-serif;
+        }
+        #authGateBox {
+            background: #1e293b; padding: 32px 28px; border-radius: 14px; text-align: center;
+            max-width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+        #authGateBox h2 { margin: 0 0 12px; font-size: 18px; }
+        #authGateBox p { margin: 0 0 20px; font-size: 13px; color: #cbd5e1; line-height: 1.5; }
+        #authGateBtn {
+            background: #4285F4; color: #fff; border: none; padding: 10px 20px; border-radius: 8px;
+            font-weight: 600; cursor: pointer; font-size: 14px;
+        }
+        #authGateBtn:hover { background: #3367d6; }
+        #authGateDenied { color: #f87171; font-size: 12px; margin-top: 12px; display: none; }
+    </style>
 
     <style>
         :root {
@@ -391,6 +438,14 @@
     </style>
 </head>
 <body>
+    <div id="authGateOverlay" style="display: flex;">
+      <div id="authGateBox">
+        <h2>🔒 로그인이 필요합니다</h2>
+        <p>선생님 전용 페이지입니다.<br>구글 계정으로 로그인해주세요.</p>
+        <button id="authGateBtn">Google로 로그인</button>
+        <div id="authGateDenied">이 계정은 접근 권한이 없습니다.</div>
+      </div>
+    </div>
     <div id="app">
         
         <!-- 캡처본 보기용 모달 -->

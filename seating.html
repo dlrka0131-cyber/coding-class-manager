@@ -13,6 +13,26 @@
     <!-- 🔥 파이어베이스 클라우드 통신용 시스템 파일 🔥 -->
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <style>
+        #authGateOverlay {
+            position: fixed; inset: 0; background: rgba(15,23,42,0.92);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 999999; color: #fff; font-family: 'Malgun Gothic', sans-serif;
+        }
+        #authGateBox {
+            background: #1e293b; padding: 32px 28px; border-radius: 14px; text-align: center;
+            max-width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+        }
+        #authGateBox h2 { margin: 0 0 12px; font-size: 18px; }
+        #authGateBox p { margin: 0 0 20px; font-size: 13px; color: #cbd5e1; line-height: 1.5; }
+        #authGateBtn {
+            background: #4285F4; color: #fff; border: none; padding: 10px 20px; border-radius: 8px;
+            font-weight: 600; cursor: pointer; font-size: 14px;
+        }
+        #authGateBtn:hover { background: #3367d6; }
+        #authGateDenied { color: #f87171; font-size: 12px; margin-top: 12px; display: none; }
+    </style>
 
     <!-- 📱 QR 코드 생성 라이브러리 추가 📱 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -367,6 +387,14 @@
     </style>
 </head>
 <body>
+<div id="authGateOverlay" style="display: flex;">
+  <div id="authGateBox">
+    <h2>🔒 로그인이 필요합니다</h2>
+    <p>선생님 전용 페이지입니다.<br>구글 계정으로 로그인해주세요.</p>
+    <button id="authGateBtn">Google로 로그인</button>
+    <div id="authGateDenied">이 계정은 접근 권한이 없습니다.</div>
+  </div>
+</div>
 
     <div id="sidebar">
         <div class="sidebar-header-box">
@@ -556,6 +584,39 @@
         };
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+        const auth = firebase.auth();
+        const ALLOWED_EMAIL = 'dlrka0131@gmail.com';
+
+        auth.onAuthStateChanged(function(user) {
+            const overlay = document.getElementById('authGateOverlay');
+            const denied = document.getElementById('authGateDenied');
+            if (user && user.email === ALLOWED_EMAIL) {
+                if (overlay) overlay.style.display = 'none';
+                if (!window.__appInited) {
+                    window.__appInited = true;
+                    initApp();
+                }
+            } else {
+                if (user) {
+                    if (denied) denied.style.display = 'block';
+                    auth.signOut();
+                }
+                if (overlay) overlay.style.display = 'flex';
+            }
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const btn = document.getElementById('authGateBtn');
+            if (btn) {
+                btn.addEventListener('click', function() {
+                    const provider = new firebase.auth.GoogleAuthProvider();
+                    auth.signInWithPopup(provider).catch(function(err) {
+                        console.error('로그인 실패:', err);
+                        alert('로그인에 실패했습니다: ' + err.message);
+                    });
+                });
+            }
+        });
 
         let dashboardStudents = [];
 
@@ -1297,7 +1358,7 @@
             });
         }
 
-        window.onload = function() { initApp(); };
+        // initApp()은 이제 로그인 성공 시 auth.onAuthStateChanged 콜백에서 호출됩니다.
     </script>
 </body>
 </html>
