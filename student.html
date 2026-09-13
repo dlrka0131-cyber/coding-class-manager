@@ -19,7 +19,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, onAuthStateChanged, signOut, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCDLTlbv0NPooUV_ErqpwJLX9ayQWqE8Y8",
@@ -36,6 +36,13 @@
             const app = initializeApp(firebaseConfig);
             const db = getFirestore(app);
             const auth = getAuth(app);
+            try {
+                setPersistence(auth, browserSessionPersistence).catch((e) => {
+                    console.warn('로그인 유지 설정 실패(무시하고 진행):', e);
+                });
+            } catch (e) {
+                console.warn('로그인 유지 설정 실패(무시하고 진행):', e);
+            }
 
             window.db = db;
             window.firebaseDoc = doc;
@@ -45,8 +52,10 @@
             onAuthStateChanged(auth, (user) => {
                 const overlay = document.getElementById('authGateOverlay');
                 const denied = document.getElementById('authGateDenied');
+                const logoutBtn = document.getElementById('authLogoutBtn');
                 if (user && user.email === ALLOWED_EMAIL) {
                     if (overlay) overlay.style.display = 'none';
+                    if (logoutBtn) logoutBtn.style.display = 'block';
                     window.firebaseReady = true;
                     window.dispatchEvent(new Event('firebase-ready'));
                 } else {
@@ -54,6 +63,7 @@
                         if (denied) denied.style.display = 'block';
                         signOut(auth);
                     }
+                    if (logoutBtn) logoutBtn.style.display = 'none';
                     if (overlay) overlay.style.display = 'flex';
                 }
             });
@@ -65,6 +75,13 @@
                         console.error('로그인 실패:', err);
                         alert('로그인에 실패했습니다: ' + err.message);
                     });
+                });
+            }
+
+            const logoutBtn = document.getElementById('authLogoutBtn');
+            if (logoutBtn) {
+                logoutBtn.addEventListener('click', () => {
+                    signOut(auth);
                 });
             }
         } catch (err) {
@@ -90,6 +107,13 @@
         }
         #authGateBtn:hover { background: #3367d6; }
         #authGateDenied { color: #f87171; font-size: 12px; margin-top: 12px; display: none; }
+        #authLogoutBtn {
+            position: fixed; top: 10px; right: 10px; z-index: 999998; display: none;
+            background: rgba(15,23,42,0.85); color: #fff; border: 1px solid #475569;
+            padding: 6px 12px; border-radius: 20px; font-size: 12px; cursor: pointer;
+            font-family: 'Pretendard', 'Malgun Gothic', sans-serif;
+        }
+        #authLogoutBtn:hover { background: #dc2626; border-color: #dc2626; }
     </style>
 
     <style>
@@ -229,6 +253,7 @@
     </style>
 </head>
 <body>
+    <button id="authLogoutBtn">🚪 로그아웃</button>
     <div id="authGateOverlay" style="display: flex;">
       <div id="authGateBox">
         <h2>🔒 로그인이 필요합니다</h2>
