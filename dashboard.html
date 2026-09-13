@@ -50,10 +50,8 @@
             window.firebaseGetDoc = getDoc;
 
             onAuthStateChanged(auth, (user) => {
-                const overlay = document.getElementById('authGateOverlay');
                 const logoutBtn = document.getElementById('authLogoutBtn');
                 if (user && user.email === ALLOWED_EMAIL) {
-                    if (overlay) overlay.style.display = 'none';
                     if (logoutBtn) logoutBtn.style.display = 'block';
                     window.firebaseReady = true;
                     window.dispatchEvent(new Event('firebase-ready'));
@@ -76,17 +74,6 @@
         }
     </script>
     <style>
-        #authGateOverlay {
-            position: fixed; inset: 0; background: rgba(15,23,42,0.92);
-            display: flex; align-items: center; justify-content: center;
-            z-index: 999999; color: #fff; font-family: 'Pretendard', 'Malgun Gothic', sans-serif;
-        }
-        #authGateBox {
-            background: #1e293b; padding: 32px 28px; border-radius: 14px; text-align: center;
-            max-width: 320px; box-shadow: 0 10px 30px rgba(0,0,0,0.4);
-        }
-        #authGateBox h2 { margin: 0 0 12px; font-size: 18px; }
-        #authGateBox p { margin: 0; font-size: 13px; color: #cbd5e1; line-height: 1.5; }
         #authLogoutBtn {
             position: fixed; top: 10px; right: 10px; z-index: 999998; display: none;
             background: rgba(15,23,42,0.85); color: #fff; border: 1px solid #475569;
@@ -443,12 +430,6 @@
 </head>
 <body>
     <button id="authLogoutBtn">🚪 로그아웃</button>
-    <div id="authGateOverlay" style="display: flex;">
-      <div id="authGateBox">
-        <h2>🔒 로그인 확인 중...</h2>
-        <p>잠시만 기다려주세요.</p>
-      </div>
-    </div>
     <div id="app">
         
         <!-- 캡처본 보기용 모달 -->
