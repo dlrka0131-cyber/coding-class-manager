@@ -32,13 +32,6 @@
         }
         #authGateBtn:hover { background: #3367d6; }
         #authGateDenied { color: #f87171; font-size: 12px; margin-top: 12px; display: none; }
-        #authLogoutBtn {
-            position: fixed; top: 10px; right: 10px; z-index: 999998; display: none;
-            background: rgba(15,23,42,0.85); color: #fff; border: 1px solid #475569;
-            padding: 6px 12px; border-radius: 20px; font-size: 12px; cursor: pointer;
-            font-family: 'Malgun Gothic', sans-serif;
-        }
-        #authLogoutBtn:hover { background: #dc2626; border-color: #dc2626; }
     </style>
 
     <!-- 📱 QR 코드 생성 라이브러리 추가 📱 -->
@@ -394,7 +387,6 @@
     </style>
 </head>
 <body>
-<button id="authLogoutBtn">🚪 로그아웃</button>
 <div id="authGateOverlay" style="display: flex;">
   <div id="authGateBox">
     <h2>🔒 로그인이 필요합니다</h2>
@@ -606,10 +598,8 @@
         auth.onAuthStateChanged(function(user) {
             const overlay = document.getElementById('authGateOverlay');
             const denied = document.getElementById('authGateDenied');
-            const logoutBtn = document.getElementById('authLogoutBtn');
             if (user && user.email === ALLOWED_EMAIL) {
                 if (overlay) overlay.style.display = 'none';
-                if (logoutBtn) logoutBtn.style.display = 'block';
                 if (!window.__appInited) {
                     window.__appInited = true;
                     initApp();
@@ -619,7 +609,6 @@
                     if (denied) denied.style.display = 'block';
                     auth.signOut();
                 }
-                if (logoutBtn) logoutBtn.style.display = 'none';
                 if (overlay) overlay.style.display = 'flex';
             }
         });
@@ -633,12 +622,6 @@
                         console.error('로그인 실패:', err);
                         alert('로그인에 실패했습니다: ' + err.message);
                     });
-                });
-            }
-            const logoutBtn = document.getElementById('authLogoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', function() {
-                    auth.signOut();
                 });
             }
         });
