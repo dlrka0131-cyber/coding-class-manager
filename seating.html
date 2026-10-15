@@ -134,10 +134,18 @@
         .btn-prog-toggle:hover { background: #3d566e; color: #fff; }
         .btn-prog-toggle.active { background: #27ae60; color: #fff; border-color: #2ecc71; font-weight: bold; }
 
-        /* 완료 시 취소선 스타일 */
-        .prog-done .prog-label { color: #7f8c8d; text-decoration: line-through; }
-        .prog-done .prog-date-input { color: #7f8c8d; text-decoration: line-through; opacity: 0.6; }
-        .prog-done .prog-text-input { color: #7f8c8d; text-decoration: line-through; opacity: 0.6; }
+        /* 완료 시: 지난 수업 내용을 다시 볼 수 있도록 글씨는 또렷하게, 차분한 톤만 적용 */
+        .prog-done .prog-label { color: #2ecc71; }
+        .prog-done .prog-label::before { content: '✓ '; }
+        .prog-done .prog-date-input { color: #d4c58a; background: #2c3e50; border-color: #3b5166; }
+        .prog-done .prog-text-input { color: #d5dde4; background: #2c3e50; border-color: #3b5166; }
+
+        /* 가장 최근에 완료한 차시 = 지난 시간 */
+        .prog-row.prog-last { background: rgba(241, 196, 15, 0.12); border-radius: 5px; box-shadow: inset 3px 0 0 #f1c40f; padding: 2px 0 2px 4px; margin-left: -4px; }
+        .prog-row.prog-last .prog-label { color: #f1c40f; line-height: 1.1; }
+        .prog-row.prog-last .prog-label::before { content: ''; }
+        .prog-last-tag { display: block; font-size: 0.55rem; font-weight: normal; color: #f1c40f; opacity: 0.9; }
+        .prog-row.prog-last .prog-text-input { color: #fff; border-color: rgba(241, 196, 15, 0.55); }
 
         /* 메인 컨테이너 비율 수정 */
         #main-container { flex: 1; display: flex; flex-direction: column; width: 100%; min-width: 0; }
@@ -838,10 +846,11 @@
 
         async function switchClass(classType) {
             if (currentClassType === classType) return;
-            updateCurrentState(); 
-            currentClassType = classType;
+            // 반을 바꾸기 '전에' 현재 반의 공지/메모를 저장해야 다른 반에 덮어쓰이지 않습니다.
             await manualSaveData(true);
-            
+            currentClassType = classType;
+            localStorage.setItem('seatingApp_global_settings', JSON.stringify({ school: currentSchool, quarter: currentQuarter, classType: currentClassType }));
+
             document.querySelectorAll('.class-tab').forEach(t => t.classList.remove('active'));
             document.getElementById('btn-' + classType).classList.add('active');
             updateTitleAndRender();
@@ -1238,15 +1247,23 @@
             const list = document.getElementById('progress-list'); 
             list.innerHTML = '';
             const progData = classData[currentClassType].progress;
-            
+            let lastDoneIdx = -1;
+            progData.forEach((p, idx) => { if (p.done) lastDoneIdx = idx; });
+
             for(let i=0; i<13; i++) {
                 const item = progData[i];
-                const row = document.createElement('div'); 
-                row.className = 'prog-row' + (item.done ? ' prog-done' : '');
-                
-                const label = document.createElement('div'); 
-                label.className = 'prog-label'; 
+                const row = document.createElement('div');
+                row.className = 'prog-row' + (item.done ? ' prog-done' : '') + (i === lastDoneIdx ? ' prog-last' : '');
+
+                const label = document.createElement('div');
+                label.className = 'prog-label';
                 label.innerText = `${i+1}차시`;
+                if (i === lastDoneIdx) {
+                    const tag = document.createElement('span');
+                    tag.className = 'prog-last-tag';
+                    tag.innerText = '지난 시간';
+                    label.appendChild(tag);
+                }
                 
                 const dateInput = document.createElement('input');
                 dateInput.className = 'prog-date-input';
