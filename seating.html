@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- 🔥 파이어베이스 클라우드 통신용 시스템 파일 🔥 -->
+    <script src="idle-logout.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
@@ -578,6 +579,7 @@
 
         auth.onAuthStateChanged(function(user) {
             if (user && user.email === ALLOWED_EMAIL) {
+                if (window.startIdleLogout) window.startIdleLogout(function() { auth.signOut(); });
                 if (!window.__appInited) {
                     window.__appInited = true;
                     initApp();

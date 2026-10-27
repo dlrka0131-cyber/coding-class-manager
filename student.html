@@ -17,7 +17,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     
     <!-- 🔥 파이어베이스 클라우드 통신용 시스템 파일 🔥 -->
-    <script type="module">
+    <script src="idle-logout.js"></script>
+<script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, onAuthStateChanged, signOut, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
@@ -54,6 +55,7 @@
                 const logoutBtn = document.getElementById('authLogoutBtn');
                 if (user && user.email === ALLOWED_EMAIL) {
                     if (logoutBtn) logoutBtn.style.display = 'block';
+                    if (window.startIdleLogout) window.startIdleLogout(() => signOut(auth));
                     window.firebaseReady = true;
                     window.dispatchEvent(new Event('firebase-ready'));
                 } else {
