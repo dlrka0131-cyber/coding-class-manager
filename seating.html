@@ -1308,6 +1308,9 @@
                 dateInput.onchange = (e) => {
                     const newDateVal = e.target.value.trim();
                     progData[i].date = newDateVal;
+                    // 날짜는 1반·2반이 항상 같으므로, 반대쪽 반에도 같은 차시 날짜를 넣어 줍니다.
+                    const otherProg = classData[currentClassType === 'class1' ? 'class2' : 'class1'].progress;
+                    if (otherProg && otherProg[i]) otherProg[i].date = newDateVal;
 
                     // 🔥 핵심: 어떤 차시에서든 날짜를 수정하면, 그 밑의 차시들은 7일 간격으로 알아서 다시 계산됩니다!
                     if (newDateVal) {
@@ -1320,6 +1323,7 @@
                             for (let j = i + 1; j < 13; j++) {
                                 curDate.setDate(curDate.getDate() + 7);
                                 progData[j].date = `${curDate.getMonth() + 1}.${curDate.getDate()}`;
+                                if (otherProg && otherProg[j]) otherProg[j].date = progData[j].date;
                             }
                             renderProgress();
                         }
