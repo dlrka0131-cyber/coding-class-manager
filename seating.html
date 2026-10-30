@@ -36,7 +36,20 @@
             display: flex; flex-direction: column; gap: 10px; 
             box-shadow: 2px 0 10px rgba(0,0,0,0.1); z-index: 10;
             overflow-y: auto; flex-shrink: 0;
+            transition: min-width 0.25s ease, max-width 0.25s ease, padding 0.25s ease;
         }
+        body.sidebar-collapsed #sidebar { min-width: 0; max-width: 0; padding-left: 0; padding-right: 0; overflow: hidden; box-shadow: none; }
+
+        /* 사이드바 열기/닫기 버튼 */
+        #sidebar-toggle {
+            position: fixed; top: 50%; left: 340px; transform: translateY(-50%); z-index: 20;
+            width: 22px; height: 64px; border: none; border-radius: 0 10px 10px 0; cursor: pointer;
+            background: #2c3e50; color: #ecf0f1; font-size: 0.8rem; padding: 0;
+            box-shadow: 2px 0 8px rgba(0,0,0,0.2); transition: left 0.25s ease, background 0.15s;
+        }
+        #sidebar-toggle:hover { background: #3498db; }
+        body.sidebar-collapsed #sidebar-toggle { left: 0; }
+        body.sidebar-collapsed #sidebar-toggle i { transform: rotate(180deg); }
 
         /* 타이틀 및 홈 버튼 영역 */
         .sidebar-header-box {
@@ -267,7 +280,11 @@
         .lvl-3 { background-color: #2ecc71; }
         .lvl-4 { background-color: #3498db; }
         .lvl-5 { background-color: #9b59b6; }
-        .lvl-6 { background-color: transparent; box-shadow: none; font-size: 1.5rem; top: -10px; right: -10px; } 
+        .lvl-6, .lvl-7, .lvl-8 { font-size: 0.8rem; text-shadow: 0 1px 1px rgba(0,0,0,0.3); }
+        .lvl-6 { background: linear-gradient(135deg, #a8642a 0%, #e0925a 100%); }
+        .lvl-7 { background: linear-gradient(135deg, #8e9aaf 0%, #d5dbe6 100%); }
+        .lvl-8 { background: linear-gradient(135deg, #f0a800 0%, #ffe066 100%); }
+        .lvl-9 { background: linear-gradient(135deg, #1e3a5f 0%, #306998 100%); color: #ffd43b; font-size: 0.6rem; letter-spacing: -0.5px; font-family: Consolas, monospace; }
 
         /* 🔥 수정된 부분: 오른쪽 창 너비 유연하게 적용 */
         #right-pane { 
@@ -341,7 +358,7 @@
             @page { size: A4 landscape; margin: 10mm; } /* 인쇄 여백 */
             
             /* 🔥 사이드바, 크기 조절바, 오른쪽 안내판까지 인쇄 시 모두 숨김 */
-            #sidebar, #drag-resizer, #right-pane { display: none !important; } 
+            #sidebar, #sidebar-toggle, #drag-resizer, #right-pane { display: none !important; }
             
             body { background: white; overflow: visible; display: block; }
             #main-container { display: block; width: 100%; }
@@ -366,7 +383,7 @@
             .desk.present { -webkit-print-color-adjust: exact; print-color-adjust: exact; background-color: #bbf2d5 !important; }
             .desk.absent { -webkit-print-color-adjust: exact; print-color-adjust: exact; background-color: #ffeaa7 !important; }
             .level-badge { -webkit-print-color-adjust: exact; print-color-adjust: exact; box-shadow: none; border: 1px solid #333;}
-            .lvl-6 { border: none !important; } 
+            .lvl-6, .lvl-7, .lvl-8, .lvl-9 { border: none !important; }
             .desk-memo-input { border: 1px solid #000 !important; background: transparent !important; }
             
             #attendance-stats { border: 1px solid #bdc3c7; background: transparent; }
@@ -377,6 +394,8 @@
     </style>
 </head>
 <body>
+
+    <button id="sidebar-toggle" onclick="toggleSidebar()" title="왼쪽 메뉴 열기/닫기"><i class="fa-solid fa-chevron-left"></i></button>
 
     <div id="sidebar">
         <div class="sidebar-header-box">
@@ -1110,7 +1129,7 @@
                 
                 if (student) {
                     const lvl = student.level || 0;
-                    let lvlText = ['-', 'N', '1', '2', '3', '4', '🏅'][lvl];
+                    let lvlText = LEVEL_LABELS[lvl] || '-';
                     let statusClass = student.status === 'present' ? 'present' : (student.status === 'absent' ? 'absent' : '');
 
                     html = `
@@ -1193,10 +1212,22 @@
             }
         }
 
+        function toggleSidebar() {
+            const collapsed = document.body.classList.toggle('sidebar-collapsed');
+            try { localStorage.setItem('seatingSidebarCollapsed', collapsed ? '1' : '0'); } catch (e) {}
+        }
+        try {
+            if (localStorage.getItem('seatingSidebarCollapsed') === '1') document.body.classList.add('sidebar-collapsed');
+        } catch (e) {}
+
+        // 0 없음 · 1 신규 · 2~5 말랑1~4 · 6~8 자격증 3·2·1급(동·은·금 메달) · 9 파이썬(코드 모양)
+        const MEDAL_ICON = '<i class="fa-solid fa-medal"></i>';
+        const LEVEL_LABELS = ['-', 'N', '1', '2', '3', '4', MEDAL_ICON, MEDAL_ICON, MEDAL_ICON, '&lt;/&gt;'];
+
         function toggleLevel(e, index) {
-            e.stopPropagation(); 
+            e.stopPropagation();
             let s = classData[currentClassType].students[index];
-            if (s !== null) { s.level = (s.level || 0) >= 6 ? 0 : (s.level || 0) + 1; renderClassroom(); }
+            if (s !== null) { s.level = (s.level || 0) >= LEVEL_LABELS.length - 1 ? 0 : (s.level || 0) + 1; renderClassroom(); }
         }
 
         function updateStudentNote(index, val) {
