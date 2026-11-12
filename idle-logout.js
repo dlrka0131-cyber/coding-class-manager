@@ -1,7 +1,7 @@
 // 일정 시간 동안 조작이 없으면 자동 로그아웃 (모든 탭/페이지가 마지막 활동 시각을 공유)
 (function () {
     var KEY = 'ccm_last_active';
-    var LIMIT_MS = 30 * 60 * 1000; // 30분
+    var LIMIT_MS = 3 * 60 * 60 * 1000; // 3시간
     var started = false;
 
     function read() {
