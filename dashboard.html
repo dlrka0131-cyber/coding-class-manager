@@ -491,7 +491,10 @@
         .btn-outline:hover { background: #E1E8F1; border-color: #8FA0B8; }
         .btn-outline.is-danger { background: #FEF2F2; }
         .tab { border: 1.5px solid #B6C2D2; color: #475569; font-weight: 800; }
-        .tab.active { border-bottom: 4px solid var(--accent); padding-bottom: 11.5px; }
+        .tabs { align-items: center; }
+        .header { gap: 16px 20px; flex-wrap: wrap; }
+        .header h1, .q-tab, .tab, .btn { white-space: nowrap; }
+        .head-save { margin-left: auto; }
         .q-tab.active.spring, .q-tab.active.summer, .q-tab.active.autumn, .q-tab.active.winter { background: white; color: #1E293B; font-weight: 900; box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
         .jump-btn { color: #475569; }
         .jump-btn span { color: #475569; background: #E2E8F0; border-radius: 10px; padding: 1px 8px; font-size: 13px; font-weight: 800; margin-left: 5px; }
@@ -551,6 +554,12 @@
         .fab-save.btn-main:hover { background: #2B3366 !important; box-shadow: 0 3px 0 #141A33, 0 6px 15px rgba(0,0,0,0.2); }
         .unsaved-badge { background: rgba(20,26,51,0.6); }
         #authLogoutBtn { background: rgba(255,255,255,0.08); color: #C7CEEA; }
+        /* 보기(전체/기존/신규) 더 잘 보이게 */
+        .tool-cap.view-cap { font-size: 16px; font-weight: 900; color: #0F172A; }
+        .seg { border: 2px solid var(--theme-color, #5D72C4); border-radius: 12px; box-shadow: 0 2px 6px rgba(15,23,42,0.08); }
+        .seg button { padding: 10px 20px; font-size: 16px; font-weight: 800; color: #334155; border-left: 2px solid var(--theme-color, #5D72C4); transition: background 0.15s; }
+        .seg button:hover { background: #F1F5F9; }
+        .seg button.on, .seg button.on:hover { background: var(--theme-color, #5D72C4); color: white; }
     </style>
 </head>
 <body>
@@ -610,7 +619,33 @@
                     </div>
                 </div>
                 <div v-if="isLoggedIn" class="head-save">
-                    <span v-if="isDirty" class="unsaved-badge"><i></i>저장 안 한 변경이 있습니다</span>
+                    <div v-if="isSchoolTab" class="roster-acts">
+                                <div class="menu-wrap">
+                                    <button class="btn btn-outline" @click.stop="toggleMenu('export')"><svg class="ic"><use href="#i-export"/></svg>내보내기<svg class="ic"><use href="#i-down"/></svg></button>
+                                    <div v-if="openMenu === 'export'" class="menu-pop">
+                                        <div class="menu-label">파일로 받기</div>
+                                        <button class="menu-item" @click="exportToExcel"><svg class="ic"><use href="#i-export"/></svg>엑셀 내보내기</button>
+                                        <button class="menu-item" @click="exportContactCSV"><svg class="ic"><use href="#i-export"/></svg>연락처 CSV</button>
+                                        <hr>
+                                        <div class="menu-label">전화번호 복사</div>
+                                        <button class="menu-item" @click="copyPhoneNumbers(1)"><svg class="ic"><use href="#i-copy"/></svg>1~2학년</button>
+                                        <button class="menu-item" @click="copyPhoneNumbers(2)"><svg class="ic"><use href="#i-copy"/></svg>3~6학년</button>
+                                        <button class="menu-item" @click="copyPhoneNumbers(0)"><svg class="ic"><use href="#i-copy"/></svg>전체</button>
+                                    </div>
+                                </div>
+                                <button class="btn btn-outline" @click="addStudent(currentTab)"><svg class="ic"><use href="#i-plus"/></svg>한 명 추가</button>
+                                <button class="btn btn-outline" @click="showBulkInput = !showBulkInput"><svg class="ic"><use href="#i-listplus"/></svg>명단 일괄추가</button>
+                                <div class="menu-wrap">
+                                    <button class="btn btn-outline" style="padding: 12px 14px;" title="분기 시작할 때 쓰는 기능" @click.stop="toggleMenu('more')"><svg class="ic"><use href="#i-dots"/></svg></button>
+                                    <div v-if="openMenu === 'more'" class="menu-pop">
+                                        <div class="menu-label">분기 시작할 때</div>
+                                        <button class="menu-item" @click="importFromPrevQuarter"><svg class="ic"><use href="#i-import"/></svg>이전 분기 가져오기</button>
+                                        <hr>
+                                        <button class="menu-item is-danger" @click="resetCurrentStudents"><svg class="ic"><use href="#i-trash"/></svg>명단 리셋</button>
+                                    </div>
+                                </div>
+                            </div>
+                    <span v-if="isDirty" class="unsaved-badge"><i></i>저장 안 됨</span>
                     <button class="btn btn-main fab-save" @click="saveData"><svg class="ic"><use href="#i-save"/></svg>전체 저장하기</button>
                 </div>
             </div>
@@ -661,26 +696,7 @@
                     <div class="tab" :class="{ active: currentTab === 'bareun' }" @click="currentTab = 'bareun'">바른초(수)</div>
                     <div class="tab" :class="{ active: currentTab === 'banwol' }" @click="currentTab = 'banwol'">반월초(목)</div>
                     <div class="tab" :class="{ active: currentTab === 'sejeong' }" @click="currentTab = 'sejeong'">세정초(금)</div>
-                    <div class="tab" :class="{ active: currentTab === 'matrix' }" @click="currentTab = 'matrix'" style="margin-left: auto; background: #334155; color: white;"><svg class="ic"><use href="#i-chart"/></svg>종합 현황</div>
-                    <div class="tab" :class="{ active: currentTab === 'inventory' }" @click="currentTab = 'inventory'" style="background: #334155; color: white;"><svg class="ic"><use href="#i-swap"/></svg>재고 정산</div>
-                </div>
-
-                <div class="content-area">
-                    
-                    <!-- 학교별 명단 및 주문서 탭 -->
-                    <div v-if="['hakdong', 'bareun', 'banwol', 'sejeong'].includes(currentTab)">
-                        
-                        <!-- 페이지 안 바로가기 -->
-                        <div class="jump-nav">
-                            <button class="jump-btn" @click="jumpTo('sec-roster')">학생 명단 <span>{{ class1Students.length + class2Students.length }}</span></button>
-                            <button v-if="cancelledStudents.length > 0" class="jump-btn" @click="jumpTo('sec-cancel')">취소·환불 <span>{{ cancelledStudents.length }}</span></button>
-                            <button class="jump-btn" @click="jumpTo('sec-order')">주문서 접수</button>
-                            <button class="jump-btn" @click="jumpTo('sec-saved')">주문서 보관함 <span>{{ savedOrders.length }}</span></button>
-                        </div>
-
-                        <!-- 제목 + 명단 버튼 -->
-                        <div id="sec-roster" class="roster-head sec-anchor">
-                            <h2 style="margin: 0; font-size: 22px; font-weight: 900; color: #0F172A; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; word-break: keep-all;">
+                    <h2 v-if="isSchoolTab" style="margin: 0 0 0 22px; font-size: 20px; font-weight: 900; color: #0F172A; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; word-break: keep-all;">
                                 {{ getSchoolFullName(currentTab) }} {{ quarter }} 학생 명단
                                 <span style="padding: 6px 18px; background: var(--theme-color, var(--primary)); color: white; border-radius: 24px; font-size: 16px; font-weight: 800; box-shadow: 0 4px 10px rgba(0,0,0,0.15); display: inline-flex; align-items: center; gap: 8px;">
                                     <span>총 {{ class1Students.length + class2Students.length }}명</span>
@@ -690,35 +706,16 @@
                                 </span>
                                 <span v-if="selectedLevelFilter" style="color: #EF4444; font-size: 15px; font-weight: 700;">('{{ levelLabel(selectedLevelFilter) }}'만 보는 중)</span>
                             </h2>
+                    <div class="tab" :class="{ active: currentTab === 'matrix' }" @click="currentTab = 'matrix'" style="margin-left: auto; background: #334155; color: white;"><svg class="ic"><use href="#i-chart"/></svg>종합 현황</div>
+                    <div class="tab" :class="{ active: currentTab === 'inventory' }" @click="currentTab = 'inventory'" style="background: #334155; color: white;"><svg class="ic"><use href="#i-swap"/></svg>재고 정산</div>
+                </div>
 
-                            <div class="roster-acts">
-                                <div class="menu-wrap">
-                                    <button class="btn btn-outline" @click.stop="toggleMenu('export')"><svg class="ic"><use href="#i-export"/></svg>내보내기<svg class="ic"><use href="#i-down"/></svg></button>
-                                    <div v-if="openMenu === 'export'" class="menu-pop">
-                                        <div class="menu-label">파일로 받기</div>
-                                        <button class="menu-item" @click="exportToExcel"><svg class="ic"><use href="#i-export"/></svg>엑셀 내보내기</button>
-                                        <button class="menu-item" @click="exportContactCSV"><svg class="ic"><use href="#i-export"/></svg>연락처 CSV</button>
-                                        <hr>
-                                        <div class="menu-label">전화번호 복사</div>
-                                        <button class="menu-item" @click="copyPhoneNumbers(1)"><svg class="ic"><use href="#i-copy"/></svg>1~2학년</button>
-                                        <button class="menu-item" @click="copyPhoneNumbers(2)"><svg class="ic"><use href="#i-copy"/></svg>3~6학년</button>
-                                        <button class="menu-item" @click="copyPhoneNumbers(0)"><svg class="ic"><use href="#i-copy"/></svg>전체</button>
-                                    </div>
-                                </div>
-                                <button class="btn btn-outline" @click="addStudent(currentTab)"><svg class="ic"><use href="#i-plus"/></svg>한 명 추가</button>
-                                <button class="btn btn-main" @click="showBulkInput = !showBulkInput"><svg class="ic"><use href="#i-listplus"/></svg>명단 일괄추가</button>
-                                <div class="menu-wrap">
-                                    <button class="btn btn-outline" style="padding: 12px 14px;" title="분기 시작할 때 쓰는 기능" @click.stop="toggleMenu('more')"><svg class="ic"><use href="#i-dots"/></svg></button>
-                                    <div v-if="openMenu === 'more'" class="menu-pop">
-                                        <div class="menu-label">분기 시작할 때</div>
-                                        <button class="menu-item" @click="importFromPrevQuarter"><svg class="ic"><use href="#i-import"/></svg>이전 분기 가져오기</button>
-                                        <hr>
-                                        <button class="menu-item is-danger" @click="resetCurrentStudents"><svg class="ic"><use href="#i-trash"/></svg>명단 리셋</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
+                <div class="content-area">
+                    
+                    <!-- 학교별 명단 및 주문서 탭 -->
+                    <div v-if="['hakdong', 'bareun', 'banwol', 'sejeong'].includes(currentTab)">
+                        
+                        <div id="sec-roster" class="sec-anchor"></div>
                         <div v-if="showBulkInput" class="bulk-input-area">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
                                 <span class="help-text" style="font-weight: 600; color: #334155;">엑셀의 [학년, 반, 번호, 성명, 연락처] 열을 한 번에 드래그하여 복사한 후 아래에 붙여넣으세요.</span>
@@ -765,7 +762,7 @@
                                 <input type="text" v-model="searchQuery" class="search-input" placeholder="이름/전화번호 검색 (Ctrl+F)">
                                 <button @click="sortStudents" class="btn btn-outline btn-sm"><svg class="ic"><use href="#i-sort"/></svg>학년·반·번호순 정렬</button>
                                 <div class="tool-sep"></div>
-                                <span class="tool-cap">보기</span>
+                                <span class="tool-cap view-cap">보기</span>
                                 <div class="seg">
                                     <button :class="{ on: statusView === 'all' }" @click="statusView = 'all'">전체 {{ statusCounts.all }}</button>
                                     <button :class="{ on: statusView === '기존' }" @click="statusView = '기존'">기존 {{ statusCounts['기존'] }}</button>
@@ -1330,6 +1327,7 @@
                 const statusView = ref('all');      // 보기: all / 기존 / 신규
                 const openMenu = ref(null);         // 펼쳐진 메뉴: export / more
                 const toggleMenu = (name) => { openMenu.value = openMenu.value === name ? null : name; };
+                const isSchoolTab = computed(() => ['hakdong', 'bareun', 'banwol', 'sejeong'].includes(currentTab.value));
                 const picking = computed(() => selectedStudentIds.value.length > 0);
                 const levelLabels = { '말랑1': '1단계', '말랑2': '2단계', '말랑3': '3단계', '말랑4': '4단계', '자격증': '자격증', 'NONE': '주문 안 함' };
                 const levelLabel = (v) => levelLabels[v] || v;
@@ -1919,7 +1917,7 @@
 
                 return { 
                     isLoggedIn, landingQuarter, selectSchoolAndEnter, goHome, goToIndex, currentTab, showBulkInput, bulkText, 
-                    quarter, searchQuery, selectedStudentIds, isAllSelected, toggleAll, isClassSelected, toggleClass, statusView, statusCounts, openMenu, toggleMenu, picking, levelLabel, jumpTo, onLevelCard, setStatusForSelected, getNoItemCount, isDirty, undoStack, undo,
+                    quarter, searchQuery, selectedStudentIds, isAllSelected, toggleAll, isClassSelected, toggleClass, statusView, statusCounts, openMenu, toggleMenu, picking, levelLabel, jumpTo, onLevelCard, setStatusForSelected, getNoItemCount, isDirty, isSchoolTab, undoStack, undo,
                     schoolNames, getSchoolFullName, getDeptName, items, 
                     orderItems, itemMapping, price, students, filteredStudents, class1Students, class2Students, cancelledStudents,
                     orderFormsByQuarter, savedOrders, selectedImage, 
