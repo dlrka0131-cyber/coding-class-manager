@@ -119,22 +119,53 @@
         .header-title em { font-style: normal; background: linear-gradient(90deg, #FFB86B, #FF7AA8); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .header-sub { font-size: 17px; color: #AEB7DB; margin: 0 0 50px; }
 
-        .app-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; max-width: 1120px; margin: 0 auto; }
+        .app-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; max-width: 1120px; margin: 0 auto; }
         .app-card {
-            background: rgba(255,255,255,.07); border: 1.5px solid rgba(255,255,255,.14); border-radius: 22px;
-            padding: 30px 22px 26px; text-align: left; text-decoration: none; color: white; display: block;
-            backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
-            transition: transform .2s, background .2s, border-color .2s;
+            --c: #B9A7FF; position: relative; overflow: hidden; display: flex; flex-direction: column; min-height: 250px;
+            padding: 26px 24px 24px; text-align: left; text-decoration: none; color: white; border-radius: 26px;
+            background: linear-gradient(160deg, rgba(255,255,255,.11) 0%, rgba(255,255,255,.03) 55%, rgba(255,255,255,.05) 100%);
+            border: 1px solid rgba(255,255,255,.13);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 24px 44px -24px rgba(0,0,0,.75);
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            transition: transform .28s cubic-bezier(.2,.8,.2,1), border-color .28s, box-shadow .28s;
         }
-        .app-card:hover, .app-card:focus-visible { transform: translateY(-5px); background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.4); outline: none; }
-        .app-icon-wrapper { width: 60px; height: 60px; border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-bottom: 44px; color: #141A33; }
-        .app-icon-wrapper svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-        .theme-seating .app-icon-wrapper { background: #B9A7FF; }
-        .theme-supplies .app-icon-wrapper { background: #FFB86B; }
-        .theme-calendar .app-icon-wrapper { background: #7BE3B4; }
-        .theme-student .app-icon-wrapper { background: #7CC4FF; }
-        .app-name { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
-        .app-desc { font-size: 15px; color: #AEB7DB; word-break: keep-all; }
+        /* 카드 색이 모서리에서 은은하게 번지는 빛 */
+        .app-card::before {
+            content: ''; position: absolute; width: 240px; height: 240px; right: -90px; top: -90px; border-radius: 50%;
+            background: radial-gradient(circle, var(--c) 0%, transparent 68%); opacity: .22; transition: opacity .28s, transform .28s; pointer-events: none;
+        }
+        /* 아래쪽 색 줄 */
+        .app-card::after {
+            content: ''; position: absolute; left: 24px; right: 24px; bottom: 0; height: 2px; border-radius: 2px;
+            background: linear-gradient(90deg, transparent, var(--c), transparent); opacity: .35; transition: opacity .28s, left .28s, right .28s; pointer-events: none;
+        }
+        .app-card:hover, .app-card:focus-visible {
+            transform: translateY(-7px); outline: none; border-color: color-mix(in srgb, var(--c) 60%, transparent);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.28), 0 30px 50px -24px rgba(0,0,0,.8), 0 0 44px -14px var(--c);
+        }
+        .app-card:hover::before, .app-card:focus-visible::before { opacity: .42; transform: scale(1.15); }
+        .app-card:hover::after, .app-card:focus-visible::after { opacity: 1; left: 0; right: 0; }
+
+        .app-icon-wrapper {
+            position: relative; width: 58px; height: 58px; border-radius: 18px; display: flex; align-items: center; justify-content: center; color: #141A33;
+            background: linear-gradient(145deg, color-mix(in srgb, var(--c) 70%, white), var(--c));
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.6), 0 12px 24px -8px var(--c);
+        }
+        .app-icon-wrapper svg { width: 28px; height: 28px; fill: none; stroke: currentColor; stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; }
+        .theme-seating { --c: #B9A7FF; }
+        .theme-supplies { --c: #FFB86B; }
+        .theme-calendar { --c: #7BE3B4; }
+        .theme-student { --c: #7CC4FF; }
+        .app-text { position: relative; margin-top: auto; padding-right: 46px; }
+        .app-name { font-size: 22px; font-weight: 800; margin-bottom: 6px; letter-spacing: -.3px; }
+        .app-desc { font-size: 14.5px; color: #AEB7DB; word-break: keep-all; }
+        .app-go {
+            position: absolute; right: 22px; bottom: 24px; width: 38px; height: 38px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center; color: #C7CEEA;
+            border: 1px solid rgba(255,255,255,.2); transition: background .28s, color .28s, border-color .28s, transform .28s;
+        }
+        .app-go svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+        .app-card:hover .app-go, .app-card:focus-visible .app-go { background: var(--c); color: #141A33; border-color: var(--c); transform: translateX(3px); }
 
         .footer-note { margin-top: 70px; font-size: 13.5px; color: #7C86B3; }
 
@@ -144,7 +175,7 @@
             .header-title { font-size: 32px; }
             .header-sub { margin-bottom: 30px; }
             .app-grid { grid-template-columns: 1fr; }
-            .app-icon-wrapper { margin-bottom: 22px; }
+            .app-card { min-height: 190px; }
         }
     </style>
 </head>
@@ -168,26 +199,38 @@
         <div class="app-grid">
             <a href="seating.html" class="app-card theme-seating">
                 <div class="app-icon-wrapper"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="11" rx="2"/><path d="M8 20h8M12 15v5M7 8h6M7 11h3"/></svg></div>
-                <div class="app-name">통합 자리배치</div>
-                <div class="app-desc">자리배치</div>
+                <div class="app-text">
+                    <div class="app-name">통합 자리배치</div>
+                    <div class="app-desc">자리배치</div>
+                </div>
+                <span class="app-go"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
             </a>
 
             <a href="dashboard.html" class="app-card theme-supplies">
                 <div class="app-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M3 8l9-5 9 5v8l-9 5-9-5zM3 8l9 5 9-5M12 13v8"/></svg></div>
-                <div class="app-name">교구 대쉬보드</div>
-                <div class="app-desc">학생별 교구 현황</div>
+                <div class="app-text">
+                    <div class="app-name">교구 대쉬보드</div>
+                    <div class="app-desc">학생별 교구 현황</div>
+                </div>
+                <span class="app-go"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
             </a>
 
             <a href="schedule.html" class="app-card theme-calendar">
                 <div class="app-icon-wrapper"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8 14h.01M12 14h.01M16 14h.01M8 17.5h.01M12 17.5h.01"/></svg></div>
-                <div class="app-name">일정 캘린더</div>
-                <div class="app-desc">전체 학교 일정 관리</div>
+                <div class="app-text">
+                    <div class="app-name">일정 캘린더</div>
+                    <div class="app-desc">전체 학교 일정 관리</div>
+                </div>
+                <span class="app-go"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
             </a>
 
             <a href="student.html" class="app-card theme-student">
                 <div class="app-icon-wrapper"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 5a3.5 3.5 0 0 1 0 6.5M18.5 14.8c1.700.8 2.700 2.500 3 5.200"/></svg></div>
-                <div class="app-name">학생관리 명단</div>
-                <div class="app-desc">학생관리</div>
+                <div class="app-text">
+                    <div class="app-name">학생관리 명단</div>
+                    <div class="app-desc">학생관리</div>
+                </div>
+                <span class="app-go"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span>
             </a>
         </div>
 

@@ -518,6 +518,39 @@
         .unsaved-badge { background: rgba(255,255,255,0.14); color: white; font-size: 13.5px; font-weight: 800; padding: 6px 12px; border-radius: 8px; display: flex; align-items: center; gap: 7px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
         .unsaved-badge i { width: 9px; height: 9px; border-radius: 50%; background: #FACC15; display: inline-block; }
         .dup-list { text-align: left; background: #FEF2F2; border: 1px solid #FCA5A5; border-radius: 10px; padding: 10px 14px; margin-top: 12px; font-size: 14.5px; font-weight: 700; color: #991B1B; line-height: 1.7; max-height: 220px; overflow: auto; }
+        /* ───────── 밤하늘 배경 + 분기색 머리띠 (2026-11, 부드러운 톤) ───────── */
+        body.theme-spring { --hd1: #E3A0B4; --hd2: #B8607F; --theme-color: #B8607F; --glow: #6E3550; --qk: #8A3F5C; }
+        body.theme-summer { --hd1: #93C7AC; --hd2: #4E8C72; --theme-color: #4E8C72; --glow: #2C5746; --qk: #356B55; }
+        body.theme-autumn { --hd1: #ECB687; --hd2: #C27A48; --theme-color: #C27A48; --glow: #74441F; --qk: #8F5326; }
+        body.theme-winter { --hd1: #9DB0EA; --hd2: #5D72C4; --theme-color: #5D72C4; --glow: #33407A; --qk: #3F519C; }
+        body, body.theme-spring, body.theme-summer, body.theme-autumn, body.theme-winter {
+            background: radial-gradient(1200px 520px at 15% 0%, var(--glow, #33407A) 0%, transparent 65%), radial-gradient(1000px 560px at 95% 100%, var(--glow, #33407A) 0%, transparent 65%), #141A33 !important;
+            background-attachment: fixed !important;
+        }
+        body::before {
+            content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: .7;
+            background-image:
+                radial-gradient(1.6px 1.6px at 6% 14%, #fff 50%, transparent 51%), radial-gradient(1.2px 1.2px at 3% 62%, #fff 50%, transparent 51%),
+                radial-gradient(1.6px 1.6px at 4.5% 88%, #fff 50%, transparent 51%), radial-gradient(1.2px 1.2px at 22% 3%, #fff 50%, transparent 51%),
+                radial-gradient(1.6px 1.6px at 58% 2.5%, #fff 50%, transparent 51%), radial-gradient(1.2px 1.2px at 81% 4%, #fff 50%, transparent 51%),
+                radial-gradient(1.6px 1.6px at 95% 20%, #fff 50%, transparent 51%), radial-gradient(1.2px 1.2px at 97.5% 48%, #fff 50%, transparent 51%),
+                radial-gradient(1.6px 1.6px at 94% 76%, #fff 50%, transparent 51%), radial-gradient(1.2px 1.2px at 40% 98%, #fff 50%, transparent 51%),
+                radial-gradient(1.6px 1.6px at 70% 97%, #fff 50%, transparent 51%), radial-gradient(1.2px 1.2px at 1.5% 36%, #fff 50%, transparent 51%);
+        }
+        #app { position: relative; z-index: 1; }
+        .container { box-shadow: 0 24px 60px -12px rgba(0,0,0,0.55); }
+        .header { background: linear-gradient(120deg, var(--hd1, #9DB0EA), var(--hd2, #5D72C4)); border-bottom: none; transition: background 0.4s; }
+        .header h1 { text-shadow: 0 1px 3px rgba(0,0,0,0.22); }
+        .btn-home-circle { background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.18); }
+        .btn-home-circle:hover { box-shadow: 0 6px 16px rgba(0,0,0,0.28); }
+        .btn-home-circle svg { fill: var(--qk, #3F519C); }
+        .q-tab { background: rgba(255,255,255,0.22); color: white; text-shadow: 0 1px 2px rgba(0,0,0,0.15); }
+        .q-tab:hover { background: rgba(255,255,255,0.36); }
+        .q-tab.active.spring, .q-tab.active.summer, .q-tab.active.autumn, .q-tab.active.winter { background: white; color: var(--qk, #3F519C); text-shadow: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        .fab-save.btn-main { background: #1E2547 !important; box-shadow: 0 3px 0 #141A33; }
+        .fab-save.btn-main:hover { background: #2B3366 !important; box-shadow: 0 3px 0 #141A33, 0 6px 15px rgba(0,0,0,0.2); }
+        .unsaved-badge { background: rgba(20,26,51,0.6); }
+        #authLogoutBtn { background: rgba(255,255,255,0.08); color: #C7CEEA; }
     </style>
 </head>
 <body>
