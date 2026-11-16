@@ -596,7 +596,7 @@
                         <div style="display: flex; justify-content: space-between; align-items: center; background: #F8FAFC; padding: 16px 22px; border: 1px solid var(--border); border-bottom: none; border-radius: 12px 12px 0 0; flex-wrap: wrap; gap: 15px;">
                             
                             <!-- 정렬 버튼이 추가된 그룹 영역 -->
-                            <div style="display: flex; align-items: center; gap: 10px;">
+                            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
                                 <span style="font-size: 15px; font-weight: 800; color: #334155; margin-right: 4px;">반 전체선택:</span>
                                 <button @click="selectAfterSchoolClass(1)" class="btn btn-outline" style="padding: 6px 14px; font-size: 14px; border-radius: 20px; color: #0284C7; border-color: #BAE6FD;">1반(1~2학년)</button>
                                 <button @click="selectAfterSchoolClass(2)" class="btn btn-outline" style="padding: 6px 14px; font-size: 14px; border-radius: 20px; color: #15803D; border-color: #BBF7D0;">2반(3~6학년)</button>
@@ -605,6 +605,13 @@
                                 <!-- 학년/반/번호순 정렬 버튼 -->
                                 <div style="width: 1px; height: 16px; background: #CBD5E1; margin: 0 4px;"></div>
                                 <button @click="sortStudents" class="btn btn-outline" style="padding: 6px 14px; font-size: 14px; border-radius: 20px; color: #4F46E5; border-color: #A5B4FC;">🔽 정렬</button>
+
+                                <!-- 전화번호 복사 버튼 -->
+                                <div style="width: 1px; height: 16px; background: #CBD5E1; margin: 0 4px;"></div>
+                                <span style="font-size: 15px; font-weight: 800; color: #334155; margin-right: 4px;">번호 복사:</span>
+                                <button @click="copyPhoneNumbers(1)" class="btn btn-outline" style="padding: 6px 14px; font-size: 14px; border-radius: 20px; color: #DB2777; border-color: #F9A8D4;">📋 1~2학년</button>
+                                <button @click="copyPhoneNumbers(2)" class="btn btn-outline" style="padding: 6px 14px; font-size: 14px; border-radius: 20px; color: #DB2777; border-color: #F9A8D4;">📋 3~6학년</button>
+                                <button @click="copyPhoneNumbers(0)" class="btn btn-outline" style="padding: 6px 14px; font-size: 14px; border-radius: 20px; color: #DB2777; border-color: #F9A8D4;">📋 전체</button>
                             </div>
 
                             <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
@@ -1274,6 +1281,32 @@
                     return filteredStudents.value.filter(s => s.status === '삭제');
                 });
 
+                // 전화번호 복사 (1: 1~2학년, 2: 3~6학년, 0: 전체) — 현재 학교·분기 기준, 삭제 학생 제외, 검색어와 무관
+                const copyPhoneNumbers = (classType) => {
+                    const label = classType === 1 ? '1반(1~2학년)' : classType === 2 ? '2반(3~6학년)' : '전체';
+                    const targets = students.value.filter(s => {
+                        if (!s || s.school !== currentTab.value || s.quarter !== quarter.value || s.status === '삭제') return false;
+                        if (classType === 0) return true;
+                        const g = parseInt((s.grade || '').toString().replace(/[^0-9]/g, ''), 10);
+                        return classType === 1 ? (!g || g <= 2) : g >= 3;
+                    });
+                    const phones = [...new Set(targets.map(s => (s.phone || '').trim()).filter(p => p !== ''))];
+
+                    if (phones.length === 0) {
+                        Swal.fire({ title: '안내', text: `${label}에 등록된 전화번호가 없습니다.`, icon: 'warning', confirmButtonColor: '#EC4899' });
+                        return;
+                    }
+
+                    const tempElem = document.createElement('textarea');
+                    tempElem.value = phones.join(',');
+                    document.body.appendChild(tempElem);
+                    tempElem.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempElem);
+
+                    Swal.fire({ title: '복사 완료!', text: `${label} 전화번호 ${phones.length}개가 복사되었습니다.`, icon: 'success', timer: 2000, showConfirmButton: false });
+                };
+
                 // 학년/반/번호순 정렬 함수
                 const sortStudents = () => {
                     students.value.sort((a, b) => {
@@ -1655,7 +1688,7 @@
                     resetCurrentStudents, getRowClass, formatMoney, importFromPrevQuarter, getCount, getTotalCount, 
                     getSchoolTotal, getGrandTotal, getSchoolTotalByStatus, getSchoolOrderQty, getAdditionalOrderQty, getClassHeadCount, 
                     getCanceledItemCount, getAddedItemCount, getTransferCount, getReturnCount, getNetAddCount, totalCanceledCount, totalAddedCount,
-                    saveOrderToList, removeSavedOrder, copySavedImage, saveData, copyScreenshot, exportToExcel, sortStudents,
+                    saveOrderToList, removeSavedOrder, copySavedImage, saveData, copyScreenshot, exportToExcel, sortStudents, copyPhoneNumbers,
                     exportContactCSV
                 };
             }
