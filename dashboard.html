@@ -511,9 +511,11 @@
         .btn-st.st-out:not(:disabled) { background: #DC2626; border-color: #DC2626; }
         .btn-undo { margin-left: auto; }
         /* 저장 버튼 + 저장 안 됨 알림 */
-        .fab-wrap { position: fixed; right: 28px; bottom: 28px; z-index: 900; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
-        .fab-save { position: static; padding: 16px 28px; font-size: 17px; border-radius: 14px; box-shadow: 0 3px 0 var(--accent-dark), 0 10px 26px rgba(0,0,0,0.3); }
-        .unsaved-badge { background: #1E293B; color: white; font-size: 13.5px; font-weight: 800; padding: 6px 12px; border-radius: 8px; display: flex; align-items: center; gap: 7px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
+        .head-save { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: flex-end; }
+        .fab-save { position: static; padding: 15px 26px; font-size: 17px; border-radius: 12px; box-shadow: 0 3px 0 var(--accent-dark); }
+        #authLogoutBtn { margin: 28px auto 0; padding: 7px 14px; font-size: 13px; font-weight: 600; border-radius: 18px; background: rgba(15,23,42,0.35); border-color: transparent; color: rgba(255,255,255,0.9); }
+        #authLogoutBtn .ic { width: 14px; height: 14px; }
+        .unsaved-badge { background: rgba(255,255,255,0.14); color: white; font-size: 13.5px; font-weight: 800; padding: 6px 12px; border-radius: 8px; display: flex; align-items: center; gap: 7px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
         .unsaved-badge i { width: 9px; height: 9px; border-radius: 50%; background: #FACC15; display: inline-block; }
         .dup-list { text-align: left; background: #FEF2F2; border: 1px solid #FCA5A5; border-radius: 10px; padding: 10px 14px; margin-top: 12px; font-size: 14.5px; font-weight: 700; color: #991B1B; line-height: 1.7; max-height: 220px; overflow: auto; }
     </style>
@@ -553,11 +555,6 @@
         </div>
 
         <!-- 늘 떠 있는 저장 버튼 -->
-        <div v-if="isLoggedIn" class="fab-wrap">
-            <span v-if="isDirty" class="unsaved-badge"><i></i>저장 안 한 변경이 있습니다</span>
-            <button class="btn btn-main fab-save" @click="saveData"><svg class="ic"><use href="#i-save"/></svg>전체 저장하기</button>
-        </div>
-
         <div class="container">
             <!-- 상단 헤더 -->
             <div class="header">
@@ -579,8 +576,9 @@
                         <div class="q-tab" :class="{ 'active winter': quarter === '4분기' }" @click="quarter = '4분기'">⛄ 4분기</div>
                     </div>
                 </div>
-                <div style="display: flex; gap: 12px; align-items: center;">
-                    <button id="authLogoutBtn"><svg class="ic"><use href="#i-logout"/></svg>로그아웃</button>
+                <div v-if="isLoggedIn" class="head-save">
+                    <span v-if="isDirty" class="unsaved-badge"><i></i>저장 안 한 변경이 있습니다</span>
+                    <button class="btn btn-main fab-save" @click="saveData"><svg class="ic"><use href="#i-save"/></svg>전체 저장하기</button>
                 </div>
             </div>
             
@@ -1254,6 +1252,7 @@
                 </div>
             </div>
         </div>
+        <button id="authLogoutBtn"><svg class="ic"><use href="#i-logout"/></svg>로그아웃</button>
     </div>
 
     <script>
@@ -1355,12 +1354,28 @@
                 const price = 75000;
 
                 const getInitialForms = () => ({
-                    hakdong: { orderDate: '', deliveryDate: '', deliveryPlace: '경기도 화성시 동탄지성로 79-17 학동초등학교 2층 교무실 방과후담당자', note: '', orderDateAdd: '', deliveryDateAdd: '', deliveryPlaceAdd: '경기도 화성시 동탄지성로 79-17 학동초등학교 2층 교무실 방과후담당자', noteAdd: '', addQty: { '말랑1': 0, '말랑2': 0, '말랑3': 0, '말랑4': 0 } },
+                    hakdong: { orderDate: '', deliveryDate: '', deliveryPlace: '경기도 화성시 동탄지성로 79-17 학동초등학교 택배보관실', note: '', orderDateAdd: '', deliveryDateAdd: '', deliveryPlaceAdd: '경기도 화성시 동탄지성로 79-17 학동초등학교 택배보관실', noteAdd: '', addQty: { '말랑1': 0, '말랑2': 0, '말랑3': 0, '말랑4': 0 } },
                     bareun: { orderDate: '', deliveryDate: '', deliveryPlace: '바른초등학교 방과후담당자 앞', note: '', orderDateAdd: '', deliveryDateAdd: '', deliveryPlaceAdd: '바른초등학교 방과후담당자 앞', noteAdd: '', addQty: { '말랑1': 0, '말랑2': 0, '말랑3': 0, '말랑4': 0 } },
-                    banwol: { orderDate: '', deliveryDate: '', deliveryPlace: '반월초등학교 방과후담당자 앞', note: '', orderDateAdd: '', deliveryDateAdd: '', deliveryPlaceAdd: '반월초등학교 방과후담당자 앞', noteAdd: '', addQty: { '말랑1': 0, '말랑2': 0, '말랑3': 0, '말랑4': 0 } },
-                    sejeong: { orderDate: '', deliveryDate: '', deliveryPlace: '세정초등학교 방과후담당자 앞', note: '', orderDateAdd: '', deliveryDateAdd: '', deliveryPlaceAdd: '세정초등학교 방과후담당자 앞', noteAdd: '', addQty: { '말랑1': 0, '말랑2': 0, '말랑3': 0, '말랑4': 0 } }
+                    banwol: { orderDate: '', deliveryDate: '', deliveryPlace: '경기도 화성시 효행로 1281-23 반월초등학교 택배보관실', note: '', orderDateAdd: '', deliveryDateAdd: '', deliveryPlaceAdd: '경기도 화성시 효행로 1281-23 반월초등학교 택배보관실', noteAdd: '', addQty: { '말랑1': 0, '말랑2': 0, '말랑3': 0, '말랑4': 0 } },
+                    sejeong: { orderDate: '', deliveryDate: '', deliveryPlace: '경기도 화성시 동탄구 동탄순환대로12길 74 세정초등학교 택배보관실', note: '', orderDateAdd: '', deliveryDateAdd: '', deliveryPlaceAdd: '경기도 화성시 동탄구 동탄순환대로12길 74 세정초등학교 택배보관실', noteAdd: '', addQty: { '말랑1': 0, '말랑2': 0, '말랑3': 0, '말랑4': 0 } }
                 });
 
+                // 주문일자는 열 때마다 오늘 날짜, 배송요청지는 학교 주소(택배보관실)
+                const todayText = () => { const d = new Date(); return `${d.getFullYear()}.${d.getMonth() + 1}.${d.getDate()}`; };
+                const ADDR_VERSION = 2;
+                const schoolAddr = {
+                    hakdong: '경기도 화성시 동탄지성로 79-17 학동초등학교 택배보관실',
+                    banwol: '경기도 화성시 효행로 1281-23 반월초등학교 택배보관실',
+                    sejeong: '경기도 화성시 동탄구 동탄순환대로12길 74 세정초등학교 택배보관실'
+                };
+                const applyFormDefaults = (forms, setAddr) => {
+                    Object.keys(forms).forEach(q => Object.keys(forms[q]).forEach(sc => {
+                        const f = forms[q][sc];
+                        f.orderDate = todayText(); f.orderDateAdd = todayText();
+                        if (setAddr && schoolAddr[sc]) { f.deliveryPlace = schoolAddr[sc]; f.deliveryPlaceAdd = schoolAddr[sc]; }
+                    }));
+                    return forms;
+                };
                 const orderFormsByQuarter = ref({ '1분기': getInitialForms(), '2분기': getInitialForms(), '3분기': getInitialForms(), '4분기': getInitialForms() });
                 const students = ref([
                     { id: 1, quarter: '2분기', school: 'hakdong', grade: '1', classNum: '1', num: '8', name: '백진우', phone: '010-7767-6858', status: '기존', currentLevel: '말랑1', item: '말랑1', note: '' },
@@ -1730,7 +1745,8 @@
                             students: students.value,
                             orderFormsByQuarter: orderFormsByQuarter.value,
                             quarter: quarter.value,
-                            savedOrders: savedOrders.value
+                            savedOrders: savedOrders.value,
+                            addrVersion: ADDR_VERSION
                         });
 
                         markSaved();
@@ -1770,11 +1786,12 @@
                                         if (!parsedForms[q][s].noteAdd) parsedForms[q][s].noteAdd = '';
                                     });
                                 });
-                                orderFormsByQuarter.value = parsedForms;
+                                orderFormsByQuarter.value = applyFormDefaults(parsedForms, data.addrVersion !== ADDR_VERSION);
                             }
                             if (data.quarter) quarter.value = data.quarter;
                             if (data.savedOrders) savedOrders.value = data.savedOrders;
                         }
+                        else applyFormDefaults(orderFormsByQuarter.value, false);
                         markSaved();
                         resetUndo();
                     } catch (e) {
