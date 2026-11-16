@@ -483,6 +483,39 @@
         .btn-del { display: flex; margin: 0 auto; padding: 5px; border-radius: 6px; background: white; color: #DC2626; border: 1px solid #FCA5A5; cursor: pointer; }
         .btn-del:hover { background: #FEF2F2; }
         .btn-del .ic { width: 15px; height: 15px; }
+        /* ───────── 버튼 디자인 (2026-11) ───────── */
+        :root { --accent: #F2683C; --accent-dark: #D9521F; }
+        .btn-main { background: var(--accent) !important; color: white !important; box-shadow: 0 3px 0 var(--accent-dark); font-weight: 800; }
+        .btn-main:hover { background: #F57A52 !important; filter: none; box-shadow: 0 3px 0 var(--accent-dark), 0 6px 15px rgba(0,0,0,0.12); }
+        .btn-outline { background: #EEF2F7; color: #1E293B; border: 1.5px solid #B6C2D2; font-weight: 800; }
+        .btn-outline:hover { background: #E1E8F1; border-color: #8FA0B8; }
+        .btn-outline.is-danger { background: #FEF2F2; }
+        .tab { border: 1.5px solid #B6C2D2; color: #475569; font-weight: 800; }
+        .tab.active { border-bottom: 4px solid var(--accent); padding-bottom: 11.5px; }
+        .q-tab.active.spring, .q-tab.active.summer, .q-tab.active.autumn, .q-tab.active.winter { background: white; color: #1E293B; font-weight: 900; box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
+        .jump-btn { color: #475569; }
+        .jump-btn span { color: #475569; background: #E2E8F0; border-radius: 10px; padding: 1px 8px; font-size: 13px; font-weight: 800; margin-left: 5px; }
+        .seg { border: 1.5px solid #B6C2D2; border-radius: 9px; }
+        .seg button { border-left: 1.5px solid #B6C2D2; font-weight: 800; }
+        .btn-del { background: #FEF2F2; border-width: 1.5px; }
+        .btn-del:hover { background: #FEE2E2; }
+        /* 상태 바꾸기: 체크 전에는 색 테두리만, 체크하면 색이 꽉 참 */
+        .btn-st { background: white; border: 1.5px solid; font-weight: 800; box-shadow: none; }
+        .btn-st.st-old { color: #1D4ED8; border-color: #93C5FD; }
+        .btn-st.st-new { color: #15803D; border-color: #86EFAC; }
+        .btn-st.st-out { color: #DC2626; border-color: #FCA5A5; }
+        .btn-st:disabled { opacity: 0.6; }
+        .btn-st:not(:disabled) { color: white; }
+        .btn-st.st-old:not(:disabled) { background: #2563EB; border-color: #2563EB; }
+        .btn-st.st-new:not(:disabled) { background: #16A34A; border-color: #16A34A; }
+        .btn-st.st-out:not(:disabled) { background: #DC2626; border-color: #DC2626; }
+        .btn-undo { margin-left: auto; }
+        /* 저장 버튼 + 저장 안 됨 알림 */
+        .fab-wrap { position: fixed; right: 28px; bottom: 28px; z-index: 900; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+        .fab-save { position: static; padding: 16px 28px; font-size: 17px; border-radius: 14px; box-shadow: 0 3px 0 var(--accent-dark), 0 10px 26px rgba(0,0,0,0.3); }
+        .unsaved-badge { background: #1E293B; color: white; font-size: 13.5px; font-weight: 800; padding: 6px 12px; border-radius: 8px; display: flex; align-items: center; gap: 7px; box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
+        .unsaved-badge i { width: 9px; height: 9px; border-radius: 50%; background: #FACC15; display: inline-block; }
+        .dup-list { text-align: left; background: #FEF2F2; border: 1px solid #FCA5A5; border-radius: 10px; padding: 10px 14px; margin-top: 12px; font-size: 14.5px; font-weight: 700; color: #991B1B; line-height: 1.7; max-height: 220px; overflow: auto; }
     </style>
 </head>
 <body>
@@ -495,6 +528,7 @@
         <symbol id="i-listplus" viewBox="0 0 24 24"><path d="M4 6h10M4 12h10M4 18h6M18 14v6M15 17h6"/></symbol>
         <symbol id="i-sort" viewBox="0 0 24 24"><path d="M4 6h10M4 12h7M4 18h4M18 6v13m0 0l-3-3m3 3l3-3"/></symbol>
         <symbol id="i-save" viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5zM8 4v5h7V4M8 20v-6h8v6"/></symbol>
+        <symbol id="i-undo" viewBox="0 0 24 24"><path d="M9 14L4 9l5-5M4 9h10a6 6 0 0 1 0 12h-3"/></symbol>
         <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
         <symbol id="i-chart" viewBox="0 0 24 24"><path d="M5 20V11M12 20V5M19 20v-6M2 20h20"/></symbol>
         <symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h15m0 0l-3-3m3 3l-3 3M20 16H5m0 0l3-3m-3 3l3 3"/></symbol>
@@ -519,7 +553,10 @@
         </div>
 
         <!-- 늘 떠 있는 저장 버튼 -->
-        <button v-if="isLoggedIn" class="btn fab-save" @click="saveData"><svg class="ic"><use href="#i-save"/></svg>전체 저장하기</button>
+        <div v-if="isLoggedIn" class="fab-wrap">
+            <span v-if="isDirty" class="unsaved-badge"><i></i>저장 안 한 변경이 있습니다</span>
+            <button class="btn btn-main fab-save" @click="saveData"><svg class="ic"><use href="#i-save"/></svg>전체 저장하기</button>
+        </div>
 
         <div class="container">
             <!-- 상단 헤더 -->
@@ -638,7 +675,7 @@
                                     </div>
                                 </div>
                                 <button class="btn btn-outline" @click="addStudent(currentTab)"><svg class="ic"><use href="#i-plus"/></svg>한 명 추가</button>
-                                <button class="btn" @click="showBulkInput = !showBulkInput"><svg class="ic"><use href="#i-listplus"/></svg>명단 일괄추가</button>
+                                <button class="btn btn-main" @click="showBulkInput = !showBulkInput"><svg class="ic"><use href="#i-listplus"/></svg>명단 일괄추가</button>
                                 <div class="menu-wrap">
                                     <button class="btn btn-outline" style="padding: 12px 14px;" title="분기 시작할 때 쓰는 기능" @click.stop="toggleMenu('more')"><svg class="ic"><use href="#i-dots"/></svg></button>
                                     <div v-if="openMenu === 'more'" class="menu-pop">
@@ -704,6 +741,7 @@
                                     <button :class="{ on: statusView === '신규' }" @click="statusView = '신규'">신규 {{ statusCounts['신규'] }}</button>
                                 </div>
                                 <button v-if="selectedLevelFilter" class="btn btn-outline btn-sm" @click="selectedLevelFilter = null"><svg class="ic"><use href="#i-x"/></svg>단계 걸러 보기 끄기</button>
+                                <button class="btn btn-outline btn-sm btn-undo" :disabled="undoStack.length === 0" title="명단에서 방금 바꾼 것을 되돌립니다" @click="undo"><svg class="ic"><use href="#i-undo"/></svg>되돌리기</button>
                             </div>
                             <!-- 체크한 학생 한꺼번에 바꾸기 줄 -->
                             <div class="tool-row pick" :class="{ on: picking }">
@@ -711,9 +749,9 @@
                                 <button class="btn btn-outline btn-sm" :disabled="!picking" @click="selectedStudentIds = []">선택 해제</button>
                                 <div class="tool-sep"></div>
                                 <span class="tool-cap">상태 바꾸기</span>
-                                <button class="btn btn-outline btn-sm" :disabled="!picking" @click="setStatusForSelected('기존')">기존으로</button>
-                                <button class="btn btn-outline btn-sm" :disabled="!picking" @click="setStatusForSelected('신규')">신규로</button>
-                                <button class="btn btn-outline btn-sm is-danger" :disabled="!picking" @click="setStatusForSelected('삭제')">삭제(취소)로</button>
+                                <button class="btn btn-sm btn-st st-old" :disabled="!picking" @click="setStatusForSelected('기존')">기존으로</button>
+                                <button class="btn btn-sm btn-st st-new" :disabled="!picking" @click="setStatusForSelected('신규')">신규로</button>
+                                <button class="btn btn-sm btn-st st-out" :disabled="!picking" @click="setStatusForSelected('삭제')">삭제(취소)로</button>
                                 <span v-if="picking" class="tool-hint">교구 주문은 위 색깔 카드를 누르면 바뀝니다</span>
                             </div>
                         </div>
@@ -752,7 +790,7 @@
                                     <td><input type="text" v-model="student.name" style="font-weight: 700;"></td>
                                     <td><input type="text" v-model="student.phone"></td>
                                     <td>
-                                        <select v-model="student.status" :style="{ fontWeight: '700', color: student.status === '신규' ? '#EF4444' : 'inherit' }">
+                                        <select v-model="student.status" :style="{ fontWeight: '700', color: student.status === '신규' ? '#16A34A' : (student.status === '기존' ? '#1D4ED8' : 'inherit') }">
                                             <option value="기존" style="color: initial;">기존</option>
                                             <option value="신규" style="color: #EF4444;">신규</option>
                                             <option value="삭제" style="color: initial;">삭제</option>
@@ -790,7 +828,7 @@
                                     <td><input type="text" v-model="student.name" style="font-weight: 700;"></td>
                                     <td><input type="text" v-model="student.phone"></td>
                                     <td>
-                                        <select v-model="student.status" :style="{ fontWeight: '700', color: student.status === '신규' ? '#EF4444' : 'inherit' }">
+                                        <select v-model="student.status" :style="{ fontWeight: '700', color: student.status === '신규' ? '#16A34A' : (student.status === '기존' ? '#1D4ED8' : 'inherit') }">
                                             <option value="기존" style="color: initial;">기존</option>
                                             <option value="신규" style="color: #EF4444;">신규</option>
                                             <option value="삭제" style="color: initial;">삭제</option>
@@ -1293,6 +1331,7 @@
                     selectedStudentIds.value = [];
                     statusView.value = 'all';
                     openMenu.value = null;
+                    resetUndo();
                 });
 
                 watch(quarter, (newQ) => {
@@ -1329,6 +1368,34 @@
                     { id: 3, quarter: '3분기', school: 'bareun', grade: '3', classNum: '1', num: '4', name: '김아린', phone: '010-3391-5062', status: '신규', currentLevel: '', item: '말랑2', note: '중도 편입' }
                 ]);
                 const savedOrders = ref([]);
+
+                // ── 저장 안 됨 알림: 마지막으로 불러오거나 저장한 내용과 다르면 표시 ──
+                const makeSnap = () => JSON.stringify([students.value, orderFormsByQuarter.value, savedOrders.value.map(o => o.id)]);
+                const savedSnap = ref('');
+                const markSaved = () => { savedSnap.value = makeSnap(); };
+                const isDirty = computed(() => savedSnap.value !== '' && makeSnap() !== savedSnap.value);
+                window.addEventListener('beforeunload', (e) => { if (isDirty.value) { e.preventDefault(); e.returnValue = ''; } });
+
+                // ── 되돌리기: 명단이 바뀌기 직전 모습을 기억해 둔다 (잇달아 바꾼 것은 한 묶음) ──
+                const undoStack = ref([]);
+                let undoLast = JSON.stringify(students.value), undoBurst = false, undoTimer = null;
+                const resetUndo = () => { clearTimeout(undoTimer); undoBurst = false; undoStack.value = []; undoLast = JSON.stringify(students.value); };
+                watch(students, () => {
+                    const now = JSON.stringify(students.value);
+                    if (now === undoLast) return;
+                    if (!undoBurst) { undoStack.value.push(undoLast); if (undoStack.value.length > 20) undoStack.value.shift(); undoBurst = true; }
+                    clearTimeout(undoTimer);
+                    undoTimer = setTimeout(() => { undoBurst = false; undoLast = JSON.stringify(students.value); }, 700);
+                }, { deep: true });
+                const undo = () => {
+                    if (undoStack.value.length === 0) return;
+                    clearTimeout(undoTimer); undoBurst = false;
+                    const prev = undoStack.value.pop();
+                    undoLast = prev;
+                    students.value = JSON.parse(prev);
+                    selectedStudentIds.value = [];
+                    Swal.fire({ title: '되돌렸습니다', icon: 'success', timer: 1000, showConfirmButton: false });
+                };
 
                 // 베이스 필터: 현재 학교, 분기, 레벨 검색어 등
                 const filteredStudents = computed(() => {
@@ -1530,17 +1597,38 @@
 
                 const processBulkInput = () => {
                     if(!bulkText.value.trim()) return Swal.fire({ title: '입력 오류', text: '데이터가 없습니다.', icon: 'error', confirmButtonColor: '#EF4444' });
-                    const lines = bulkText.value.split('\n');
-                    let addedCount = 0;
-                    lines.forEach(line => {
+                    const esc = (t) => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+                    const rows = [];
+                    bulkText.value.split('\n').forEach(line => {
                         const parts = line.trim().split(/\s+/);
                         if (parts.length >= 2 && parts[0] !== '') {
-                            students.value.push({ id: Date.now() + Math.random(), quarter: quarter.value, school: currentTab.value, grade: parts[0] || '', classNum: parts[1] || '', num: parts[2] || '', name: parts[3] || '', phone: parts[4] || '', status: '신규', currentLevel: '', item: '', note: '' });
-                            addedCount++;
+                            rows.push({ grade: parts[0] || '', classNum: parts[1] || '', num: parts[2] || '', name: parts[3] || '', phone: parts[4] || '' });
                         }
                     });
-                    Swal.fire({ title: '완료!', text: `${addedCount}명 추가되었습니다.`, icon: 'success', confirmButtonColor: '#10B981' });
-                    bulkText.value = ''; showBulkInput.value = false;
+                    // 이름이 같고, 전화번호가 같거나 한쪽에 전화번호가 없으면 같은 학생으로 본다
+                    const same = (a, b) => a.name !== '' && a.name === b.name && (!a.phone || !b.phone || a.phone === b.phone);
+                    const known = students.value.filter(s => s.school === currentTab.value && s.quarter === quarter.value);
+                    const dups = [], fresh = [];
+                    rows.forEach(r => { if (known.some(k => same(r, k)) || fresh.some(f => same(r, f))) dups.push(r); else fresh.push(r); });
+                    const add = (list) => {
+                        list.forEach(r => {
+                            students.value.push({ id: Date.now() + Math.random(), quarter: quarter.value, school: currentTab.value, grade: r.grade, classNum: r.classNum, num: r.num, name: r.name, phone: r.phone, status: '신규', currentLevel: '', item: '', note: '' });
+                        });
+                        Swal.fire({ title: '완료!', text: `${list.length}명 추가되었습니다.`, icon: 'success', confirmButtonColor: '#10B981' });
+                        bulkText.value = ''; showBulkInput.value = false;
+                    };
+                    if (dups.length === 0) return add(rows);
+                    const listHtml = dups.map(d => `· ${esc(d.name)} (${esc(d.grade)}학년 ${esc(d.classNum)}반 ${esc(d.num)}번${d.phone ? ', ' + esc(d.phone) : ''})`).join('<br>');
+                    Swal.fire({
+                        title: '겹치는 학생이 있습니다',
+                        html: `이미 명단에 있거나 두 번 적힌 학생이 <b>${dups.length}명</b> 있습니다.<div class="dup-list">${listHtml}</div>`,
+                        icon: 'warning', showDenyButton: true, showCancelButton: true,
+                        confirmButtonText: `겹치는 학생은 빼고 추가 (${fresh.length}명)`, denyButtonText: `그래도 모두 추가 (${rows.length}명)`, cancelButtonText: '취소',
+                        confirmButtonColor: '#F2683C', denyButtonColor: '#64748B', cancelButtonColor: '#94A3B8'
+                    }).then((result) => {
+                        if (result.isConfirmed) add(fresh);
+                        else if (result.isDenied) add(rows);
+                    });
                 };
 
                 const removeStudent = (id) => {
@@ -1645,6 +1733,7 @@
                             savedOrders: savedOrders.value
                         });
 
+                        markSaved();
                         Swal.fire({ title: '저장 완료!', text: '전체 데이터가 파이어베이스에 안전하게 저장되었습니다.', icon: 'success', confirmButtonColor: '#10B981', timer: 1500, showConfirmButton: false });
                     } catch (e) {
                         console.error(e);
@@ -1686,6 +1775,8 @@
                             if (data.quarter) quarter.value = data.quarter;
                             if (data.savedOrders) savedOrders.value = data.savedOrders;
                         }
+                        markSaved();
+                        resetUndo();
                     } catch (e) {
                         console.error('데이터 로드 실패:', e);
                     }
@@ -1778,7 +1869,7 @@
 
                 return { 
                     isLoggedIn, landingQuarter, selectSchoolAndEnter, goHome, goToIndex, currentTab, showBulkInput, bulkText, 
-                    quarter, searchQuery, selectedStudentIds, isAllSelected, toggleAll, isClassSelected, toggleClass, statusView, statusCounts, openMenu, toggleMenu, picking, levelLabel, jumpTo, onLevelCard, setStatusForSelected, getNoItemCount,
+                    quarter, searchQuery, selectedStudentIds, isAllSelected, toggleAll, isClassSelected, toggleClass, statusView, statusCounts, openMenu, toggleMenu, picking, levelLabel, jumpTo, onLevelCard, setStatusForSelected, getNoItemCount, isDirty, undoStack, undo,
                     schoolNames, getSchoolFullName, getDeptName, items, 
                     orderItems, itemMapping, price, students, filteredStudents, class1Students, class2Students, cancelledStudents,
                     orderFormsByQuarter, savedOrders, selectedImage, 
