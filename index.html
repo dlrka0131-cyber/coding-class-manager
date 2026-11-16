@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="light">
     <title>코딩 교실 통합 관리 시스템</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
     <script src="idle-logout.js"></script>
 <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
@@ -97,118 +97,64 @@
     </style>
     <style>
         * { box-sizing: border-box; }
-        body { 
-            margin: 0; padding: 0; font-family: 'Malgun Gothic', 'Segoe UI', sans-serif; 
-            background-image: linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%); 
+        body {
+            margin: 0; padding: 0; font-family: 'Pretendard', 'Malgun Gothic', 'Segoe UI', sans-serif; color: white;
+            background: radial-gradient(1200px 500px at 20% 0%, #33407A 0%, transparent 60%), radial-gradient(900px 500px at 90% 100%, #5B2E6B 0%, transparent 60%), #141A33;
+            background-attachment: fixed;
             min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            position: relative; overflow-x: hidden;
         }
+        .star { position: fixed; width: 3px; height: 3px; border-radius: 50%; background: white; opacity: .6; pointer-events: none; animation: twinkle 4s ease-in-out infinite; }
+        @keyframes twinkle { 50% { opacity: .15; } }
+        @media (prefers-reduced-motion: reduce) { .star { animation: none; } }
 
-        .container {
-            width: 100%; max-width: 1200px; padding: 20px; text-align: center;
+        #authLogoutBtn {
+            top: 22px; right: 28px; background: transparent; color: #C7CEEA; border: 1.5px solid rgba(255,255,255,.25);
+            padding: 8px 16px; border-radius: 20px; font-size: 14.5px; font-weight: 700; font-family: inherit;
         }
+        #authGateOverlay, #authGateBox { font-family: 'Pretendard', 'Malgun Gothic', sans-serif; }
 
-        .header-title-wrapper {
-            margin-bottom: 10px; display: flex; align-items: center; justify-content: center;
-        }
-        
-        .header-title {
-            font-size: 3.5rem; font-weight: 900; letter-spacing: -1.5px;
-            position: relative; display: inline-flex; align-items: center; justify-content: center;
-            gap: 20px; padding: 15px 45px; margin: 0;
-        }
+        .container { width: 100%; max-width: 1200px; padding: 60px 40px 20px; text-align: center; position: relative; }
+        .header-title { font-size: 46px; font-weight: 900; margin: 0 0 12px; letter-spacing: -1px; }
+        .header-title em { font-style: normal; background: linear-gradient(90deg, #FFB86B, #FF7AA8); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .header-sub { font-size: 17px; color: #AEB7DB; margin: 0 0 50px; }
 
-        .header-title::before {
-            content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(255, 255, 255, 0.45); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            border-radius: 60px; border: 2px solid rgba(255, 255, 255, 0.8);
-            box-shadow: 0 15px 35px rgba(255, 118, 117, 0.2), inset 0 0 20px rgba(255, 255, 255, 0.6); z-index: -1;
-        }
-
-        .title-icon { font-size: 3rem; animation: float 3s ease-in-out infinite; }
-        .icon-left { color: #ff7675; filter: drop-shadow(0 4px 6px rgba(255, 118, 117, 0.4)); }
-        .icon-right { color: #fdcb6e; filter: drop-shadow(0 4px 6px rgba(253, 203, 110, 0.4)); animation-delay: 1.5s; }
-
-        @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-8px); }
-            100% { transform: translateY(0px); }
-        }
-
-        .header-title-text {
-            background: linear-gradient(120deg, #ff6b6b, #6c5ce7, #0984e3, #ff6b6b);
-            background-size: 300% auto; -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            background-clip: text; text-fill-color: transparent;
-            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1)); animation: shineText 4s linear infinite;
-        }
-
-        @keyframes shineText { to { background-position: 300% center; } }
-
-        .header-sub {
-            font-size: 1.3rem; color: rgba(255, 255, 255, 0.95); margin-bottom: 50px; 
-            font-weight: 600; text-shadow: 0 2px 4px rgba(0,0,0,0.15);
-        }
-
-        .app-grid {
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px; padding: 0 20px;
-        }
-
+        .app-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; max-width: 1120px; margin: 0 auto; }
         .app-card {
-            background: rgba(255, 255, 255, 0.94); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-            border-radius: 25px; padding: 45px 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease, border-color 0.3s ease;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            border: 2px solid rgba(255, 255, 255, 0.8); position: relative; text-decoration: none;
-            overflow: hidden;
+            background: rgba(255,255,255,.07); border: 1.5px solid rgba(255,255,255,.14); border-radius: 22px;
+            padding: 30px 22px 26px; text-align: left; text-decoration: none; color: white; display: block;
+            backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+            transition: transform .2s, background .2s, border-color .2s;
         }
+        .app-card:hover, .app-card:focus-visible { transform: translateY(-5px); background: rgba(255,255,255,.12); border-color: rgba(255,255,255,.4); outline: none; }
+        .app-icon-wrapper { width: 60px; height: 60px; border-radius: 18px; display: flex; align-items: center; justify-content: center; margin-bottom: 44px; color: #141A33; }
+        .app-icon-wrapper svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+        .theme-seating .app-icon-wrapper { background: #B9A7FF; }
+        .theme-supplies .app-icon-wrapper { background: #FFB86B; }
+        .theme-calendar .app-icon-wrapper { background: #7BE3B4; }
+        .theme-student .app-icon-wrapper { background: #7CC4FF; }
+        .app-name { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+        .app-desc { font-size: 15px; color: #AEB7DB; word-break: keep-all; }
 
-        .app-card:hover {
-            transform: translateY(-12px);
-            box-shadow: 0 20px 40px rgba(0,0,0,0.1), 0 15px 35px rgba(255, 118, 117, 0.2);
-            border-color: #ff7675;
-        }
+        .footer-note { margin-top: 70px; font-size: 13.5px; color: #7C86B3; }
 
-        .app-icon-wrapper {
-            width: 100px; height: 100px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 2.8rem; color: white; margin-bottom: 25px; box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-            transition: transform 0.3s ease;
-        }
-
-        .app-card:hover .app-icon-wrapper { transform: scale(1.1) rotate(5deg); }
-
-        .theme-seating .app-icon-wrapper { background: linear-gradient(135deg, #6c5ce7, #a29bfe); }
-        .theme-supplies .app-icon-wrapper { background: linear-gradient(135deg, #00b894, #55efc4); }
-        .theme-calendar .app-icon-wrapper { background: linear-gradient(135deg, #fdcb6e, #ffeaa7); color: #d35400; }
-        /* 🌟 학생관리 카드 아이콘 스타일 추가 완료 🌟 */
-        .theme-student .app-icon-wrapper { background: linear-gradient(135deg, #ff7675, #fab1a0); }
-
-        .app-name { font-size: 1.6rem; font-weight: 900; color: #2d3436; margin-bottom: 12px; letter-spacing: -0.5px; }
-        .app-desc { font-size: 0.95rem; font-weight: 600; color: #636e72; line-height: 1.4; word-break: keep-all; }
-
-        .footer-note {
-            margin-top: 80px; font-size: 0.95rem; color: #555; font-weight: 700;
-            background: rgba(255,255,255,0.8); padding: 12px 30px; border-radius: 30px; display: inline-block;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05); border: 1px solid rgba(255,255,255,0.5);
-        }
-
-        @media (max-width: 1000px) {
-            .app-grid { grid-template-columns: repeat(2, 1fr); }
-        }
+        @media (max-width: 1000px) { .app-grid { grid-template-columns: repeat(2, 1fr); } }
         @media (max-width: 600px) {
-            .container { padding: 10px; }
-            .header-title { font-size: 2.2rem; padding: 10px 25px; }
-            .title-icon { font-size: 2rem; }
-            .header-sub { font-size: 1.1rem; margin-bottom: 30px; }
-            .app-grid { grid-template-columns: 1fr; gap: 20px; }
-            .app-card { padding: 30px 20px; }
+            .container { padding: 70px 16px 20px; }
+            .header-title { font-size: 32px; }
+            .header-sub { margin-bottom: 30px; }
+            .app-grid { grid-template-columns: 1fr; }
+            .app-icon-wrapper { margin-bottom: 22px; }
         }
     </style>
 </head>
 <body>
+    <span class="star" style="top:12%;left:8%"></span><span class="star" style="top:22%;left:31%;animation-delay:1s"></span><span class="star" style="top:9%;left:57%;animation-delay:2s"></span><span class="star" style="top:30%;left:78%;animation-delay:.5s"></span><span class="star" style="top:16%;left:91%;animation-delay:3s"></span><span class="star" style="top:84%;left:12%;animation-delay:1.5s"></span><span class="star" style="top:90%;left:66%;animation-delay:2.5s"></span>
 
-    <button id="authLogoutBtn">🚪 로그아웃</button>
+    <button id="authLogoutBtn">로그아웃</button>
     <div id="authGateOverlay">
       <div id="authGateBox">
-        <h2>🔒 로그인이 필요합니다</h2>
+        <h2>로그인이 필요합니다</h2>
         <p>선생님 전용 페이지입니다.<br>구글 계정으로 로그인해주세요.</p>
         <button id="authGateBtn">Google로 로그인</button>
         <div id="authGateDenied">이 계정은 접근 권한이 없습니다.</div>
@@ -216,42 +162,36 @@
     </div>
 
     <div class="container">
-        <div class="header-title-wrapper">
-            <h1 class="header-title">
-                <i class="fa-solid fa-rocket title-icon icon-left"></i>
-                <span class="header-title-text">코딩 교실 통합 관리</span>
-                <i class="fa-solid fa-star title-icon icon-right"></i>
-            </h1>
-        </div>
+        <h1 class="header-title"><em>코딩 교실</em> 통합 관리</h1>
         <p class="header-sub">원하시는 관리 시스템을 선택해 주세요.</p>
 
         <div class="app-grid">
             <a href="seating.html" class="app-card theme-seating">
-                <div class="app-icon-wrapper"><i class="fa-solid fa-chalkboard-user"></i></div>
+                <div class="app-icon-wrapper"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="11" rx="2"/><path d="M8 20h8M12 15v5M7 8h6M7 11h3"/></svg></div>
                 <div class="app-name">통합 자리배치</div>
                 <div class="app-desc">자리배치</div>
             </a>
 
             <a href="dashboard.html" class="app-card theme-supplies">
-                <div class="app-icon-wrapper"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+                <div class="app-icon-wrapper"><svg viewBox="0 0 24 24"><path d="M3 8l9-5 9 5v8l-9 5-9-5zM3 8l9 5 9-5M12 13v8"/></svg></div>
                 <div class="app-name">교구 대쉬보드</div>
                 <div class="app-desc">학생별 교구 현황</div>
             </a>
 
             <a href="schedule.html" class="app-card theme-calendar">
-                <div class="app-icon-wrapper"><i class="fa-solid fa-calendar-alt"></i></div>
+                <div class="app-icon-wrapper"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4M8 14h.01M12 14h.01M16 14h.01M8 17.5h.01M12 17.5h.01"/></svg></div>
                 <div class="app-name">일정 캘린더</div>
                 <div class="app-desc">전체 학교 일정 관리</div>
             </a>
 
             <a href="student.html" class="app-card theme-student">
-                <div class="app-icon-wrapper"><i class="fa-solid fa-address-book"></i></div>
+                <div class="app-icon-wrapper"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 5a3.5 3.5 0 0 1 0 6.5M18.5 14.8c1.700.8 2.700 2.500 3 5.200"/></svg></div>
                 <div class="app-name">학생관리 명단</div>
                 <div class="app-desc">학생관리</div>
             </a>
         </div>
 
-        <div class="footer-note">🌸 제작 : 김정이 선생님💕</div>
+        <div class="footer-note">제작 : 김정이 선생님</div>
     </div>
 
 </body>
