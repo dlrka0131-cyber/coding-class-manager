@@ -78,11 +78,11 @@
     </script>
     <style>
         #authLogoutBtn {
-            position: fixed; top: 10px; right: 10px; z-index: 999998; display: none;
-            background: rgba(15,23,42,0.85); color: #fff; border: 1px solid #475569;
-            padding: 6px 12px; border-radius: 20px; font-size: 12px; cursor: pointer;
-            font-family: 'Pretendard', 'Malgun Gothic', sans-serif;
+            display: none; background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.4);
+            padding: 10px 18px; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer;
+            font-family: 'Pretendard', 'Malgun Gothic', sans-serif; transition: all 0.2s;
         }
+        #authLogoutBtn .ic { vertical-align: -3px; margin-right: 7px; }
         #authLogoutBtn:hover { background: #dc2626; border-color: #dc2626; }
     </style>
 
@@ -120,7 +120,7 @@
             background: var(--surface); 
             border-radius: 20px; 
             box-shadow: 0 20px 40px -15px rgba(0,0,0,0.15); 
-            overflow: hidden; 
+            overflow: clip; 
         }
         
         .header { 
@@ -190,6 +190,7 @@
             padding: 14px 26px; cursor: pointer; font-weight: 700; color: var(--text-muted); 
             border-radius: 12px; background: white; transition: all 0.2s ease; 
             font-size: 16px; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.03); 
+            display: inline-flex; align-items: center; gap: 8px;
         }
         .tab:hover { border-color: #94A3B8; color: var(--text-main); transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.04); }
         .tab.active { 
@@ -429,10 +430,81 @@
         
         .saved-orders-area { margin-top: 50px; background: white; padding: 30px; border-radius: 14px; border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.02); }
         .swal2-popup { font-family: 'Pretendard', 'Apple SD Gothic Neo', 'Malgun Gothic', sans-serif !important; border-radius: 16px !important; }
+
+        /* ───────── 배치 정리 (2026-11) ───────── */
+        .ic { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+        .btn-sm { padding: 7px 14px; font-size: 14px; border-radius: 8px; }
+        .btn-sm .ic { width: 15px; height: 15px; }
+        .btn-outline.is-danger { color: #DC2626; border-color: #FCA5A5; }
+        .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; filter: none; }
+
+        .fab-save { position: fixed; right: 28px; bottom: 28px; z-index: 900; padding: 15px 26px; font-size: 16px; border-radius: 30px; box-shadow: 0 10px 28px rgba(0,0,0,0.28); }
+
+        .jump-nav { position: sticky; top: 0; z-index: 50; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; background: rgba(255,255,255,0.96); backdrop-filter: blur(6px); margin: -40px -40px 26px; padding: 12px 40px; border-bottom: 1px solid var(--border); }
+        .jump-btn { font-family: inherit; border: none; background: transparent; color: var(--text-muted); font-weight: 800; font-size: 15px; padding: 8px 16px; border-radius: 20px; cursor: pointer; transition: background 0.2s; }
+        .jump-btn:hover { background: #F1F5F9; color: var(--text-main); }
+        .jump-btn span { color: #94A3B8; font-weight: 700; margin-left: 3px; }
+        .sec-anchor { scroll-margin-top: 76px; }
+
+        .roster-head { display: flex; justify-content: space-between; align-items: center; gap: 15px; flex-wrap: wrap; margin-bottom: 18px; }
+        .roster-acts { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+        .menu-wrap { position: relative; }
+        .menu-pop { position: absolute; right: 0; top: calc(100% + 6px); z-index: 60; background: white; border: 1px solid var(--border); border-radius: 12px; box-shadow: 0 12px 30px rgba(0,0,0,0.16); padding: 6px; min-width: 230px; }
+        .menu-label { font-size: 12.5px; font-weight: 800; color: #94A3B8; padding: 8px 12px 4px; }
+        .menu-item { display: flex; align-items: center; gap: 9px; width: 100%; box-sizing: border-box; font-family: inherit; border: none; background: transparent; text-align: left; padding: 10px 12px; border-radius: 8px; font-size: 15px; font-weight: 700; color: #334155; cursor: pointer; }
+        .menu-item:hover { background: #F1F5F9; }
+        .menu-item.is-danger { color: #DC2626; }
+        .menu-pop hr { border: none; border-top: 1px solid #E2E8F0; margin: 6px 0; }
+
+        .level-cap { margin: 0 0 8px; font-size: 14.5px; font-weight: 800; color: #475569; }
+        .level-cap span { font-weight: 600; color: #94A3B8; }
+        .level-cap.picking { color: var(--theme-color, var(--primary)); }
+        .level-cap.picking span { color: inherit; opacity: 0.8; }
+        .level-box.level-none { border-left: 5px solid #94A3B8; color: #475569; }
+        .level-summary.pick-mode .level-box { outline: 2px dashed currentColor; outline-offset: -2px; background: #FFFBEB; }
+
+        .tool-box { background: #F8FAFC; border: 1px solid var(--border); border-bottom: none; border-radius: 12px 12px 0 0; }
+        .tool-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 18px; }
+        .tool-row + .tool-row { border-top: 1px solid #E2E8F0; }
+        .tool-row.pick.on { background: #FFF7ED; }
+        .tool-row .search-input { width: 300px; padding: 9px 18px; background: white; }
+        .tool-cap { font-size: 14.5px; font-weight: 800; color: #334155; }
+        .tool-sep { width: 1px; height: 20px; background: #CBD5E1; margin: 0 4px; }
+        .tool-hint { margin-left: auto; font-size: 14px; font-weight: 600; color: #94A3B8; }
+        .pick-count { font-size: 15px; font-weight: 900; color: #94A3B8; }
+        .tool-row.pick.on .pick-count { color: var(--theme-color, var(--primary)); }
+        .seg { display: inline-flex; border: 1px solid #CBD5E1; border-radius: 8px; overflow: hidden; background: white; }
+        .seg button { font-family: inherit; border: none; border-left: 1px solid #CBD5E1; background: white; padding: 8px 14px; font-size: 14px; font-weight: 700; color: #475569; cursor: pointer; }
+        .seg button:first-child { border-left: none; }
+        .seg button.on { background: #334155; color: white; }
+
+        .main-table tr.class-row td, .main-table tbody tr.class-row:hover td { background: #475569 !important; color: #FFFFFF; font-weight: 800; font-size: 15.5px; text-align: left; padding: 9px 16px; border-right: none; }
+        .class-row label { display: inline-flex; align-items: center; gap: 10px; cursor: pointer; }
+        .btn-del { display: flex; margin: 0 auto; padding: 5px; border-radius: 6px; background: white; color: #DC2626; border: 1px solid #FCA5A5; cursor: pointer; }
+        .btn-del:hover { background: #FEF2F2; }
+        .btn-del .ic { width: 15px; height: 15px; }
     </style>
 </head>
 <body>
-    <button id="authLogoutBtn">🚪 로그아웃</button>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+        <symbol id="i-import" viewBox="0 0 24 24"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v3h16v-3"/></symbol>
+        <symbol id="i-export" viewBox="0 0 24 24"><path d="M12 15V3m0 0L8 7m4-4l4 4M4 17v3h16v-3"/></symbol>
+        <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13M10 11v6M14 11v6"/></symbol>
+        <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V6a2 2 0 0 1 2-2h9"/></symbol>
+        <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+        <symbol id="i-listplus" viewBox="0 0 24 24"><path d="M4 6h10M4 12h10M4 18h6M18 14v6M15 17h6"/></symbol>
+        <symbol id="i-sort" viewBox="0 0 24 24"><path d="M4 6h10M4 12h7M4 18h4M18 6v13m0 0l-3-3m3 3l3-3"/></symbol>
+        <symbol id="i-save" viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5zM8 4v5h7V4M8 20v-6h8v6"/></symbol>
+        <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+        <symbol id="i-chart" viewBox="0 0 24 24"><path d="M5 20V11M12 20V5M19 20v-6M2 20h20"/></symbol>
+        <symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h15m0 0l-3-3m3 3l-3 3M20 16H5m0 0l3-3m-3 3l3 3"/></symbol>
+        <symbol id="i-camera" viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></symbol>
+        <symbol id="i-box" viewBox="0 0 24 24"><path d="M4 5h16v4H4zM6 9v10h12V9M10 13h4"/></symbol>
+        <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+        <symbol id="i-logout" viewBox="0 0 24 24"><path d="M10 4H5v16h5M14 8l4 4-4 4M18 12H9"/></symbol>
+        <symbol id="i-down" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+        <symbol id="i-dots" viewBox="0 0 24 24"><path d="M5 12h.01M12 12h.01M19 12h.01"/></symbol>
+    </defs></svg>
     <div id="app">
         
         <!-- 캡처본 보기용 모달 -->
@@ -440,11 +512,14 @@
             <div class="modal-content">
                 <img :src="selectedImage" class="modal-image" alt="주문서 캡처본">
                 <div class="modal-actions">
-                    <button class="btn" @click="copySavedImage(selectedImage)">📸 스크린샷 복사</button>
+                    <button class="btn" @click="copySavedImage(selectedImage)"><svg class="ic"><use href="#i-camera"/></svg>스크린샷 복사</button>
                     <button class="btn btn-outline" @click="selectedImage = null">닫기</button>
                 </div>
             </div>
         </div>
+
+        <!-- 늘 떠 있는 저장 버튼 -->
+        <button v-if="isLoggedIn" class="btn fab-save" @click="saveData"><svg class="ic"><use href="#i-save"/></svg>전체 저장하기</button>
 
         <div class="container">
             <!-- 상단 헤더 -->
@@ -468,7 +543,7 @@
                     </div>
                 </div>
                 <div style="display: flex; gap: 12px; align-items: center;">
-                    <button class="btn" @click="saveData" style="background: white; color: #1E293B;">💾 전체 저장하기</button>
+                    <button id="authLogoutBtn"><svg class="ic"><use href="#i-logout"/></svg>로그아웃</button>
                 </div>
             </div>
             
@@ -476,7 +551,7 @@
             <div v-if="!isLoggedIn" class="landing-container">
                 <div class="landing-header-row">
                     <div class="landing-title-area">
-                        <h2>🏫 관리할 학교와 분기를 선택해주세요</h2>
+                        <h2>관리할 학교와 분기를 선택해주세요</h2>
                         <p>작업할 분기를 먼저 고른 뒤, 출강 학교 카드를 클릭하여 대시보드에 진입하세요.</p>
                     </div>
                     <div class="landing-quarter-row">
@@ -514,12 +589,12 @@
             <!-- 🌟 [메인 대시보드 영역] -->
             <div v-else>
                 <div class="tabs">
-                    <div class="tab" :class="{ active: currentTab === 'hakdong' }" @click="currentTab = 'hakdong'"> 학동초(화)</div>
-                    <div class="tab" :class="{ active: currentTab === 'bareun' }" @click="currentTab = 'bareun'"> 바른초(수)</div>
-                    <div class="tab" :class="{ active: currentTab === 'banwol' }" @click="currentTab = 'banwol'"> 반월초(목)</div>
-                    <div class="tab" :class="{ active: currentTab === 'sejeong' }" @click="currentTab = 'sejeong'"> 세정초(금)</div>
-                    <div class="tab" :class="{ active: currentTab === 'matrix' }" @click="currentTab = 'matrix'" style="margin-left: auto; background: #334155; color: white;">📊 종합 현황</div>
-                    <div class="tab" :class="{ active: currentTab === 'inventory' }" @click="currentTab = 'inventory'" style="background: #334155; color: white;">🔄 재고 정산</div>
+                    <div class="tab" :class="{ active: currentTab === 'hakdong' }" @click="currentTab = 'hakdong'">학동초(화)</div>
+                    <div class="tab" :class="{ active: currentTab === 'bareun' }" @click="currentTab = 'bareun'">바른초(수)</div>
+                    <div class="tab" :class="{ active: currentTab === 'banwol' }" @click="currentTab = 'banwol'">반월초(목)</div>
+                    <div class="tab" :class="{ active: currentTab === 'sejeong' }" @click="currentTab = 'sejeong'">세정초(금)</div>
+                    <div class="tab" :class="{ active: currentTab === 'matrix' }" @click="currentTab = 'matrix'" style="margin-left: auto; background: #334155; color: white;"><svg class="ic"><use href="#i-chart"/></svg>종합 현황</div>
+                    <div class="tab" :class="{ active: currentTab === 'inventory' }" @click="currentTab = 'inventory'" style="background: #334155; color: white;"><svg class="ic"><use href="#i-swap"/></svg>재고 정산</div>
                 </div>
 
                 <div class="content-area">
@@ -527,119 +602,119 @@
                     <!-- 학교별 명단 및 주문서 탭 -->
                     <div v-if="['hakdong', 'bareun', 'banwol', 'sejeong'].includes(currentTab)">
                         
-                        <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 22px; flex-wrap: wrap; gap: 15px;">
-                            <div>
-                                <h2 style="margin: 0 0 14px 0; font-size: 22px; font-weight: 900; color: #0F172A; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; word-break: keep-all;">
-                                    {{ getSchoolFullName(currentTab) }} {{ quarter }} 학생 명단
-                                    <span style="padding: 6px 18px; background: var(--theme-color, var(--primary)); color: white; border-radius: 24px; font-size: 16px; font-weight: 800; box-shadow: 0 4px 10px rgba(0,0,0,0.15); display: inline-flex; align-items: center; gap: 8px;">
-                                        <span>총 {{ class1Students.length + class2Students.length }}명</span>
-                                        <span style="font-size: 14px; font-weight: 700; opacity: 0.95; background: rgba(0,0,0,0.15); padding: 2px 10px; border-radius: 12px;">
-                                            (1반: {{ class1Students.length }}명 / 2반: {{ class2Students.length }}명)
-                                        </span>
-                                    </span>
-                                    <span v-if="selectedLevelFilter" style="color: #EF4444; font-size: 15px; font-weight: 700;">(🔍 '{{ selectedLevelFilter }}' 필터링)</span>
-                                </h2>
-                                <input type="text" v-model="searchQuery" class="search-input" placeholder="🔍 이름/전화번호 검색 (Ctrl+F)">
-                            </div>
-                            
-                            <div style="display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; align-items: center;">
-                                <button class="btn btn-outline" @click="importFromPrevQuarter" style="color: #475569; border-color: #CBD5E1;">🔄 이전 분기 가져오기</button>
-                                <button class="btn btn-outline" @click="resetCurrentStudents" style="color: #EF4444; border-color: #FCA5A5;">🗑️ 명단 리셋</button>
-                                
-                                <div style="width: 1px; height: 20px; background: #CBD5E1; margin: 0 4px;"></div>
-                                
-                                <button class="btn btn-outline" @click="exportToExcel" style="color: #059669; border-color: #6EE7B7;">📊 엑셀 내보내기</button>
-                                <button class="btn btn-outline" @click="exportContactCSV" style="color: #10B981; border-color: #34D399;">📞 연락처 CSV</button>
-                                
-                                <div style="width: 1px; height: 20px; background: #CBD5E1; margin: 0 4px;"></div>
-                                
-                                <button class="btn btn-bulk" @click="showBulkInput = !showBulkInput">📋 명단 일괄추가</button>
-                                <button class="btn" @click="addStudent(currentTab)">+ 인원 추가</button>
-                            </div>
+                        <!-- 페이지 안 바로가기 -->
+                        <div class="jump-nav">
+                            <button class="jump-btn" @click="jumpTo('sec-roster')">학생 명단 <span>{{ class1Students.length + class2Students.length }}</span></button>
+                            <button v-if="cancelledStudents.length > 0" class="jump-btn" @click="jumpTo('sec-cancel')">취소·환불 <span>{{ cancelledStudents.length }}</span></button>
+                            <button class="jump-btn" @click="jumpTo('sec-order')">주문서 접수</button>
+                            <button class="jump-btn" @click="jumpTo('sec-saved')">주문서 보관함 <span>{{ savedOrders.length }}</span></button>
                         </div>
 
-                        <div class="level-summary" :class="{ 'has-selection': selectedLevelFilter }">
-                            <div class="level-box level-1" :class="{ 'selected-card': selectedLevelFilter === '말랑1' }" @click="toggleLevelFilter('말랑1')">
-                                <span>1단계</span>
-                                <span class="level-count">{{ getCount(currentTab, '말랑1') }}</span>
+                        <!-- 제목 + 명단 버튼 -->
+                        <div id="sec-roster" class="roster-head sec-anchor">
+                            <h2 style="margin: 0; font-size: 22px; font-weight: 900; color: #0F172A; display: flex; align-items: center; flex-wrap: wrap; gap: 10px; word-break: keep-all;">
+                                {{ getSchoolFullName(currentTab) }} {{ quarter }} 학생 명단
+                                <span style="padding: 6px 18px; background: var(--theme-color, var(--primary)); color: white; border-radius: 24px; font-size: 16px; font-weight: 800; box-shadow: 0 4px 10px rgba(0,0,0,0.15); display: inline-flex; align-items: center; gap: 8px;">
+                                    <span>총 {{ class1Students.length + class2Students.length }}명</span>
+                                    <span style="font-size: 14px; font-weight: 700; opacity: 0.95; background: rgba(0,0,0,0.15); padding: 2px 10px; border-radius: 12px;">
+                                        (1반: {{ class1Students.length }}명 / 2반: {{ class2Students.length }}명)
+                                    </span>
+                                </span>
+                                <span v-if="selectedLevelFilter" style="color: #EF4444; font-size: 15px; font-weight: 700;">('{{ levelLabel(selectedLevelFilter) }}'만 보는 중)</span>
+                            </h2>
+
+                            <div class="roster-acts">
+                                <div class="menu-wrap">
+                                    <button class="btn btn-outline" @click.stop="toggleMenu('export')"><svg class="ic"><use href="#i-export"/></svg>내보내기<svg class="ic"><use href="#i-down"/></svg></button>
+                                    <div v-if="openMenu === 'export'" class="menu-pop">
+                                        <div class="menu-label">파일로 받기</div>
+                                        <button class="menu-item" @click="exportToExcel"><svg class="ic"><use href="#i-export"/></svg>엑셀 내보내기</button>
+                                        <button class="menu-item" @click="exportContactCSV"><svg class="ic"><use href="#i-export"/></svg>연락처 CSV</button>
+                                        <hr>
+                                        <div class="menu-label">전화번호 복사</div>
+                                        <button class="menu-item" @click="copyPhoneNumbers(1)"><svg class="ic"><use href="#i-copy"/></svg>1~2학년</button>
+                                        <button class="menu-item" @click="copyPhoneNumbers(2)"><svg class="ic"><use href="#i-copy"/></svg>3~6학년</button>
+                                        <button class="menu-item" @click="copyPhoneNumbers(0)"><svg class="ic"><use href="#i-copy"/></svg>전체</button>
+                                    </div>
+                                </div>
+                                <button class="btn btn-outline" @click="addStudent(currentTab)"><svg class="ic"><use href="#i-plus"/></svg>한 명 추가</button>
+                                <button class="btn" @click="showBulkInput = !showBulkInput"><svg class="ic"><use href="#i-listplus"/></svg>명단 일괄추가</button>
+                                <div class="menu-wrap">
+                                    <button class="btn btn-outline" style="padding: 12px 14px;" title="분기 시작할 때 쓰는 기능" @click.stop="toggleMenu('more')"><svg class="ic"><use href="#i-dots"/></svg></button>
+                                    <div v-if="openMenu === 'more'" class="menu-pop">
+                                        <div class="menu-label">분기 시작할 때</div>
+                                        <button class="menu-item" @click="importFromPrevQuarter"><svg class="ic"><use href="#i-import"/></svg>이전 분기 가져오기</button>
+                                        <hr>
+                                        <button class="menu-item is-danger" @click="resetCurrentStudents"><svg class="ic"><use href="#i-trash"/></svg>명단 리셋</button>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="level-box level-2" :class="{ 'selected-card': selectedLevelFilter === '말랑2' }" @click="toggleLevelFilter('말랑2')">
-                                <span>2단계</span>
-                                <span class="level-count">{{ getCount(currentTab, '말랑2') }}</span>
-                            </div>
-                            <div class="level-box level-3" :class="{ 'selected-card': selectedLevelFilter === '말랑3' }" @click="toggleLevelFilter('말랑3')">
-                                <span>3단계</span>
-                                <span class="level-count">{{ getCount(currentTab, '말랑3') }}</span>
-                            </div>
-                            <div class="level-box level-4" :class="{ 'selected-card': selectedLevelFilter === '말랑4' }" @click="toggleLevelFilter('말랑4')">
-                                <span>4단계</span>
-                                <span class="level-count">{{ getCount(currentTab, '말랑4') }}</span>
-                            </div>
-                            <div class="level-box level-cert" :class="{ 'selected-card': selectedLevelFilter === '자격증' }" @click="toggleLevelFilter('자격증')">
-                                <span>자격증</span>
-                                <span class="level-count">{{ getCount(currentTab, '자격증') }}</span>
-                            </div>
-                        </div>
-                        
-                        <div v-if="selectedLevelFilter" style="text-align: right; margin-top: -15px; margin-bottom: 15px;">
-                            <button class="btn btn-outline" style="padding: 6px 14px; font-size: 14px; border-radius: 20px;" @click="selectedLevelFilter = null">❌ 필터 초기화</button>
                         </div>
 
                         <div v-if="showBulkInput" class="bulk-input-area">
                             <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <span class="help-text" style="font-weight: 600; color: #334155;">💡 엑셀의 [학년, 반, 번호, 성명, 연락처] 열을 한 번에 드래그하여 복사한 후 아래에 붙여넣으세요.</span>
+                                <span class="help-text" style="font-weight: 600; color: #334155;">엑셀의 [학년, 반, 번호, 성명, 연락처] 열을 한 번에 드래그하여 복사한 후 아래에 붙여넣으세요.</span>
                                 <button class="btn btn-success" @click="processBulkInput">적용하기</button>
                             </div>
                             <textarea v-model="bulkText" rows="6" placeholder="예시:&#10;1  2  15  홍길동  010-1234-5678&#10;3  1  4   김철수"></textarea>
                         </div>
 
-                        <div style="display: flex; justify-content: space-between; align-items: center; background: #F8FAFC; padding: 16px 22px; border: 1px solid var(--border); border-bottom: none; border-radius: 12px 12px 0 0; flex-wrap: wrap; gap: 15px;">
-                            
-                            <!-- 정렬 버튼이 추가된 그룹 영역 -->
-                            <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                                <span style="font-size: 15px; font-weight: 800; color: #334155; margin-right: 4px;">반 전체선택:</span>
-                                <button @click="selectAfterSchoolClass(1)" class="btn btn-outline" style="padding: 6px 14px; font-size: 14px; border-radius: 20px; color: #0284C7; border-color: #BAE6FD;">1반(1~2학년)</button>
-                                <button @click="selectAfterSchoolClass(2)" class="btn btn-outline" style="padding: 6px 14px; font-size: 14px; border-radius: 20px; color: #15803D; border-color: #BBF7D0;">2반(3~6학년)</button>
-                                <button v-if="selectedStudentIds.length > 0" @click="selectedStudentIds = []" class="btn btn-outline" style="padding: 6px 14px; font-size: 14px; border-radius: 20px; color: #EF4444; border-color: #FCA5A5;">선택 해제</button>
-                                
-                                <!-- 학년/반/번호순 정렬 버튼 -->
-                                <div style="width: 1px; height: 16px; background: #CBD5E1; margin: 0 4px;"></div>
-                                <button @click="sortStudents" class="btn btn-outline" style="padding: 6px 14px; font-size: 14px; border-radius: 20px; color: #4F46E5; border-color: #A5B4FC;">🔽 정렬</button>
-
-                                <!-- 전화번호 복사 버튼 -->
-                                <div style="width: 1px; height: 16px; background: #CBD5E1; margin: 0 4px;"></div>
-                                <span style="font-size: 15px; font-weight: 800; color: #334155; margin-right: 4px;">번호 복사:</span>
-                                <button @click="copyPhoneNumbers(1)" class="btn btn-outline" style="padding: 6px 14px; font-size: 14px; border-radius: 20px; color: #DB2777; border-color: #F9A8D4;">📋 1~2학년</button>
-                                <button @click="copyPhoneNumbers(2)" class="btn btn-outline" style="padding: 6px 14px; font-size: 14px; border-radius: 20px; color: #DB2777; border-color: #F9A8D4;">📋 3~6학년</button>
-                                <button @click="copyPhoneNumbers(0)" class="btn btn-outline" style="padding: 6px 14px; font-size: 14px; border-radius: 20px; color: #DB2777; border-color: #F9A8D4;">📋 전체</button>
+                        <!-- 교구 주문 색깔 카드: 평소엔 걸러 보기, 학생을 체크하면 교구 주문 바꾸기 -->
+                        <p class="level-cap" :class="{ picking: picking }">
+                            <template v-if="!picking">교구 주문 현황 <span>· 카드를 누르면 그 단계 학생만 보입니다</span></template>
+                            <template v-else>선택한 {{ selectedStudentIds.length }}명의 교구 주문 바꾸기 <span>· 바꿀 단계의 카드를 누르세요</span></template>
+                        </p>
+                        <div class="level-summary" :class="{ 'has-selection': selectedLevelFilter && !picking, 'pick-mode': picking }">
+                            <div class="level-box level-1" :class="{ 'selected-card': !picking && selectedLevelFilter === '말랑1' }" @click="onLevelCard('말랑1')">
+                                <span>{{ picking ? '→ 1단계로' : '1단계' }}</span>
+                                <span class="level-count">{{ getCount(currentTab, '말랑1') }}</span>
                             </div>
+                            <div class="level-box level-2" :class="{ 'selected-card': !picking && selectedLevelFilter === '말랑2' }" @click="onLevelCard('말랑2')">
+                                <span>{{ picking ? '→ 2단계로' : '2단계' }}</span>
+                                <span class="level-count">{{ getCount(currentTab, '말랑2') }}</span>
+                            </div>
+                            <div class="level-box level-3" :class="{ 'selected-card': !picking && selectedLevelFilter === '말랑3' }" @click="onLevelCard('말랑3')">
+                                <span>{{ picking ? '→ 3단계로' : '3단계' }}</span>
+                                <span class="level-count">{{ getCount(currentTab, '말랑3') }}</span>
+                            </div>
+                            <div class="level-box level-4" :class="{ 'selected-card': !picking && selectedLevelFilter === '말랑4' }" @click="onLevelCard('말랑4')">
+                                <span>{{ picking ? '→ 4단계로' : '4단계' }}</span>
+                                <span class="level-count">{{ getCount(currentTab, '말랑4') }}</span>
+                            </div>
+                            <div class="level-box level-cert" :class="{ 'selected-card': !picking && selectedLevelFilter === '자격증' }" @click="onLevelCard('자격증')">
+                                <span>{{ picking ? '→ 자격증으로' : '자격증' }}</span>
+                                <span class="level-count">{{ getCount(currentTab, '자격증') }}</span>
+                            </div>
+                            <div class="level-box level-none" :class="{ 'selected-card': !picking && selectedLevelFilter === 'NONE' }" @click="onLevelCard('NONE')">
+                                <span>{{ picking ? '→ 주문 안 함으로' : '주문 안 함' }}</span>
+                                <span class="level-count">{{ getNoItemCount(currentTab) }}</span>
+                            </div>
+                        </div>
 
-                            <div style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap;">
-                                
-                                <div style="display: flex; align-items: center; gap: 6px;">
-                                    <span style="font-size: 14.5px; font-weight: 800; color: #334155;">상태일괄:</span>
-                                    <select v-model="batchStatusValue" style="width: 110px; padding: 7px; font-size: 14px; border-radius: 6px; font-weight: 600;">
-                                        <option value="DEFAULT">상태선택</option>
-                                        <option value="기존">기존</option>
-                                        <option value="신규">신규</option>
-                                        <option value="삭제">삭제</option>
-                                    </select>
-                                    <button class="btn btn-outline" style="padding: 8px 14px; font-size: 14px;" @click="applyBatchStatus" :disabled="selectedStudentIds.length === 0">상태적용</button>
+                        <div class="tool-box">
+                            <!-- 찾기 줄 -->
+                            <div class="tool-row">
+                                <input type="text" v-model="searchQuery" class="search-input" placeholder="이름/전화번호 검색 (Ctrl+F)">
+                                <button @click="sortStudents" class="btn btn-outline btn-sm"><svg class="ic"><use href="#i-sort"/></svg>학년·반·번호순 정렬</button>
+                                <div class="tool-sep"></div>
+                                <span class="tool-cap">보기</span>
+                                <div class="seg">
+                                    <button :class="{ on: statusView === 'all' }" @click="statusView = 'all'">전체 {{ statusCounts.all }}</button>
+                                    <button :class="{ on: statusView === '기존' }" @click="statusView = '기존'">기존 {{ statusCounts['기존'] }}</button>
+                                    <button :class="{ on: statusView === '신규' }" @click="statusView = '신규'">신규 {{ statusCounts['신규'] }}</button>
                                 </div>
-
-                                <div style="width: 1px; height: 18px; background: #CBD5E1; margin: 0 2px;"></div>
-
-                                <div style="display: flex; align-items: center; gap: 6px;">
-                                    <span style="font-size: 14.5px; font-weight: 800; color: #334155;">교구일괄:</span>
-                                    <select v-model="batchItemValue" style="width: 150px; padding: 7px; font-size: 14px; border-radius: 6px; font-weight: 600;">
-                                        <option value="DEFAULT">단계(교구) 변경</option>
-                                        <option value="NONE">교구X (주문안함)</option>
-                                        <option v-for="item in items" :value="item">{{ item }}</option>
-                                    </select>
-                                    <button class="btn btn-outline" style="padding: 8px 14px; font-size: 14px;" @click="applyBatchItem" :disabled="selectedStudentIds.length === 0">교구적용</button>
-                                </div>
-
-                                <span v-if="selectedStudentIds.length > 0" style="font-size: 14px; color: var(--theme-color, var(--primary)); font-weight: 900;">({{ selectedStudentIds.length }}명 선택됨)</span>
+                                <button v-if="selectedLevelFilter" class="btn btn-outline btn-sm" @click="selectedLevelFilter = null"><svg class="ic"><use href="#i-x"/></svg>단계 걸러 보기 끄기</button>
+                            </div>
+                            <!-- 체크한 학생 한꺼번에 바꾸기 줄 -->
+                            <div class="tool-row pick" :class="{ on: picking }">
+                                <span class="pick-count">{{ picking ? '선택한 ' + selectedStudentIds.length + '명' : '학생을 체크하면 한꺼번에 바꿀 수 있습니다' }}</span>
+                                <button class="btn btn-outline btn-sm" :disabled="!picking" @click="selectedStudentIds = []">선택 해제</button>
+                                <div class="tool-sep"></div>
+                                <span class="tool-cap">상태 바꾸기</span>
+                                <button class="btn btn-outline btn-sm" :disabled="!picking" @click="setStatusForSelected('기존')">기존으로</button>
+                                <button class="btn btn-outline btn-sm" :disabled="!picking" @click="setStatusForSelected('신규')">신규로</button>
+                                <button class="btn btn-outline btn-sm is-danger" :disabled="!picking" @click="setStatusForSelected('삭제')">삭제(취소)로</button>
+                                <span v-if="picking" class="tool-hint">교구 주문은 위 색깔 카드를 누르면 바뀝니다</span>
                             </div>
                         </div>
 
@@ -662,6 +737,11 @@
                                 </tr>
                             </thead>
                             <tbody>
+                                <!-- 1반 (1~2학년) 구분 줄 + 반 전체선택 -->
+                                <tr v-if="class1Students.length > 0" class="class-row">
+                                    <td colspan="12"><label><input type="checkbox" :checked="isClassSelected(1)" @change="toggleClass(1, $event)"> 1반 (1~2학년) 전체선택 · {{ class1Students.length }}명</label></td>
+                                </tr>
+
                                 <!-- 1반 학생들 (1~2학년) -->
                                 <tr v-for="(student, index) in class1Students" :key="student.id" :class="getRowClass(student.item)">
                                     <td><input type="checkbox" v-model="selectedStudentIds" :value="student.id"></td>
@@ -692,14 +772,12 @@
                                         </select>
                                     </td>
                                     <td><input type="text" v-model="student.note"></td>
-                                    <td><button class="btn btn-danger" style="padding: 4px 6px; border-radius: 6px; display:flex; margin: 0 auto; font-size: 13px;" @click="removeStudent(student.id)">✖</button></td>
+                                    <td><button class="btn-del" title="학생 삭제" @click="removeStudent(student.id)"><svg class="ic"><use href="#i-trash"/></svg></button></td>
                                 </tr>
 
                                 <!-- 🌟 2반 (3~6학년) 구분선 🌟 -->
-                                <tr v-if="class2Students.length > 0">
-                                    <td colspan="12" style="background-color: #475569 !important; color: #FFFFFF !important; font-weight: 900; font-size: 16px; letter-spacing: 2px; text-align: center; border-right: none; padding: 10px;">
-                                        ━━━ 2반 (3~6학년) ━━━
-                                    </td>
+                                <tr v-if="class2Students.length > 0" class="class-row">
+                                    <td colspan="12"><label><input type="checkbox" :checked="isClassSelected(2)" @change="toggleClass(2, $event)"> 2반 (3~6학년) 전체선택 · {{ class2Students.length }}명</label></td>
                                 </tr>
 
                                 <!-- 2반 학생들 (3~6학년) -->
@@ -732,7 +810,7 @@
                                         </select>
                                     </td>
                                     <td><input type="text" v-model="student.note"></td>
-                                    <td><button class="btn btn-danger" style="padding: 4px 6px; border-radius: 6px; display:flex; margin: 0 auto; font-size: 13px;" @click="removeStudent(student.id)">✖</button></td>
+                                    <td><button class="btn-del" title="학생 삭제" @click="removeStudent(student.id)"><svg class="ic"><use href="#i-trash"/></svg></button></td>
                                 </tr>
 
                                 <tr v-if="class1Students.length === 0 && class2Students.length === 0">
@@ -742,9 +820,9 @@
                         </table>
 
                         <!-- 🌟 [하단 분리] 취소/환불 학생 명단 🌟 -->
-                        <div v-if="cancelledStudents.length > 0" style="margin-top: 40px;">
+                        <div v-if="cancelledStudents.length > 0" id="sec-cancel" class="sec-anchor" style="margin-top: 40px;">
                             <h3 style="margin: 0 0 14px 0; font-size: 20px; font-weight: 900; color: #EF4444; display: flex; align-items: center; gap: 8px;">
-                                ❌ 취소 및 환불 학생 명단 <span style="font-size: 15px; color: #64748B; font-weight: 600;">(재고 정산에 자동 반영됨)</span>
+                                취소 및 환불 학생 명단 <span style="font-size: 15px; color: #64748B; font-weight: 600;">(재고 정산에 자동 반영됨)</span>
                             </h3>
                             <table class="main-table cancelled-table" style="opacity: 0.85; filter: grayscale(20%); margin-bottom: 0;">
                                 <thead>
@@ -793,7 +871,7 @@
                                             </select>
                                         </td>
                                         <td><input type="text" v-model="student.note"></td>
-                                        <td><button class="btn btn-danger" style="padding: 4px 6px; border-radius: 6px; display:flex; margin: 0 auto; font-size: 13px;" @click="removeStudent(student.id)" title="영구 삭제">✖</button></td>
+                                        <td><button class="btn-del" title="영구 삭제" @click="removeStudent(student.id)"><svg class="ic"><use href="#i-trash"/></svg></button></td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -801,9 +879,9 @@
 
                         <div style="height: 1px; background: #CBD5E1; margin: 50px 0;"></div>
 
-                        <div style="display: flex; justify-content: flex-start; align-items: center; margin-bottom: 20px;">
+                        <div id="sec-order" class="sec-anchor" style="display: flex; justify-content: flex-start; align-items: center; margin-bottom: 20px;">
                             <h2 style="margin: 0; font-size: 24px; font-weight: 900; color: #0F172A;">
-                                📄 {{ getSchoolFullName(currentTab) }} 주문서 접수 ({{ quarter }})
+                                {{ getSchoolFullName(currentTab) }} 주문서 접수 ({{ quarter }})
                             </h2>
                         </div>
 
@@ -896,8 +974,8 @@
                                     </table>
                                 </div>
                                 <div style="display: flex; justify-content: center; gap: 12px; margin-top: 18px;">
-                                    <button class="btn" @click="copyScreenshot(1)" :disabled="isCapturing">📸 주문서 복사</button>
-                                    <button class="btn btn-success" @click="saveOrderToList(currentTab, 1)" :disabled="isSaving || isCapturing">📥 리스트 저장</button>
+                                    <button class="btn btn-outline" @click="copyScreenshot(1)" :disabled="isCapturing"><svg class="ic"><use href="#i-camera"/></svg>주문서 복사</button>
+                                    <button class="btn" @click="saveOrderToList(currentTab, 1)" :disabled="isSaving || isCapturing"><svg class="ic"><use href="#i-box"/></svg>리스트 저장</button>
                                 </div>
                             </div>
 
@@ -996,15 +1074,15 @@
                                     </table>
                                 </div>
                                 <div style="display: flex; justify-content: center; gap: 12px; margin-top: 18px;">
-                                    <button class="btn btn-warning" @click="copyScreenshot(2)" :disabled="isCapturing">📸 추가주문서 복사</button>
-                                    <button class="btn btn-success" @click="saveOrderToList(currentTab, 2)" :disabled="isSaving || isCapturing">📥 추가 리스트 저장</button>
+                                    <button class="btn btn-outline" @click="copyScreenshot(2)" :disabled="isCapturing"><svg class="ic"><use href="#i-camera"/></svg>추가주문서 복사</button>
+                                    <button class="btn" @click="saveOrderToList(currentTab, 2)" :disabled="isSaving || isCapturing"><svg class="ic"><use href="#i-box"/></svg>추가 리스트 저장</button>
                                 </div>
                             </div>
 
                         </div>
                         
-                        <div class="saved-orders-area">
-                            <h3 style="margin-top: 0; font-size: 20px; color: #0F172A; font-weight: 900; display: flex; align-items: center; gap: 8px;">📑 저장된 주문서 보관함</h3>
+                        <div id="sec-saved" class="saved-orders-area sec-anchor">
+                            <h3 style="margin-top: 0; font-size: 20px; color: #0F172A; font-weight: 900; display: flex; align-items: center; gap: 8px;">저장된 주문서 보관함</h3>
                             <table class="main-table" style="margin-bottom: 20px;">
                                 <thead>
                                     <tr>
@@ -1032,8 +1110,8 @@
                                         <td style="font-weight: 800; color: var(--theme-color, var(--primary)); font-size: 15px;">{{ order.totalQty }}개</td>
                                         <td style="font-weight: 900; color: #BE185D; font-size: 15.5px;">₩ {{ formatMoney(order.totalAmount) }}</td>
                                         <td>
-                                            <button v-if="order.image" class="btn btn-outline" style="padding: 6px 14px; font-size: 14px; color: #0284C7; border-color: #7DD3FC; margin-right: 6px; font-weight: 800;" @click="selectedImage = order.image">👁️ 보기</button>
-                                            <button class="btn btn-outline" style="padding: 6px 14px; font-size: 14px; color: #EF4444; border-color: #FCA5A5; font-weight: 800;" @click="removeSavedOrder(order.id)">삭제</button>
+                                            <button v-if="order.image" class="btn btn-outline btn-sm" style="margin-right: 6px;" @click="selectedImage = order.image"><svg class="ic"><use href="#i-eye"/></svg>보기</button>
+                                            <button class="btn btn-outline btn-sm is-danger" @click="removeSavedOrder(order.id)"><svg class="ic"><use href="#i-trash"/></svg>삭제</button>
                                         </td>
                                     </tr>
                                     <tr v-if="savedOrders.length === 0">
@@ -1041,16 +1119,13 @@
                                     </tr>
                                 </tbody>
                             </table>
-                            <div style="text-align: right;">
-                                <button class="btn" @click="saveData" style="background: var(--theme-color, var(--primary)); color: white; padding: 14px 28px; font-size: 16px;">💾 전체 저장하기</button>
-                            </div>
                         </div>
 
                     </div>
 
                     <!-- 전체 종합 현황 탭 -->
                     <div v-if="currentTab === 'matrix'">
-                        <h2 style="font-size: 24px; font-weight: 900; margin-bottom: 25px; color: #0F172A;">📊 전체 학교 출강 및 교구 주문 종합 ({{ quarter }})</h2>
+                        <h2 style="font-size: 24px; font-weight: 900; margin-bottom: 25px; color: #0F172A;">전체 학교 출강 및 교구 주문 종합 ({{ quarter }})</h2>
                         <table class="main-table matrix-table" style="font-size: 16px;">
                             <thead>
                                 <tr>
@@ -1093,7 +1168,7 @@
 
                     <!-- 재고 이동 및 정산 탭 -->
                     <div v-if="currentTab === 'inventory'">
-                        <h2 style="font-size: 24px; font-weight: 900; margin-bottom: 25px; color: #0F172A;">🔄 전체 학교 간 재고 이동 및 반품 스마트 정산 ({{ quarter }})</h2>
+                        <h2 style="font-size: 24px; font-weight: 900; margin-bottom: 25px; color: #0F172A;">전체 학교 간 재고 이동 및 반품 스마트 정산 ({{ quarter }})</h2>
                         <div class="summary-cards">
                             <div class="card">
                                 <h3>발생한 총 삭제 처리 수량</h3>
@@ -1133,7 +1208,7 @@
                         </table>
                         <div style="background: #F8FAFC; border-left: 5px solid var(--primary); padding: 18px 24px; border-radius: 8px;">
                             <p style="color: #334155; font-size: 15px; margin: 0; line-height: 1.6; font-weight: 600;">
-                                <b>💡 스마트 정산 안내:</b> 여러 학교를 돌아다니며 수업하시는 센서 제어 코딩 클래스의 특성을 반영하여, 한 학교에서 삭제된 교구를 다른 학교의 신규 등록 학생에게 바로 배정(전용)하여 불필요한 실물 교구 재주문과 반품 물류비를 최소화하도록 자동 계산됩니다.
+                                <b>스마트 정산 안내:</b> 여러 학교를 돌아다니며 수업하시는 센서 제어 코딩 클래스의 특성을 반영하여, 한 학교에서 삭제된 교구를 다른 학교의 신규 등록 학생에게 바로 배정(전용)하여 불필요한 실물 교구 재주문과 반품 물류비를 최소화하도록 자동 계산됩니다.
                             </p>
                         </div>
                     </div>
@@ -1179,8 +1254,13 @@
 
                 const searchQuery = ref('');
                 const selectedStudentIds = ref([]);
-                const batchItemValue = ref('DEFAULT');
-                const batchStatusValue = ref('DEFAULT'); 
+                const statusView = ref('all');      // 보기: all / 기존 / 신규
+                const openMenu = ref(null);         // 펼쳐진 메뉴: export / more
+                const toggleMenu = (name) => { openMenu.value = openMenu.value === name ? null : name; };
+                const picking = computed(() => selectedStudentIds.value.length > 0);
+                const levelLabels = { '말랑1': '1단계', '말랑2': '2단계', '말랑3': '3단계', '말랑4': '4단계', '자격증': '자격증', 'NONE': '주문 안 함' };
+                const levelLabel = (v) => levelLabels[v] || v;
+                const jumpTo = (id) => { const el = document.getElementById(id); if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' }); };
 
                 const selectSchoolAndEnter = (schoolKey) => {
                     quarter.value = landingQuarter.value;
@@ -1208,8 +1288,8 @@
                     selectedLevelFilter.value = null;
                     searchQuery.value = '';
                     selectedStudentIds.value = [];
-                    batchItemValue.value = 'DEFAULT';
-                    batchStatusValue.value = 'DEFAULT'; 
+                    statusView.value = 'all';
+                    openMenu.value = null;
                 });
 
                 watch(quarter, (newQ) => {
@@ -1250,7 +1330,10 @@
                 // 베이스 필터: 현재 학교, 분기, 레벨 검색어 등
                 const filteredStudents = computed(() => {
                     let list = students.value.filter(s => s.school === currentTab.value && s.quarter === quarter.value);
-                    if (selectedLevelFilter.value) list = list.filter(s => s.item === selectedLevelFilter.value);
+                    if (selectedLevelFilter.value === 'NONE') list = list.filter(s => !s.item);
+                    else if (selectedLevelFilter.value) list = list.filter(s => s.item === selectedLevelFilter.value);
+                    // 보기(기존/신규): 취소 학생은 아래 취소·환불 명단에 그대로 남긴다
+                    if (statusView.value !== 'all') list = list.filter(s => s.status === statusView.value || s.status === '삭제');
                     if (searchQuery.value) {
                         const q = searchQuery.value.trim().toLowerCase();
                         list = list.filter(s => s.name.includes(q) || s.phone.includes(q));
@@ -1332,14 +1415,24 @@
                     return classType === 1 ? class1Students.value.length : class2Students.value.length;
                 };
 
-                const selectAfterSchoolClass = (classType) => {
-                    const ids = classType === 1 ? class1Students.value.map(s => s.id) : class2Students.value.map(s => s.id);
-                    if (ids.length === 0) {
-                        Swal.fire({ title: '알림', text: classType === 1 ? '1~2학년 학생이 없습니다.' : '3~6학년 학생이 없습니다.', icon: 'info', confirmButtonColor: '#78649c' });
-                        return;
-                    }
-                    selectedStudentIds.value = ids; 
+                // 표 안의 반 구분 줄 체크박스: 그 반만 골라 넣거나 뺀다
+                const classIds = (classType) => (classType === 1 ? class1Students.value : class2Students.value).map(s => s.id);
+                const isClassSelected = (classType) => {
+                    const ids = classIds(classType);
+                    return ids.length > 0 && ids.every(id => selectedStudentIds.value.includes(id));
                 };
+                const toggleClass = (classType, e) => {
+                    const ids = classIds(classType);
+                    const rest = selectedStudentIds.value.filter(id => !ids.includes(id));
+                    selectedStudentIds.value = e.target.checked ? [...rest, ...ids] : rest;
+                };
+
+                // 보기 버튼에 적는 인원 (현재 학교·분기, 취소 학생 제외)
+                const statusCounts = computed(() => {
+                    const list = students.value.filter(s => s.school === currentTab.value && s.quarter === quarter.value && s.status !== '삭제');
+                    return { all: list.length, '기존': list.filter(s => s.status === '기존').length, '신규': list.filter(s => s.status === '신규').length };
+                });
+                const getNoItemCount = (school) => students.value.filter(s => s.quarter === quarter.value && s.school === school && !s.item && s.status !== '삭제').length;
 
                 // 전체 선택은 활성화된 학생(1반, 2반)만 잡히도록 수정
                 const isAllSelected = computed(() => {
@@ -1352,34 +1445,33 @@
                     selectedStudentIds.value = e.target.checked ? active.map(s => s.id) : []; 
                 };
 
-                const applyBatchItem = () => {
-                    if (!batchItemValue.value || batchItemValue.value === 'DEFAULT') {
-                        Swal.fire({ title: '안내', text: '변경할 단계나 교구X(주문안함)을 선택해주세요.', icon: 'warning', confirmButtonColor: '#78649c' });
-                        return;
-                    }
+                // 색깔 카드: 체크한 학생이 있으면 교구 주문 바꾸기, 없으면 걸러 보기
+                const applyItemToSelected = (level) => {
+                    const count = selectedStudentIds.value.length;
                     students.value.forEach(s => {
-                        if (selectedStudentIds.value.includes(s.id)) {
-                            s.item = (batchItemValue.value === 'NONE') ? '' : batchItemValue.value;
-                        }
+                        if (selectedStudentIds.value.includes(s.id)) s.item = (level === 'NONE') ? '' : level;
                     });
-                    selectedStudentIds.value = []; 
-                    batchItemValue.value = 'DEFAULT';
-                    Swal.fire({ title: '완료!', text: '선택한 학생들의 교구 주문 내역이 변경되었습니다.', icon: 'success', timer: 1200, showConfirmButton: false });
+                    selectedStudentIds.value = [];
+                    Swal.fire({ title: '완료!', text: `${count}명의 교구 주문을 '${levelLabel(level)}'(으)로 바꿨습니다.`, icon: 'success', timer: 1400, showConfirmButton: false });
                 };
+                const onLevelCard = (level) => { if (picking.value) applyItemToSelected(level); else toggleLevelFilter(level); };
 
-                const applyBatchStatus = () => {
-                    if (!batchStatusValue.value || batchStatusValue.value === 'DEFAULT') {
-                        Swal.fire({ title: '안내', text: '변경할 상태(기존/신규/삭제)를 선택해주세요.', icon: 'warning', confirmButtonColor: '#78649c' });
-                        return;
-                    }
-                    students.value.forEach(s => {
-                        if (selectedStudentIds.value.includes(s.id)) {
-                            s.status = batchStatusValue.value;
-                        }
+                // 체크한 학생의 상태 한꺼번에 바꾸기 (삭제는 이름을 보여 주고 한 번 물어봄)
+                const setStatusForSelected = (status) => {
+                    const targets = students.value.filter(s => selectedStudentIds.value.includes(s.id));
+                    if (targets.length === 0) return;
+                    const apply = () => {
+                        targets.forEach(s => { s.status = status; });
+                        selectedStudentIds.value = [];
+                        Swal.fire({ title: '완료!', text: `${targets.length}명의 상태를 '${status}'(으)로 바꿨습니다.`, icon: 'success', timer: 1400, showConfirmButton: false });
+                    };
+                    if (status !== '삭제') return apply();
+                    const names = targets.map(s => (s.name || '').trim()).filter(n => n !== '');
+                    const who = names.length === 0 ? `선택한 ${targets.length}명`
+                        : (targets.length === 1 ? `"${names[0]}" 학생` : `"${names[0]}" 외 ${targets.length - 1}명`);
+                    Swal.fire({ title: '취소 처리', html: `<b>${who}</b>을 취소 처리할까요?<br>(취소·환불 명단으로 옮겨지고 재고 정산에 반영됩니다)`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#EF4444', cancelButtonColor: '#94A3B8', confirmButtonText: '취소 처리', cancelButtonText: '돌아가기' }).then((result) => {
+                        if (result.isConfirmed) apply();
                     });
-                    selectedStudentIds.value = []; 
-                    batchStatusValue.value = 'DEFAULT';
-                    Swal.fire({ title: '완료!', text: '선택한 학생들의 상태가 변경되었습니다.', icon: 'success', timer: 1200, showConfirmButton: false });
                 };
 
                 const toggleLevelFilter = (level) => { selectedLevelFilter.value = selectedLevelFilter.value === level ? null : level; selectedStudentIds.value = []; };
@@ -1451,7 +1543,7 @@
                 const removeStudent = (id) => {
                     const target = students.value.find(s => s.id === id);
                     const displayName = target && target.name ? target.name : '해당 학생';
-                    Swal.fire({ title: '영구 삭제', html: `<b>"${displayName}"</b> 학생을 명단에서 완전히 삭제하시겠습니까?<br>(재고 정산에서도 빠집니다)`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#EF4444', cancelButtonColor: '#94A3B8', confirmButtonText: '완전 삭제' }).then((result) => {
+                    Swal.fire({ title: '영구 삭제', html: `<b>"${displayName}"</b> 학생을 명단에서 완전히 삭제하시겠습니까?<br>(재고 정산에서도 빠집니다)`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#EF4444', cancelButtonColor: '#94A3B8', confirmButtonText: '완전 삭제', cancelButtonText: '취소' }).then((result) => {
                         if (result.isConfirmed) { students.value = students.value.filter(s => s.id !== id); selectedStudentIds.value = selectedStudentIds.value.filter(sid => sid !== id); }
                     });
                 };
@@ -1529,7 +1621,9 @@
                 };
 
                 const removeSavedOrder = (id) => {
-                    Swal.fire({ title: '삭제', text: '삭제하시겠습니까?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#EF4444', confirmButtonText: '삭제' }).then((result) => {
+                    const target = savedOrders.value.find(o => o.id === id);
+                    const label = target ? `${target.schoolName} ${target.quarter} ${target.orderType || '주문서'}` : '이 주문서';
+                    Swal.fire({ title: '보관함에서 삭제', html: `<b>${label}</b><br>보관함에서 삭제할까요?`, icon: 'warning', showCancelButton: true, confirmButtonColor: '#EF4444', cancelButtonColor: '#94A3B8', confirmButtonText: '삭제', cancelButtonText: '취소' }).then((result) => {
                         if (result.isConfirmed) savedOrders.value = savedOrders.value.filter(o => o.id !== id);
                     });
                 };
@@ -1670,6 +1764,7 @@
 
                 onMounted(() => {
                     loadData(); 
+                    window.addEventListener('click', () => { openMenu.value = null; }); // 메뉴 밖을 누르면 닫기
                     window.addEventListener('keydown', (e) => {
                         if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
                             const searchInput = document.querySelector('.search-input');
@@ -1680,8 +1775,8 @@
 
                 return { 
                     isLoggedIn, landingQuarter, selectSchoolAndEnter, goHome, goToIndex, currentTab, showBulkInput, bulkText, 
-                    quarter, searchQuery, selectedStudentIds, isAllSelected, toggleAll, selectAfterSchoolClass, batchItemValue, batchStatusValue,
-                    applyBatchItem, applyBatchStatus, schoolNames, getSchoolFullName, getDeptName, items, 
+                    quarter, searchQuery, selectedStudentIds, isAllSelected, toggleAll, isClassSelected, toggleClass, statusView, statusCounts, openMenu, toggleMenu, picking, levelLabel, jumpTo, onLevelCard, setStatusForSelected, getNoItemCount,
+                    schoolNames, getSchoolFullName, getDeptName, items, 
                     orderItems, itemMapping, price, students, filteredStudents, class1Students, class2Students, cancelledStudents,
                     orderFormsByQuarter, savedOrders, selectedImage, 
                     isSaving, isCapturing, selectedLevelFilter, toggleLevelFilter, addStudent, processBulkInput, removeStudent, 
