@@ -1240,12 +1240,15 @@
         createApp({
             setup() {
                 const isLoggedIn = ref(false);
-                const landingQuarter = ref('3분기');
+                // 오늘 달에 맞는 분기를 기본으로 고른다: 2~4월 1분기, 5~7월 2분기, 8~10월 3분기, 11~1월 4분기
+                const quarterForMonth = (m) => (m >= 11 || m === 1) ? '4분기' : (m <= 4 ? '1분기' : (m <= 7 ? '2분기' : '3분기'));
+                const defaultQuarter = quarterForMonth(new Date().getMonth() + 1);
+                const landingQuarter = ref(defaultQuarter);
 
                 const currentTab = ref('hakdong');
                 const showBulkInput = ref(false);
                 const bulkText = ref('');
-                const quarter = ref('3분기');
+                const quarter = ref(defaultQuarter);
 
                 const selectedImage = ref(null);
                 const isSaving = ref(false);
