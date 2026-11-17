@@ -105,6 +105,19 @@
         
         .btn-sync { background: linear-gradient(135deg, #fbc5eb 0%, #e8a5df 100%); color: #4a235a; }
         .btn-save-pos { background: linear-gradient(135deg, #df98d7 0%, #cc88d0 100%); color: #fff; }
+        .btn-return-kit { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); color: #5a2d0c; }
+        .rk-box { width: 340px; max-width: 92vw; max-height: 80vh; padding: 16px; gap: 10px; }
+        .rk-box .custom-modal-icon { font-size: 1.6rem; }
+        .rk-box .custom-modal-title { font-size: 1.1rem; }
+        .rk-box .custom-modal-desc { font-size: 0.8rem; }
+        .rk-list { text-align: left; overflow-y: auto; max-height: 34vh; border: 1px solid #ddd; border-radius: 8px; background: #f8f9fa; padding: 6px 10px; font-size: 0.85rem; line-height: 1.5; }
+        .rk-box .custom-modal-btns button { padding: 8px; font-size: 0.85rem; }
+        .rk-school { font-weight: 900; color: #7a4a1d; margin: 8px 0 2px; }
+        .rk-row { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px dashed #e0d6c8; padding: 2px 0; }
+        .rk-kit { color: #c0392b; font-weight: bold; white-space: nowrap; }
+        .rk-toggle { display: flex; gap: 6px; }
+        .rk-toggle button { padding: 7px; font-size: 0.85rem; background: #e2e8f0; color: #4a5568; text-shadow: none; }
+        .rk-toggle button.on { background: linear-gradient(135deg, #f6d365 0%, #fda085 100%); color: #5a2d0c; }
         .btn-reset-attendance { background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%); color: #fff; }
         .btn-print { background: linear-gradient(135deg, #7457ad 0%, #b19cd9 100%); color: #fff; }
         
@@ -441,6 +454,7 @@
 
         <!-- 맨 아래 미니 액션 버튼들 -->
         <div class="bottom-actions">
+            <button class="btn-return-kit" onclick="openReturnKitModal()"><i class="fa-solid fa-box-open"></i> 교구 회수 명단</button>
             <div style="display: flex; gap: 5px;">
                 <button class="btn-reset-current" onclick="resetCurrentClass()"><i class="fa-solid fa-eraser"></i> 현재 반 초기화</button>
                 <button class="btn-reset-all" onclick="resetAllData()"><i class="fa-solid fa-trash-can"></i> 전체 삭제</button>
@@ -515,6 +529,24 @@
     </div>
 
     <!-- 📱 단체 결석생 명단 QR 모달 📱 -->
+    <div id="rk-modal-overlay" class="custom-modal-overlay">
+        <div class="custom-modal-box rk-box">
+            <div class="custom-modal-icon"><i class="fa-solid fa-box-open" style="color: #e67e22;"></i></div>
+            <h3 class="custom-modal-title">3분기 교구 회수 명단</h3>
+            <div class="custom-modal-desc" style="text-align: center;">3분기에 들었지만 4분기 명단에 없는 학생이에요.<br>마지막 수업날 교구를 챙겨 보내주세요.</div>
+            <div class="rk-toggle">
+                <button id="rk-btn-class" onclick="setReturnKitScope('class')">현재 학교·반만</button>
+                <button id="rk-btn-school" onclick="setReturnKitScope('school')">이 학교 전체</button>
+                <button id="rk-btn-all" onclick="setReturnKitScope('all')">전체 학교</button>
+            </div>
+            <div class="rk-list" id="rk-list"></div>
+            <div class="custom-modal-btns" style="flex-direction: column; gap: 8px;">
+                <button class="btn-copy-text" id="rk-copy-btn" onclick="copyReturnKitText()"><i class="fa-solid fa-copy"></i> 텍스트 복사하기</button>
+                <button class="btn-modal-cancel" onclick="closeReturnKitModal()"><i class="fa-solid fa-xmark"></i> 닫기</button>
+            </div>
+        </div>
+    </div>
+
     <div id="qr-modal-overlay" class="custom-modal-overlay">
         <div class="custom-modal-box" style="width: 400px;">
             <div class="custom-modal-icon"><i class="fa-solid fa-users-slash" style="color: #e74c3c;"></i></div>
@@ -1085,6 +1117,94 @@
             
             document.getElementById('qr-text-preview').innerHTML = message.replace(/\n/g, '<br>') + missingWarning;
             document.getElementById('qr-modal-overlay').style.display = 'flex';
+        }
+
+        // ───── 3분기 → 4분기 교구 회수 명단 ─────
+        let rkScope = 'class';
+        let rkText = '';
+
+        function rkClean(v) { return (v || '').toString().replace(/\s+/g, ''); }
+        function rkGrade(v) { return (v || '').toString().replace(/[^0-9]/g, ''); }
+        function rkEsc(v) { return (v || '').toString().replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+        async function openReturnKitModal() {
+            await loadDashboardData();
+            setReturnKitScope(rkScope);
+            document.getElementById('rk-modal-overlay').style.display = 'flex';
+        }
+
+        function closeReturnKitModal() {
+            document.getElementById('rk-modal-overlay').style.display = 'none';
+        }
+
+        function setReturnKitScope(scope) {
+            rkScope = scope;
+            ['class', 'school', 'all'].forEach(k => document.getElementById('rk-btn-' + k).classList.toggle('on', k === scope));
+            renderReturnKitList();
+        }
+
+        function renderReturnKitList() {
+            const listEl = document.getElementById('rk-list');
+            const q4 = dashboardStudents.filter(s => s && s.quarter === '4분기');
+            if (q4.length === 0) {
+                rkText = '';
+                listEl.innerHTML = '<div style="color:#e67e22; font-weight:bold; text-align:center; padding:14px;">대시보드에 4분기 명단이 아직 없어요.<br>4분기 명단을 먼저 입력해 주세요.</div>';
+                return;
+            }
+            // 4분기에 실제로 듣는 학생(삭제 아님): 학교+학년+이름
+            const stay = new Set(q4.filter(s => s.status !== '삭제').map(s => [s.school, rkGrade(s.grade), rkClean(s.name)].join('|')));
+
+            let targets = dashboardStudents.filter(s =>
+                s && s.quarter === '3분기' && s.status !== '삭제' && rkClean(s.name) &&
+                !stay.has([s.school, rkGrade(s.grade), rkClean(s.name)].join('|'))
+            );
+            if (rkScope !== 'all') targets = targets.filter(s => s.school === currentSchool);
+            if (rkScope === 'class') {
+                targets = targets.filter(s => {
+                    const g = parseInt(rkGrade(s.grade), 10);
+                    const cls = (g >= 3 && g <= 6) ? 'class2' : 'class1';
+                    return cls === currentClassType;
+                });
+            }
+
+            const order = Object.keys(SCHOOLS);
+            targets.sort((a, b) => (order.indexOf(a.school) - order.indexOf(b.school)) ||
+                (parseInt(rkGrade(a.grade), 10) || 0) - (parseInt(rkGrade(b.grade), 10) || 0) ||
+                (parseInt(a.classNum, 10) || 0) - (parseInt(b.classNum, 10) || 0) ||
+                (parseInt(a.num, 10) || 0) - (parseInt(b.num, 10) || 0));
+
+            if (targets.length === 0) {
+                rkText = '';
+                listEl.innerHTML = '<div style="color:#27ae60; font-weight:bold; text-align:center; padding:14px;">회수할 학생이 없어요. 🎉</div>';
+                return;
+            }
+
+            let html = '', text = '[3분기 교구 회수 명단] 총 ' + targets.length + '명\n', cur = null;
+            targets.forEach(s => {
+                const schoolName = SCHOOLS[s.school] ? SCHOOLS[s.school].name : s.school;
+                if (s.school !== cur) {
+                    cur = s.school;
+                    html += `<div class="rk-school">${rkEsc(schoolName)}</div>`;
+                    text += `\n■ ${schoolName}\n`;
+                }
+                const pos = [s.grade ? s.grade + '학년' : '', s.classNum ? s.classNum + '반' : '', s.num ? s.num + '번' : ''].filter(Boolean).join(' ');
+                const kit = s.item || '교구 미지정';
+                html += `<div class="rk-row"><span>${rkEsc(pos)} <b>${rkEsc(s.name)}</b></span><span class="rk-kit">${rkEsc(kit)}</span></div>`;
+                text += `- ${pos} ${s.name} (${kit})\n`;
+            });
+            rkText = text.trim();
+            listEl.innerHTML = html;
+        }
+
+        function copyReturnKitText() {
+            if (!rkText) return;
+            navigator.clipboard.writeText(rkText).then(() => {
+                const btn = document.getElementById('rk-copy-btn');
+                const orig = btn.innerHTML;
+                btn.innerHTML = '<i class="fa-solid fa-check"></i> 복사되었습니다!';
+                btn.style.background = '#27ae60';
+                setTimeout(() => { btn.innerHTML = orig; btn.style.background = '#3498db'; }, 2000);
+            }).catch(() => alert('복사에 실패했습니다. 직접 드래그해서 복사해주세요.'));
         }
 
         function closeBulkQRModal() {
