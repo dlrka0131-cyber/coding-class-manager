@@ -114,6 +114,9 @@
         .rk-box .custom-modal-btns button { padding: 8px; font-size: 0.85rem; }
         .rk-school { font-weight: 900; color: #7a4a1d; margin: 8px 0 2px; }
         .rk-row { display: flex; justify-content: space-between; gap: 10px; border-bottom: 1px dashed #e0d6c8; padding: 2px 0; }
+        .rk-row { cursor: pointer; }
+        .rk-row input { margin-right: 4px; transform: scale(1.2); cursor: pointer; }
+        .rk-row.done { opacity: 0.45; text-decoration: line-through; }
         .rk-kit { color: #c0392b; font-weight: bold; white-space: nowrap; }
         .rk-toggle { display: flex; gap: 6px; }
         .rk-toggle button { padding: 7px; font-size: 0.85rem; background: #e2e8f0; color: #4a5568; text-shadow: none; }
@@ -539,6 +542,7 @@
                 <button id="rk-btn-school" onclick="setReturnKitScope('school')">이 학교 전체</button>
                 <button id="rk-btn-all" onclick="setReturnKitScope('all')">전체 학교</button>
             </div>
+            <div id="rk-summary" style="font-size:0.85rem; font-weight:bold; color:#c0392b; text-align:right;"></div>
             <div class="rk-list" id="rk-list"></div>
             <div class="custom-modal-btns" style="flex-direction: column; gap: 8px;">
                 <button class="btn-copy-text" id="rk-copy-btn" onclick="copyReturnKitText()"><i class="fa-solid fa-copy"></i> 텍스트 복사하기</button>
@@ -1127,8 +1131,16 @@
         function rkGrade(v) { return (v || '').toString().replace(/[^0-9]/g, ''); }
         function rkEsc(v) { return (v || '').toString().replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
 
+        let rkChecked = {};
+        let rkTargets = [];
+        function rkKey(s) { return [s.school, rkGrade(s.grade), rkClean(s.name)].join('|'); }
+
         async function openReturnKitModal() {
             await loadDashboardData();
+            try {
+                const snap = await db.collection('seatingData').doc('returnKitChecks').get();
+                rkChecked = (snap.exists && snap.data().checked) || {};
+            } catch (e) { console.error('교구 체크 불러오기 실패:', e); rkChecked = {}; }
             setReturnKitScope(rkScope);
             document.getElementById('rk-modal-overlay').style.display = 'flex';
         }
@@ -1148,6 +1160,7 @@
             const q4 = dashboardStudents.filter(s => s && s.quarter === '4분기');
             if (q4.length === 0) {
                 rkText = '';
+                document.getElementById('rk-summary').textContent = '';
                 listEl.innerHTML = '<div style="color:#e67e22; font-weight:bold; text-align:center; padding:14px;">대시보드에 4분기 명단이 아직 없어요.<br>4분기 명단을 먼저 입력해 주세요.</div>';
                 return;
             }
@@ -1173,27 +1186,51 @@
                 (parseInt(a.classNum, 10) || 0) - (parseInt(b.classNum, 10) || 0) ||
                 (parseInt(a.num, 10) || 0) - (parseInt(b.num, 10) || 0));
 
+            rkTargets = targets;
+            const sumEl = document.getElementById('rk-summary');
             if (targets.length === 0) {
                 rkText = '';
+                sumEl.textContent = '';
                 listEl.innerHTML = '<div style="color:#27ae60; font-weight:bold; text-align:center; padding:14px;">회수할 학생이 없어요. 🎉</div>';
                 return;
             }
 
-            let html = '', text = '[3분기 교구 회수 명단] 총 ' + targets.length + '명\n', cur = null;
-            targets.forEach(s => {
+            const doneCnt = targets.filter(s => rkChecked[rkKey(s)]).length;
+            sumEl.textContent = `챙겨감 ${doneCnt} / ${targets.length}명`;
+
+            let html = '', text = '[교구 아직 안 챙긴 학생] ' + (targets.length - doneCnt) + '명\n', cur = null;
+            targets.forEach((s, i) => {
                 const schoolName = SCHOOLS[s.school] ? SCHOOLS[s.school].name : s.school;
+                const done = !!rkChecked[rkKey(s)];
                 if (s.school !== cur) {
                     cur = s.school;
                     html += `<div class="rk-school">${rkEsc(schoolName)}</div>`;
-                    text += `\n■ ${schoolName}\n`;
+                    if (!done || targets.some(t => t.school === cur && !rkChecked[rkKey(t)])) text += `\n■ ${schoolName}\n`;
                 }
                 const pos = [s.grade ? s.grade + '학년' : '', s.classNum ? s.classNum + '반' : '', s.num ? s.num + '번' : ''].filter(Boolean).join(' ');
                 const kit = s.item || '교구 미지정';
-                html += `<div class="rk-row"><span>${rkEsc(pos)} <b>${rkEsc(s.name)}</b></span><span class="rk-kit">${rkEsc(kit)}</span></div>`;
-                text += `- ${pos} ${s.name} (${kit})\n`;
+                html += `<label class="rk-row${done ? ' done' : ''}"><span><input type="checkbox" ${done ? 'checked' : ''} onchange="toggleReturnKit(${i}, this.checked)"> ${rkEsc(pos)} <b>${rkEsc(s.name)}</b></span><span class="rk-kit">${rkEsc(kit)}</span></label>`;
+                if (!done) text += `- ${pos} ${s.name} (${kit})\n`;
             });
             rkText = text.trim();
             listEl.innerHTML = html;
+        }
+
+        async function toggleReturnKit(i, on) {
+            const s = rkTargets[i];
+            if (!s) return;
+            const key = rkKey(s);
+            if (on) rkChecked[key] = true; else delete rkChecked[key];
+            const listEl = document.getElementById('rk-list');
+            const top = listEl.scrollTop;
+            renderReturnKitList();
+            listEl.scrollTop = top;
+            try {
+                await db.collection('seatingData').doc('returnKitChecks').set({ checked: rkChecked });
+            } catch (e) {
+                console.error(e);
+                alert('체크 저장에 실패했어요. 인터넷 연결을 확인해 주세요.');
+            }
         }
 
         function copyReturnKitText() {
