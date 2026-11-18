@@ -631,6 +631,7 @@
                                         <button class="menu-item" @click="copyPhoneNumbers(1)"><svg class="ic"><use href="#i-copy"/></svg>1~2학년</button>
                                         <button class="menu-item" @click="copyPhoneNumbers(2)"><svg class="ic"><use href="#i-copy"/></svg>3~6학년</button>
                                         <button class="menu-item" @click="copyPhoneNumbers(0)"><svg class="ic"><use href="#i-copy"/></svg>전체</button>
+                                        <button class="menu-item" @click="copyPhoneNumbers(0, true)"><svg class="ic"><use href="#i-copy"/></svg>신규</button>
                                     </div>
                                 </div>
                                 <button class="btn btn-outline" @click="addStudent(currentTab)"><svg class="ic"><use href="#i-plus"/></svg>한 명 추가</button>
@@ -1481,10 +1482,11 @@
                 });
 
                 // 전화번호 복사 (1: 1~2학년, 2: 3~6학년, 0: 전체) — 현재 학교·분기 기준, 삭제 학생 제외, 검색어와 무관
-                const copyPhoneNumbers = (classType) => {
-                    const label = classType === 1 ? '1반(1~2학년)' : classType === 2 ? '2반(3~6학년)' : '전체';
+                const copyPhoneNumbers = (classType, onlyNew = false) => {
+                    const label = (onlyNew ? '신규 ' : '') + (classType === 1 ? '1반(1~2학년)' : classType === 2 ? '2반(3~6학년)' : '전체');
                     const targets = students.value.filter(s => {
                         if (!s || s.school !== currentTab.value || s.quarter !== quarter.value || s.status === '삭제') return false;
+                        if (onlyNew && s.status !== '신규') return false;
                         if (classType === 0) return true;
                         const g = parseInt((s.grade || '').toString().replace(/[^0-9]/g, ''), 10);
                         return classType === 1 ? (!g || g <= 2) : g >= 3;
