@@ -314,7 +314,7 @@
             transition: background-color 0.4s ease, border-color 0.4s ease;
         }
         .board-section { display: flex; flex-direction: column; flex: 1.5; gap: 8px; }
-        .board-section h2 { margin: 0; color: #2c3e50; font-size: 1.4rem; text-align: center; }
+        .board-section h2 { margin: 0; color: #2c3e50; font-size: 1.8rem; text-align: center; white-space: nowrap; }
         .board-title-row { display: flex; align-items: center; justify-content: center; gap: 6px; flex-wrap: nowrap; }
         .ann-size-ctrl { display: inline-flex; align-items: center; gap: 1px; background: rgba(255,255,255,0.8); border: 1px solid #fadbd8; border-radius: 12px; padding: 0 3px; }
         .ann-size-ctrl button { border: none; background: transparent; cursor: pointer; font-weight: 800; color: #2c3e50; padding: 0 4px; border-radius: 8px; font-family: inherit; font-size: 0.7rem; line-height: 1.5; }
@@ -325,6 +325,12 @@
             padding: 15px; font-size: calc(3rem * var(--ann-scale, 1)); font-weight: 600; resize: none; font-family: inherit; 
             line-height: 1.6; outline: none; background: rgba(255, 255, 255, 0.7); color: #2d3436;
         }
+        .announcement-board { overflow-y: auto; min-height: 0; white-space: pre-wrap; word-break: break-all; }
+        .announcement-board:empty::before { content: attr(data-placeholder); color: #b2bec3; font-weight: 400; pointer-events: none; }
+        .hl-bar { display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .hl-bar .hl-label { font-size: 0.7rem; font-weight: 700; color: #7f8c8d; }
+        .hl-bar button { width: 20px; height: 20px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,0.25); cursor: pointer; padding: 0; font-size: 0.65rem; font-weight: 800; color: #555; background: #fff; line-height: 1; }
+        .hl-bar button:hover { transform: scale(1.15); }
         .announcement-board:focus { border-color: #3498db; background: rgba(255, 255, 255, 0.9); }
         .memo-section { display: flex; flex-direction: column; height: 180px; gap: 6px; border-top: 2px dashed #fadbd8; padding-top: 12px; }
         .memo-section h3 { margin: 0; color: #c0392b; font-size: 1rem; text-align: left; display: flex; align-items: center; gap: 6px; padding-left: 2px; }
@@ -504,11 +510,19 @@
                             <button type="button" onclick="changeAnnSize(0.1)" aria-label="글씨 크게">A+</button>
                         </div>
                     </div>
-                    <textarea class="announcement-board" id="announcement-text" placeholder="수업내용"></textarea>
+                    <div class="hl-bar" title="글씨를 드래그해서 선택한 뒤 색을 누르세요">
+                        <span class="hl-label">형광펜</span>
+                        <button type="button" style="background:#fff176" onmousedown="event.preventDefault()" onclick="applyHighlight('#fff176')" aria-label="노란 형광펜"></button>
+                        <button type="button" style="background:#a5f3a5" onmousedown="event.preventDefault()" onclick="applyHighlight('#a5f3a5')" aria-label="초록 형광펜"></button>
+                        <button type="button" style="background:#ffb3d1" onmousedown="event.preventDefault()" onclick="applyHighlight('#ffb3d1')" aria-label="분홍 형광펜"></button>
+                        <button type="button" style="background:#9fd8ff" onmousedown="event.preventDefault()" onclick="applyHighlight('#9fd8ff')" aria-label="파랑 형광펜"></button>
+                        <button type="button" onmousedown="event.preventDefault()" onclick="applyHighlight('transparent')" aria-label="형광펜 지우기" title="선택한 부분 형광펜 지우기">✕</button>
+                    </div>
+                    <div class="announcement-board" id="announcement-text" contenteditable="true" spellcheck="false" data-placeholder="수업내용"></div>
                 </div>
                 <div class="memo-section">
                     <h3><i class="fa-solid fa-note-sticky"></i> 선생님 메모장</h3>
-                    <textarea class="memo-board" id="memo-text" placeholder="간단한 메모나 특이사항을 적어두세요."></textarea>
+                    <textarea class="memo-board" id="memo-text" spellcheck="false" placeholder="간단한 메모나 특이사항을 적어두세요."></textarea>
                 </div>
             </div>
         </div>
@@ -742,10 +756,72 @@
             applyAnnSize();
         })();
 
+/* 수업안내: 형광펜을 지원하는 입력창 (저장은 표시 + HTML 형태, 예전 일반 텍스트도 그대로 읽힘) */
+        const ANN_MARK = '<!--h-->';
+        function escHtml(t) { return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+        function sanitizeAnnHtml(html) {
+            const tpl = document.createElement('template');
+            tpl.innerHTML = html;
+            const walk = (node) => {
+                [...node.childNodes].forEach(ch => {
+                    if (ch.nodeType === 3) return;
+                    if (ch.nodeType !== 1) { ch.remove(); return; }
+                    const tag = ch.tagName.toLowerCase();
+                    if (tag === 'br') return;
+                    if (tag === 'div' || tag === 'p') { [...ch.attributes].forEach(a => ch.removeAttribute(a.name)); walk(ch); return; }
+                    if (tag === 'span' || tag === 'font' || tag === 'mark') {
+                        const bg = ch.style.backgroundColor;
+                        [...ch.attributes].forEach(a => ch.removeAttribute(a.name));
+                        walk(ch);
+                        if (bg && /^[#a-z0-9(),.\s%]+$/i.test(bg)) {
+                            const sp = document.createElement('span');
+                            sp.style.backgroundColor = bg;
+                            while (ch.firstChild) sp.appendChild(ch.firstChild);
+                            ch.replaceWith(sp);
+                        } else { ch.replaceWith(...ch.childNodes); }
+                        return;
+                    }
+                    ch.replaceWith(document.createTextNode(ch.textContent));
+                });
+            };
+            walk(tpl.content);
+            return tpl.innerHTML;
+        }
+        function getAnnouncementValue() {
+            const el = document.getElementById('announcement-text');
+            if (!el || el.textContent.trim() === '') return '';
+            return ANN_MARK + sanitizeAnnHtml(el.innerHTML);
+        }
+        function setAnnouncementValue(v) {
+            const el = document.getElementById('announcement-text');
+            if (!el) return;
+            if (v.startsWith(ANN_MARK)) el.innerHTML = sanitizeAnnHtml(v.slice(ANN_MARK.length));
+            else el.innerHTML = escHtml(v).replace(/\r?\n/g, '<br>');
+        }
+        function applyHighlight(color) {
+            const el = document.getElementById('announcement-text');
+            const sel = window.getSelection();
+            if (!sel.rangeCount || sel.isCollapsed || !el.contains(sel.anchorNode) || !el.contains(sel.focusNode)) {
+                showCustomAlert('형광펜', '형광펜을 칠할 글씨를 먼저 드래그해서 선택해주세요.', '<i class="fa-solid fa-highlighter" style="color: #f1c40f;"></i>');
+                return;
+            }
+            document.execCommand('styleWithCSS', false, true);
+            document.execCommand('hiliteColor', false, color);
+        }
+        (function initAnnEditor() {
+            const el = document.getElementById('announcement-text');
+            el.addEventListener('paste', e => {
+                e.preventDefault();
+                const t = (e.clipboardData || window.clipboardData).getData('text/plain');
+                document.execCommand('insertText', false, t);
+            });
+            el.addEventListener('input', () => { if (el.textContent === '' && !el.querySelector('br')) el.innerHTML = ''; });
+        })();
+
         function updateCurrentState() {
             const annArea = document.getElementById('announcement-text');
             const memoArea = document.getElementById('memo-text');
-            if (annArea && classData[currentClassType]) classData[currentClassType].announcement = annArea.value;
+            if (annArea && classData[currentClassType]) classData[currentClassType].announcement = getAnnouncementValue();
             if (memoArea && classData[currentClassType]) classData[currentClassType].memo = memoArea.value;
         }
 
@@ -1070,7 +1146,7 @@
                 <span class="class-title-badge ${badgeClass}">${className}</span>`;
             
             document.getElementById('school-title-text').innerHTML = styledTitle;
-            document.getElementById('announcement-text').value = classData[currentClassType].announcement || "";
+            setAnnouncementValue(classData[currentClassType].announcement || "");
             document.getElementById('memo-text').value = classData[currentClassType].memo || "";
             
             const workspace = document.getElementById('workspace');
