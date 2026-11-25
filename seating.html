@@ -315,9 +315,14 @@
         }
         .board-section { display: flex; flex-direction: column; flex: 1.5; gap: 8px; }
         .board-section h2 { margin: 0; color: #2c3e50; font-size: 1.4rem; text-align: center; }
-        .announcement-board { 
-            flex: 1; width: 100%; border: 2px solid #fadbd8; border-radius: 10px; 
-            padding: 15px; font-size: 3rem; font-weight: 600; resize: none; font-family: inherit; 
+        .board-title-row { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+        .ann-size-ctrl { display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.8); border: 1.5px solid #fadbd8; border-radius: 20px; padding: 2px 6px; }
+        .ann-size-ctrl button { border: none; background: transparent; cursor: pointer; font-weight: 800; color: #2c3e50; padding: 2px 8px; border-radius: 12px; font-family: inherit; font-size: 0.95rem; }
+        .ann-size-ctrl button:hover { background: #ebf5fb; }
+        .ann-size-ctrl .ann-size-label { min-width: 46px; text-align: center; font-size: 0.85rem; font-weight: 700; color: #7f8c8d; cursor: pointer; user-select: none; }
+        .announcement-board {
+            flex: 1; width: 100%; border: 2px solid #fadbd8; border-radius: 10px;
+            padding: 15px; font-size: calc(3rem * var(--ann-scale, 1)); font-weight: 600; resize: none; font-family: inherit; 
             line-height: 1.6; outline: none; background: rgba(255, 255, 255, 0.7); color: #2d3436;
         }
         .announcement-board:focus { border-color: #3498db; background: rgba(255, 255, 255, 0.9); }
@@ -333,7 +338,7 @@
         /* 🔥 수정된 부분: 4-4 배열일 때 flex 강제 고정 해제 */
         .layout-4-4 #left-pane { width: 80%; flex-shrink: 0; } 
         .layout-4-4 #right-pane { min-width: 200px; padding: 20px; }
-        .layout-4-4 .announcement-board { font-size: 2.2rem; } 
+        .layout-4-4 .announcement-board { font-size: calc(2.2rem * var(--ann-scale, 1)); }
         .layout-4-4 .row { gap: 20px; } 
 
         /* 모달 및 우클릭 메뉴 */
@@ -491,7 +496,14 @@
 
             <div id="right-pane">
                 <div class="board-section">
-                    <h2>오늘의 코딩 수업 안내</h2>
+                    <div class="board-title-row">
+                        <h2>오늘의 코딩 수업 안내</h2>
+                        <div class="ann-size-ctrl" title="글씨 크기 조절 (가운데 숫자를 누르면 100%로 초기화)">
+                            <button type="button" onclick="changeAnnSize(-0.1)" aria-label="글씨 작게">A−</button>
+                            <span class="ann-size-label" id="ann-size-label" onclick="resetAnnSize()">100%</span>
+                            <button type="button" onclick="changeAnnSize(0.1)" aria-label="글씨 크게">A+</button>
+                        </div>
+                    </div>
                     <textarea class="announcement-board" id="announcement-text" placeholder="수업내용"></textarea>
                 </div>
                 <div class="memo-section">
@@ -708,6 +720,27 @@
             document.getElementById('custom-alert-overlay').style.display = 'flex';
         }
         function closeCustomAlert() { document.getElementById('custom-alert-overlay').style.display = 'none'; }
+
+        /* 오늘의 코딩 수업 안내 글씨 크기 조절 (이 기기에 기억됨) */
+        let annScale = 1;
+        function applyAnnSize() {
+            document.documentElement.style.setProperty('--ann-scale', annScale);
+            const label = document.getElementById('ann-size-label');
+            if (label) label.textContent = Math.round(annScale * 100) + '%';
+            try { localStorage.setItem('seatingApp_announcement_scale', String(annScale)); } catch (e) {}
+        }
+        function changeAnnSize(delta) {
+            annScale = Math.min(2.5, Math.max(0.4, Math.round((annScale + delta) * 10) / 10));
+            applyAnnSize();
+        }
+        function resetAnnSize() { annScale = 1; applyAnnSize(); }
+        (function initAnnSize() {
+            try {
+                const saved = parseFloat(localStorage.getItem('seatingApp_announcement_scale'));
+                if (saved >= 0.4 && saved <= 2.5) annScale = saved;
+            } catch (e) {}
+            applyAnnSize();
+        })();
 
         function updateCurrentState() {
             const annArea = document.getElementById('announcement-text');
